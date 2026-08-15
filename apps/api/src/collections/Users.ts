@@ -15,7 +15,9 @@ export const Users: CollectionConfig = {
         { label: 'Administrador', value: 'admin' },
       ],
       access: {
-        // Só o proprietário pode alterar papéis. Sem isto, um admin promove-se a si próprio.
+        // Só o proprietário pode definir ou alterar papéis. Sem isto, um admin
+        // cria-se (ou promove-se) a owner — quer no create, quer no update.
+        create: ({ req }) => req.user?.role === 'owner',
         update: ({ req }) => req.user?.role === 'owner',
       },
     },
