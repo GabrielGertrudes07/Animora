@@ -1,4 +1,18 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, NumberFieldSingleValidation } from 'payload'
+import { validations } from 'payload'
+
+// Dinheiro é sempre em cêntimos inteiros — sem isto o Postgres aceita 29.9
+// e o cálculo de lucro do dashboard corrompe-se silenciosamente.
+// Corre primeiro a validação nativa do Payload (required/min/max) — um `validate`
+// custom substitui a nativa por inteiro, por isso reaproveita-se `validations.number`
+// em vez de reimplementar min/max/required aqui.
+const validateInteger: NumberFieldSingleValidation = (value, options) => {
+  const defaultResult = validations.number(value, options)
+  if (defaultResult !== true) return defaultResult
+  return value === null || value === undefined || Number.isInteger(value)
+    ? true
+    : 'Tem de ser um número inteiro'
+}
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -93,8 +107,10 @@ export const Products: CollectionConfig = {
             {
               name: 'costCents',
               type: 'number',
+              min: 0,
               label: 'Custo de compra (cêntimos)',
               admin: { description: 'Usado no cálculo de lucro. Nunca sai para o site.' },
+              validate: validateInteger,
             },
           ],
         },
