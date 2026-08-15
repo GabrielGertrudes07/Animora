@@ -4,18 +4,21 @@ import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { pt } from '@payloadcms/translations/languages/pt'
+import sharp from 'sharp'
 
 import { Users } from './src/collections/Users'
 import { Categories } from './src/collections/Categories'
 import { Brands } from './src/collections/Brands'
+import { Media } from './src/collections/Media'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default buildConfig({
   admin: { user: Users.slug },
-  collections: [Users, Categories, Brands],
+  collections: [Users, Categories, Brands, Media],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',
+  sharp,
   db: postgresAdapter({
     pool: { connectionString: process.env.DATABASE_URI || '' },
   }),
