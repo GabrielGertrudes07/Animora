@@ -6,12 +6,14 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { pt } from '@payloadcms/translations/languages/pt'
 
 import { Users } from './src/collections/Users'
+import { Categories } from './src/collections/Categories'
+import { Brands } from './src/collections/Brands'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default buildConfig({
   admin: { user: Users.slug },
-  collections: [Users],
+  collections: [Users, Categories, Brands],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',
   db: postgresAdapter({
