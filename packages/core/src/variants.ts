@@ -24,3 +24,34 @@ export function combinationKey(c: Combination): string {
     .map((k) => `${k}=${c[k]}`)
     .join('|')
 }
+
+export type VariantRow = {
+  combination: Combination
+  sku: string
+  priceCents: number
+  stock: number
+  active: boolean
+}
+
+/**
+ * Recalcula a matriz a partir das opções, preservando os dados das linhas
+ * cuja combinação continua a existir.
+ *
+ * Linhas cuja combinação deixou de ser possível desaparecem.
+ * Linhas novas nascem a zero e inativas de propósito? Não — nascem ativas
+ * com preço e stock a zero, para que a validação de publicação as apanhe.
+ */
+export function mergeVariants(
+  existing: VariantRow[],
+  options: VariantOption[],
+): VariantRow[] {
+  const byKey = new Map(existing.map((r) => [combinationKey(r.combination), r]))
+
+  return generateCombinations(options).map((combination) => {
+    const previous = byKey.get(combinationKey(combination))
+
+    if (previous) return { ...previous, combination }
+
+    return { combination, sku: '', priceCents: 0, stock: 0, active: true }
+  })
+}
