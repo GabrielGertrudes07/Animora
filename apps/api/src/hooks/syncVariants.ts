@@ -2,6 +2,43 @@ import type { CollectionAfterChangeHook, PayloadRequest } from 'payload'
 import { mergeVariants, buildSku, combinationKey } from '@animora/core'
 import type { Combination, VariantOption, VariantRow } from '@animora/core'
 
+/** Chave do lock consultivo. Arbitrária — só tem de ser sempre a mesma. */
+const SKU_LOCK_KEY = 918273
+
+/**
+ * Fecha a janela entre escolher o SKU e gravá-lo.
+ *
+ * `count` e `create` não são atómicos: dois pedidos concorrentes contavam ambos zero,
+ * escolhiam o mesmo SKU e o segundo levava com 400 "Valor deve ser único" sem razão
+ * aparente para quem está no painel.
+ *
+ * Apanhar a violação de unicidade e repetir com o sufixo seguinte não funciona neste
+ * Payload: a operação `create` aninhada trata o erro com `killTransaction`, que faz
+ * rollback da transação do pedido inteiro e apaga a sessão. A repetição passaria a
+ * escrever fora de qualquer transação, onde o produto ainda não existe, e o 400
+ * virava um 500 por chave estrangeira. Confirmado a correr — ver o relatório.
+ *
+ * Logo: em vez de recuperar da colisão, serializa-se quem pode atribuir SKU.
+ * `pg_advisory_xact_lock` larga sozinho no commit ou no rollback, sem limpeza nem
+ * esperas. Com `read committed`, quem espera vê as linhas de quem confirmou antes.
+ *
+ * ponytail: um lock único para toda a atribuição de SKU. Serializa gravações de
+ * produtos diferentes durante os milissegundos da transação — para uma loja com um
+ * punhado de gravações por minuto chega. Se um dia incomodar, passa a lock por
+ * marca (`hashtext` do prefixo), mas aí é preciso ordenar as chaves para não haver
+ * deadlock entre pedidos que tocam nas mesmas marcas.
+ */
+async function lockSkuAllocation(req: PayloadRequest): Promise<void> {
+  const transactionID = await req.transactionID
+  const session = transactionID ? req.payload.db.sessions?.[String(transactionID)] : undefined
+
+  // Sem transação (ex.: `disableTransaction`) não há nada para serializar.
+  if (!session) return
+
+  const db = session.db as { execute: (query: string) => Promise<unknown> }
+  await db.execute(`select pg_advisory_xact_lock(${SKU_LOCK_KEY})`)
+}
+
 /**
  * Primeiro SKU livre a partir do sugerido: `HAP-COL`, `HAP-COL-2`, `HAP-COL-3`, ...
  *
@@ -70,6 +107,8 @@ export const syncVariants: CollectionAfterChangeHook = async ({ doc, req }) => {
 
   const missing = merged.filter((r) => !existingKeys.has(combinationKey(r.combination)))
   if (missing.length === 0) return doc
+
+  await lockSkuAllocation(req)
 
   // A marca vem populada ou como id, conforme o `depth` do pedido. Sem resolver o id,
   // o SKU saía "GEN-..." em metade das gravações.
