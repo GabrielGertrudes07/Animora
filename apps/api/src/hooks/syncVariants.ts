@@ -32,8 +32,18 @@ async function lockSkuAllocation(req: PayloadRequest): Promise<void> {
   const transactionID = await req.transactionID
   const session = transactionID ? req.payload.db.sessions?.[String(transactionID)] : undefined
 
-  // Sem transação (ex.: `disableTransaction`) não há nada para serializar.
-  if (!session) return
+  // Sem transação não há nada onde prender o lock. Falha alto de propósito: retornar
+  // em silêncio perdia a proteção e reabria a corrida sem nada no log a explicar
+  // porquê. Assim, desativar transações passa a ser uma decisão consciente.
+  if (!session) {
+    throw new Error(
+      'Sem transação não é possível serializar a atribuição de SKU das variantes: ' +
+        'dois produtos gravados ao mesmo tempo escolhem o mesmo SKU e um deles falha ' +
+        'com "Valor deve ser único". Desativar transações (`disableTransaction` na ' +
+        'gravação, ou `transactionOptions: false` no adaptador) reabre essa corrida — ' +
+        'ou se grava o produto dentro da transação do pedido, ou se preenche o SKU à mão.',
+    )
+  }
 
   const db = session.db as { execute: (query: string) => Promise<unknown> }
   await db.execute(`select pg_advisory_xact_lock(${SKU_LOCK_KEY})`)
