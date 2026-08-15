@@ -629,9 +629,11 @@ import { buildSku } from './sku'
 
 describe('buildSku', () => {
   it('junta marca, produto e valores das opções', () => {
+    // As opções saem por ordem alfabética da chave (Cor antes de Tamanho),
+    // não pela ordem em que foram escritas — ver o teste de determinismo abaixo.
     expect(buildSku('HappyPaws', 'Coleira', { Tamanho: 'S', Cor: 'Preto' }))
-      .toBe('HAP-COL-S-PRE')
-    })
+      .toBe('HAP-COL-PRE-S')
+  })
 
   it('usa as tres primeiras letras de cada parte', () => {
     expect(buildSku('PetNest', 'Comedouro', {})).toBe('PET-COM')
