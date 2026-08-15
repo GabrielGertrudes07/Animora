@@ -3,6 +3,7 @@ import { validations } from 'payload'
 
 import { syncVariants } from '../hooks/syncVariants'
 import { validatePublish } from '../hooks/validatePublish'
+import { uniqueSlug } from '../hooks/uniqueSlug'
 
 // Dinheiro é sempre em cêntimos inteiros — sem isto o Postgres aceita 29.9
 // e o cálculo de lucro do dashboard corrompe-se silenciosamente.
@@ -25,6 +26,7 @@ export const Products: CollectionConfig = {
     defaultColumns: ['title', 'brand', '_status'],
   },
   hooks: {
+    beforeValidate: [uniqueSlug],
     beforeChange: [validatePublish],
     afterChange: [syncVariants],
   },
