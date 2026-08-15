@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animora - Workshop para animais</title>
+  <link rel="icon" type="image/x-icon" href="./logo2.ico" />
+  <link rel="shortcut icon" type="image/x-icon" href="./logo2.ico" />
+  <meta name="description" content="Produtos, acessórios e cuidados para cães, gatos, pássaros e animais de estimação com qualidade e confiança." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="top-bar">
+      <div class="container top-bar-inner">
+        <span><span class="material-symbols-outlined">local_shipping</span> Entrega rápida · <span class="material-symbols-outlined">verified</span> Produtos certificados · <span class="material-symbols-outlined">pets</span> Cuidados de confiança</span>
+        <div class="top-links">
+          <a href="#">Suporte</a>
+          <a href="#">Vender agora</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-header">
+      <div class="container main-header-inner">
+        <a href="/" class="logo" aria-label="Logo do site">
+          <img src="logo.png" alt="Logo Workshop de Animais" class="brand-logo" />
+        </a>
+
+        <form class="search" id="searchForm">
+          <input type="search" id="searchInput" placeholder="Procura coleiras, ração, brinquedos…" aria-label="Pesquisar produtos" />
+          <button type="submit" class="btn btn-primary" aria-label="Pesquisar"><span class="material-symbols-outlined">search</span></button>
+        </form>
+
+        <div class="header-actions">
+          <button class="btn-ghost" id="openFavorites" type="button">
+            <span class="material-symbols-outlined" aria-hidden="true">favorite</span> Favoritos
+            <span class="badge-count hidden" id="favCount">0</span>
+          </button>
+          <button class="btn-ghost" type="button"><span class="material-symbols-outlined" aria-hidden="true">person</span> Conta</button>
+          <button class="btn-ghost cart" id="openCart" type="button">
+            <span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span>
+            <span>Carrinho</span>
+            <span class="cart-count" id="cartCount">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <nav class="category-nav">
+      <div class="container category-nav-inner">
+        <ul id="categoryNav"></ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-content">
+        <span class="eyebrow"><span class="material-symbols-outlined">pets</span> Cuidados e bem-estar para cada animal</span>
+        <h1>Cuide do seu companheiro com <span>produtos pensados para a vida real</span>.</h1>
+        <p>Descubra alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais. Tudo pensado para o conforto, a saúde e a felicidade do seu pet.</p>
+        <div class="hero-ctas">
+          <a href="#catalog" class="btn btn-primary">Explorar loja</a>
+          <a href="#how" class="btn btn-outline">Como funciona</a>
+        </div>
+        <ul class="hero-stats">
+          <li><strong>+8 000</strong><span>animais felizes</span></li>
+          <li><strong>4.9</strong><span class="rating-inline"><span class="material-symbols-outlined">star</span> avaliação média</span></li>
+          <li><strong>24 meses</strong><span>suporte e garantia</span></li>
+        </ul>
+      </div>
+      <div class="hero-visual" aria-hidden>
+        <div class="hero-photo">
+          <img src="https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Pessoa com cachorro" />
+          <div class="floating-card">
+            <span class="material-symbols-outlined">verified</span>
+            <div>
+              <strong>Produtos confiáveis</strong>
+              <small>Testados para o dia a dia</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST BAR -->
+  <section class="trust">
+    <div class="container trust-inner">
+      <div class="item"><span class="icon material-symbols-outlined">build</span><div><strong>Produtos testados</strong><p>Todos os itens passam por controlo de qualidade.</p></div></div>
+      <div class="item"><span class="icon material-symbols-outlined">shield</span><div><strong>Garantia até 24 meses</strong><p>Para que o seu pet esteja sempre protegido.</p></div></div>
+      <div class="item"><span class="icon material-symbols-outlined">local_shipping</span><div><strong>Entrega em 24h</strong><p>Recebe em casa rapidamente e sem complicações.</p></div></div>
+      <div class="item"><span class="icon material-symbols-outlined">sync_alt</span><div><strong>Troca fácil</strong><p>Se não gostar, devolvemos sem stress.</p></div></div>
+    </div>
+  </section>
+
+  <!-- CATÁLOGO -->
+  <main class="container layout" id="catalog">
+    <aside class="filters">
+      <div class="filters-head">
+        <strong>Filtros</strong>
+        <button class="link" id="resetFilters" type="button">Limpar tudo</button>
+      </div>
+      <p class="filters-count" id="resultCount">0 itens encontrados</p>
+
+      <div class="section">
+        <h4>Categoria</h4>
+        <div class="content" id="filterCategories"></div>
+      </div>
+
+      <div class="section">
+        <h4>Estado</h4>
+        <div class="content" id="filterConditions"></div>
+      </div>
+
+      <div class="section">
+        <h4>Marca</h4>
+        <div class="content" id="filterBrands"></div>
+      </div>
+
+      <div class="section">
+        <h4>Preço</h4>
+        <div class="price-range">
+          <span id="minPriceLabel">0€</span>
+          <input type="range" id="minPrice" min="0" max="1500" step="10" value="0" aria-label="Preço mínimo" />
+          <input type="range" id="maxPrice" min="0" max="1500" step="10" value="1500" aria-label="Preço máximo" />
+          <span id="maxPriceLabel">1500€</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <h4>Garantia mínima</h4>
+        <div class="content">
+          <select id="warranty">
+            <option value="0">Qualquer</option>
+            <option value="6">6 meses</option>
+            <option value="12">12 meses</option>
+            <option value="18">18 meses</option>
+            <option value="24">24 meses</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section">
+        <h4>Outros</h4>
+        <div class="content">
+          <label class="cb"><input type="checkbox" id="inStock" /> <span>Em stock</span></label>
+          <label class="cb"><input type="checkbox" id="onlyDiscount" /> <span>Em promoção</span></label>
+        </div>
+      </div>
+    </aside>
+
+    <section class="results">
+      <div class="toolbar">
+        <div class="left">
+          <strong id="totalCount">0</strong>
+          <span>itens</span>
+        </div>
+        <div class="right">
+          <label>
+            Ordenar por:
+            <select id="sort">
+              <option value="relevance">Mais relevantes</option>
+              <option value="price-asc">Preço: do mais barato</option>
+              <option value="price-desc">Preço: do mais caro</option>
+              <option value="rating">Melhor avaliação</option>
+              <option value="discount">Maior desconto</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="grid" id="productGrid"></div>
+
+      <div class="empty hidden" id="emptyState">
+        <h3>Nenhum produto corresponde aos filtros</h3>
+        <p>Tenta alargar o intervalo de preço ou remover algumas categorias.</p>
+      </div>
+
+      <section class="how" id="how">
+        <h2>Como funciona a Animora</h2>
+        <div class="steps">
+          <div class="step"><span class="num">1</span><h4>Descobre</h4><p>Explora a nossa selecção de produtos para cães, gatos, pássaros e animais de estimação.</p></div>
+          <div class="step"><span class="num">2</span><h4>Escolhe</h4><p>Seleciona o que melhor responde às necessidades do teu companheiro, com aconselhamento prático.</p></div>
+          <div class="step"><span class="num">3</span><h4>Cuida</h4><p>Recebe em casa e começa a cuidar do teu animal com produtos de qualidade e confiança.</p></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <section class="trust trust-bottom">
+    <div class="container trust-inner">
+      <div class="item"><span class="icon material-symbols-outlined">build</span><div><strong>Produtos testados</strong><p>Todos os itens passam por controlo de qualidade.</p></div></div>
+      <div class="item"><span class="icon material-symbols-outlined">shield</span><div><strong>Garantia até 24 meses</strong><p>Para que o seu pet esteja sempre protegido.</p></div></div>
+      <div class="item"><span class="icon material-symbols-outlined">local_shipping</span><div><strong>Entrega em 24h</strong><p>Recebe em casa rapidamente e sem complicações.</p></div></div>
+      <div class="item"><span class="icon material-symbols-outlined">sync_alt</span><div><strong>Troca fácil</strong><p>Se não gostar, devolvemos sem stress.</p></div></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-col footer-brand">
+        <img src="logo.png" alt="Workshop de Animais" class="footer-logo" />
+        <p>Cuidados premium para o teu animal. Acessórios, alimentação e produtos para o dia a dia com qualidade e confiança.</p>
+        <div class="footer-socials">
+          <a href="#" aria-label="Facebook" class="social-facebook">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.87.24-1.46 1.5-1.46H16.7V4.43c-.3-.04-1.36-.13-2.6-.13-2.57 0-4.34 1.57-4.34 4.46v2.24H7.3v3h2.46V21h3.74Z"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram" class="social-instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.5" cy="6.5" r="1.05" fill="currentColor" stroke="none"/></g></svg>
+          </a>
+          <a href="#" aria-label="X" class="social-x">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.53 3H20.5l-6.49 7.42L21.7 21h-6.05l-4.74-6.2L5.5 21H2.52l6.96-7.95L2.3 3h6.2l4.28 5.66L17.53 3Zm-1.06 16.2h1.65L7.6 4.7H5.83l10.64 14.5Z"/></svg>
+          </a>
+          <a href="#" aria-label="YouTube" class="social-youtube">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23 7.2s-.22-1.6-.9-2.3c-.86-.93-1.82-.94-2.27-1C16.7 3.5 12 3.5 12 3.5s-4.7 0-7.83.4c-.45.06-1.41.07-2.27 1C1.22 5.6 1 7.2 1 7.2S.75 9.1.75 11v1.8c0 1.9.25 3.8.25 3.8s.22 1.6.9 2.3c.86.93 1.99.9 2.5 1 1.81.17 7.6.4 7.6.4s4.7-.01 7.83-.41c.45-.06 1.41-.07 2.27-1 .68-.7.9-2.3.9-2.3s.25-1.9.25-3.8V11c0-1.9-.25-3.8-.25-3.8ZM9.75 14.8V8.4l6.2 3.2-6.2 3.2Z"/></svg>
+          </a>
+          <a href="#" aria-label="TikTok" class="social-tiktok">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.6 5.82A4.27 4.27 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.43 0-2.59-1.16-2.59-2.5a2.59 2.59 0 0 1 2.59-2.5c.27 0 .53.04.78.13V9.92c-.26-.04-.52-.06-.78-.06A5.79 5.79 0 1 0 15.45 15.6V9.4a7.32 7.32 0 0 0 4.4 1.46V7.78a4.34 4.34 0 0 1-3.25-1.96Z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <strong>Ajuda</strong>
+        <ul>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Pagamento</a></li>
+          <li><a href="#">Portes e Entrega</a></li>
+          <li><a href="#">Devoluções e Reembolsos</a></li>
+          <li><a href="#">Contactos</a></li>
+          <li><a href="#">Seguir encomenda</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <strong>A minha conta</strong>
+        <ul>
+          <li><a href="#">Iniciar sessão</a></li>
+          <li><a href="#">Registar</a></li>
+          <li><a href="#">As minhas encomendas</a></li>
+          <li><a href="#">As minhas listas</a></li>
+          <li><a href="#">Os meus alertas</a></li>
+          <li><a href="#">Programa de fidelização</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <strong>Sobre nós</strong>
+        <ul>
+          <li><a href="#">Quem somos</a></li>
+          <li><a href="#">Cuidados e bem-estar</a></li>
+          <li><a href="#">Vender os meus produtos</a></li>
+          <li><a href="#">Programa de afiliados</a></li>
+          <li><a href="#">Imprensa</a></lis>
+          <li><a href="#">Trabalhe connosco</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="container footer-legal">
+      <span>© 2026 Animora · Todos os direitos reservados.</span>
+      <span class="footer-legal-links">
+        <a href="#">Termos</a> · <a href="#">Privacidade</a> · <a href="#">Cookies</a>
+      </span>
+    </div>
+
+    <button class="scroll-top" id="scrollTop" type="button" aria-label="Voltar ao topo">↑</button>
+  </footer>
+
+  <!-- MODAL DE PRODUTO -->
+  <div class="modal-backdrop hidden" id="productModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="closeModal" aria-label="Fechar"><span class="material-symbols-outlined">close</span></button>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- DRAWER DO CARRINHO -->
+  <div class="drawer-backdrop hidden" id="cartDrawer" aria-hidden="true">
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+      <header class="drawer-head">
+        <h2 id="cartTitle"><span class="material-symbols-outlined">shopping_cart</span> Carrinho <span class="muted" id="cartTitleCount">(0)</span></h2>
+        <button class="modal-close" id="closeCart" aria-label="Fechar"><span class="material-symbols-outlined">close</span></button>
+      </header>
+      <div class="drawer-body" id="cartBody"></div>
+      <footer class="drawer-foot hidden" id="cartFoot">
+        <div class="cart-totals">
+          <div class="line"><span>Subtotal</span><strong id="cartSubtotal">0.00€</strong></div>
+          <div class="line"><span>Envio</span><strong id="cartShipping">—</strong></div>
+          <div class="line big"><span>Total</span><strong id="cartTotal">0.00€</strong></div>
+        </div>
+        <button class="btn btn-primary checkout" id="checkoutBtn">Finalizar compra</button>
+        <button class="link" id="clearCart" type="button">Esvaziar carrinho</button>
+      </footer>
+    </aside>
+  </div>
+
+  <!-- DRAWER DE FAVORITOS -->
+  <div class="drawer-backdrop hidden" id="favDrawer" aria-hidden="true">
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="favTitle">
+      <header class="drawer-head">
+        <h2 id="favTitle"><span class="material-symbols-outlined">favorite</span> Favoritos <span class="muted" id="favTitleCount">(0)</span></h2>
+        <button class="modal-close" id="closeFav" aria-label="Fechar"><span class="material-symbols-outlined">close</span></button>
+      </header>
+      <div class="drawer-body" id="favBody"></div>
+    </aside>
+  </div>
+
+  <!-- TOASTS -->
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="products.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
