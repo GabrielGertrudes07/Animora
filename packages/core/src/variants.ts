@@ -17,12 +17,17 @@ export function generateCombinations(options: VariantOption[]): Combination[] {
 /**
  * Identidade estável de uma combinação, independente da ordem das chaves.
  * É por esta chave que se reconhece uma variante já existente.
+ *
+ * Serializa a estrutura (pares [chave, valor] ordenados por chave) em vez de
+ * concatenar texto com separadores — um valor que contivesse "|" ou "="
+ * podia colidir com outra combinação e herdar o preço/stock errado.
  */
 export function combinationKey(c: Combination): string {
-  return Object.keys(c)
-    .sort()
-    .map((k) => `${k}=${c[k]}`)
-    .join('|')
+  return JSON.stringify(
+    Object.keys(c)
+      .sort()
+      .map((k) => [k, c[k]]),
+  )
 }
 
 export type VariantRow = {

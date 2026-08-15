@@ -57,6 +57,10 @@ describe('combinationKey', () => {
   it('produz chaves diferentes para combinações diferentes', () => {
     expect(combinationKey({ Tamanho: 'S' })).not.toBe(combinationKey({ Tamanho: 'M' }))
   })
+
+  it('nao colide quando um valor contém os separadores usados internamente', () => {
+    expect(combinationKey({ p: 'q|r=s' })).not.toBe(combinationKey({ p: 'q', r: 's' }))
+  })
 })
 
 import { mergeVariants, type VariantRow } from './variants'
@@ -142,5 +146,17 @@ describe('mergeVariants', () => {
     ]
     const result = mergeVariants(existing, [{ name: 'Tamanho', values: ['S'] }])
     expect(result[0]?.active).toBe(false)
+  })
+
+  it('nao contamina uma combinação com dados de outra quando um valor contém separadores internos', () => {
+    const existing = [row({ p: 'q|r=s' }, 9900, 7)]
+    const result = mergeVariants(existing, [
+      { name: 'p', values: ['q'] },
+      { name: 'r', values: ['s'] },
+    ])
+
+    const target = result.find((r) => r.combination.p === 'q' && r.combination.r === 's')
+    expect(target?.priceCents).toBe(0)
+    expect(target?.stock).toBe(0)
   })
 })
