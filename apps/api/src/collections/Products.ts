@@ -1,6 +1,8 @@
 import type { CollectionConfig, NumberFieldSingleValidation } from 'payload'
 import { validations } from 'payload'
 
+import { syncVariants } from '../hooks/syncVariants'
+
 // Dinheiro é sempre em cêntimos inteiros — sem isto o Postgres aceita 29.9
 // e o cálculo de lucro do dashboard corrompe-se silenciosamente.
 // Corre primeiro a validação nativa do Payload (required/min/max) — um `validate`
@@ -20,6 +22,9 @@ export const Products: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'brand', '_status'],
+  },
+  hooks: {
+    afterChange: [syncVariants],
   },
   fields: [
     {
