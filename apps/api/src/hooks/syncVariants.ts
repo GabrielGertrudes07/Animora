@@ -120,12 +120,23 @@ export const syncVariants: CollectionAfterChangeHook = async ({ doc, req }) => {
 
   await lockSkuAllocation(req)
 
-  // A marca vem populada ou como id, conforme o `depth` do pedido. Sem resolver o id,
-  // o SKU saía "GEN-..." em metade das gravações.
-  const brand =
+  // A marca vem populada, como id, ou pode nem existir ainda — é obrigatória para publicar
+  // (ver validatePublish) mas não para gravar rascunho, e "título escrito, marca por
+  // escolher" é o rascunho a meio mais comum do painel. Resolver por id só quando há
+  // mesmo um id: se a marca existe mas veio só como id (conforme o `depth` do pedido),
+  // continua a ser preciso o `findByID` — uma ronda anterior tirou daqui um literal 'GEN'
+  // fixo precisamente porque ele fazia o mesmo produto gerar prefixos diferentes conforme
+  // o depth. Não reintroduzir esse caso: o 'GEN' abaixo só entra quando `doc.brand` é
+  // null/undefined (sem marca nenhuma), nunca quando é um id por resolver.
+  const brandName =
     typeof doc.brand === 'object' && doc.brand !== null
-      ? doc.brand
-      : await req.payload.findByID({ collection: 'brands', id: doc.brand, depth: 0, req })
+      ? String(doc.brand.name)
+      : doc.brand
+        ? String(
+            (await req.payload.findByID({ collection: 'brands', id: doc.brand, depth: 0, req }))
+              .name,
+          )
+        : 'GEN'
 
   for (const row of missing) {
     await req.payload.create({
@@ -133,7 +144,7 @@ export const syncVariants: CollectionAfterChangeHook = async ({ doc, req }) => {
       data: {
         product: doc.id,
         combination: row.combination,
-        sku: await freeSku(buildSku(String(brand.name), String(doc.title), row.combination), req),
+        sku: await freeSku(buildSku(brandName, String(doc.title), row.combination), req),
         priceCents: 0,
         stock: 0,
         active: true,
