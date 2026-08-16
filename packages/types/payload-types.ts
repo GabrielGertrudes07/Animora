@@ -75,6 +75,7 @@ export interface Config {
     products: Product;
     variants: Variant;
     customers: Customer;
+    orders: Order;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -89,6 +90,7 @@ export interface Config {
     products: ProductsSelect<false> | ProductsSelect<true>;
     variants: VariantsSelect<false> | VariantsSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -399,6 +401,54 @@ export interface Customer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  numero: string;
+  cliente: number | Customer;
+  email: string;
+  estado: 'a-aguardar-pagamento' | 'pago' | 'enviado' | 'entregue' | 'cancelado';
+  /**
+   * Cópia congelada no momento da compra. Alterar um produto no catálogo NÃO altera encomendas passadas — é essa a intenção.
+   */
+  linhas: {
+    variante?: (number | null) | Variant;
+    titulo: string;
+    sku: string;
+    opcoes?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    quantidade: number;
+    precoUnitarioCents: number;
+    custoUnitarioCents?: number | null;
+    id?: string | null;
+  }[];
+  subtotalCents: number;
+  portesCents: number;
+  totalCents: number;
+  moradaEnvio: {
+    nomeDestinatario: string;
+    linha1: string;
+    linha2?: string | null;
+    /**
+     * Formato português: 1234-567
+     */
+    codigoPostal: string;
+    localidade: string;
+    telefone?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -448,6 +498,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'customers';
         value: number | Customer;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: number | Order;
       } | null);
   globalSlug?: string | null;
   user:
@@ -692,6 +746,43 @@ export interface CustomersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  numero?: T;
+  cliente?: T;
+  email?: T;
+  estado?: T;
+  linhas?:
+    | T
+    | {
+        variante?: T;
+        titulo?: T;
+        sku?: T;
+        opcoes?: T;
+        quantidade?: T;
+        precoUnitarioCents?: T;
+        custoUnitarioCents?: T;
+        id?: T;
+      };
+  subtotalCents?: T;
+  portesCents?: T;
+  totalCents?: T;
+  moradaEnvio?:
+    | T
+    | {
+        nomeDestinatario?: T;
+        linha1?: T;
+        linha2?: T;
+        codigoPostal?: T;
+        localidade?: T;
+        telefone?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

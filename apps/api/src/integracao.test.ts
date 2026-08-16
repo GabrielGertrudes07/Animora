@@ -98,7 +98,10 @@ const porTamanho = (linhas: Linha[], tamanho: string): Linha | undefined =>
   linhas.find((l) => l.combination.Tamanho === tamanho)
 
 const limparCatalogo = async () => {
-  // Produtos primeiro: apagá-los apaga as variantes, e um produto publicado
+  // Encomendas primeiro: apontam para clientes e para variantes, que os passos
+  // seguintes apagam.
+  await payload.delete({ collection: 'orders', where: { numero: { contains: P } } })
+  // Produtos a seguir: apagá-los apaga as variantes, e um produto publicado
   // impede a eliminação da marca, da categoria e da imagem que usa.
   await payload.delete({ collection: 'products', where: { slug: { contains: P } } })
   await payload.delete({ collection: 'users', where: { email: { contains: P } } })
@@ -1371,5 +1374,226 @@ describe('contas de cliente', () => {
     expect(produtos.docs.map((d) => d.id)).not.toContain(rascunho.id)
     expect(produtos.docs.every((d) => d._status === 'published')).toBe(true)
     for (const d of produtos.docs) expect(d).not.toHaveProperty('supplier')
+  })
+})
+
+/**
+ * Encomendas.
+ *
+ * Duas invariantes, e nenhuma delas se mede pelo código HTTP:
+ *
+ * 1. **Uma encomenda não nasce de um pedido do cliente.** `create` é `false`
+ *    para toda a gente; o checkout escreve-a com `overrideAccess`. Se nascesse
+ *    de um POST, quem o fizesse escolhia os totais que paga.
+ *
+ * 2. **O custo unitário é margem.** O cliente vê a sua encomenda inteira menos
+ *    esse número. Foi por um campo interno legível que a fase 2 falhou, e a
+ *    verificação que a deixou passar foi "responde?" em vez de "o que é que
+ *    veio lá dentro?". Por isso estes testes serializam o documento todo e
+ *    procuram o número, em vez de olhar para o campo que esperam encontrar.
+ */
+describe('encomendas', () => {
+  const como = (u: { id: Id }, collection: 'customers' | 'users') => ({
+    user: { ...u, collection },
+    overrideAccess: false,
+  })
+
+  const moradaEnvio = {
+    nomeDestinatario: 'Ana Silva',
+    linha1: 'Rua das Flores 12',
+    codigoPostal: '1234-567',
+    localidade: 'Lisboa',
+  }
+
+  const criarCliente = (sufixo: string) =>
+    payload.create({
+      collection: 'customers',
+      data: {
+        email: `${P}-${sufixo}@cliente.pt`,
+        password: 'animora123',
+        nome: `Cliente ${sufixo}`,
+      },
+    })
+
+  /** Um produto publicado com preço e custo, para as linhas terem de onde copiar. */
+  const criarVariante = async (sufixo: string) => {
+    const produto = await criarRascunho(`enc-${sufixo}`)
+    const [linha] = await variantesDe(produto.id)
+    await payload.update({
+      collection: 'variants',
+      id: linha!.id,
+      data: { priceCents: 2990, costCents: 1200 },
+    })
+    await publicar(produto.id)
+    return linha!
+  }
+
+  const dados = (
+    numero: string,
+    cliente: { id: Id; email: string },
+    variante: Id,
+    linha: Record<string, unknown> = {},
+  ) => ({
+    numero: `${P}-${numero}`,
+    cliente: cliente.id,
+    email: cliente.email,
+    linhas: [
+      {
+        variante,
+        titulo: 'Zteste artigo',
+        sku: 'ZTESTE-1',
+        opcoes: { Tamanho: 'S' },
+        quantidade: 2,
+        precoUnitarioCents: 2990,
+        custoUnitarioCents: 1200,
+        ...linha,
+      },
+    ],
+    subtotalCents: 5980,
+    portesCents: 0,
+    totalCents: 5980,
+    moradaEnvio,
+  })
+
+  const quantasNaBase = async () =>
+    (await payload.count({ collection: 'orders', where: { numero: { contains: P } } })).totalDocs
+
+  it('uma encomenda não nasce de um pedido do cliente, nem do staff', async () => {
+    const cliente = (await criarCliente('a')) as unknown as { id: Id; email: string }
+    const variante = await criarVariante('nasce')
+
+    for (const sessao of [como(cliente, 'customers'), como({ id: 1 }, 'users')]) {
+      await expect(
+        payload.create({
+          collection: 'orders',
+          data: dados('0001', cliente, variante.id),
+          ...sessao,
+        }),
+      ).rejects.toThrow()
+    }
+    // O que conta não é o 403: é não haver linha nenhuma na base.
+    expect(await quantasNaBase()).toBe(0)
+
+    // O checkout escreve com `overrideAccess` — é o único caminho.
+    const criada = await payload.create({
+      collection: 'orders',
+      data: dados('0001', cliente, variante.id),
+      overrideAccess: true,
+    })
+    expect(criada.numero).toBe(`${P}-0001`)
+    expect(await quantasNaBase()).toBe(1)
+  })
+
+  it('o cliente vê as suas encomendas e nunca o custo unitário', async () => {
+    const a = (await criarCliente('a')) as unknown as { id: Id; email: string }
+    const b = (await criarCliente('b')) as unknown as { id: Id; email: string }
+    const variante = await criarVariante('ver')
+
+    await payload.create({ collection: 'orders', data: dados('0001', a, variante.id) })
+    const deB = await payload.create({
+      collection: 'orders',
+      data: dados('0002', b, variante.id),
+    })
+
+    // Só as suas — e o id de outra pessoa não é atalho nenhum.
+    const { docs } = await payload.find({
+      collection: 'orders',
+      limit: 0,
+      depth: 0,
+      ...como(a, 'customers'),
+    })
+    expect(docs.map((d) => d.numero)).toEqual([`${P}-0001`])
+    await expect(
+      payload.findByID({ collection: 'orders', id: deB.id, ...como(a, 'customers') }),
+    ).rejects.toThrow()
+
+    // Sem sessão não há encomendas nenhumas.
+    await expect(
+      payload.find({ collection: 'orders', limit: 0, overrideAccess: false }),
+    ).rejects.toThrow()
+
+    // O custo não sai em linha nenhuma — com qualquer `depth`. A `depth` é a
+    // parte que não é óbvia: a linha traz a variante populada, e a variante
+    // também tem `costCents`. São dois caminhos para o mesmo número.
+    for (const depth of [0, 1, 2]) {
+      const resposta = await payload.find({
+        collection: 'orders',
+        limit: 0,
+        depth,
+        ...como(a, 'customers'),
+      })
+      expect(resposta.docs.length).toBeGreaterThan(0)
+      // Com `depth`, a variante vem mesmo populada (e o produto dentro dela) —
+      // senão a procura pelo custo, mais abaixo, passava por não haver lá nada.
+      const linhaVariante = resposta.docs[0]!.linhas![0]!.variante
+      expect(typeof linhaVariante === 'object' && linhaVariante !== null).toBe(depth > 0)
+
+      const texto = JSON.stringify(resposta.docs)
+      expect(texto).not.toContain('custoUnitarioCents')
+      expect(texto).not.toContain('costCents')
+      expect(texto).not.toContain('1200')
+      // Controlo positivo: o resto da encomenda dele continua lá.
+      expect(texto).toContain('precoUnitarioCents')
+      expect(texto).toContain('2990')
+    }
+
+    // O staff vê as duas encomendas e vê o custo — senão este teste passaria
+    // por o campo ter deixado de existir.
+    const staff = await payload.find({
+      collection: 'orders',
+      where: { numero: { contains: P } },
+      limit: 0,
+      depth: 0,
+      ...como({ id: 1 }, 'users'),
+    })
+    expect(staff.docs).toHaveLength(2)
+    expect(JSON.stringify(staff.docs)).toContain('custoUnitarioCents')
+    expect(staff.docs.every((d) => d.linhas?.[0]?.custoUnitarioCents === 1200)).toBe(true)
+  })
+
+  it('dinheiro e quantidades só em inteiros', async () => {
+    const cliente = (await criarCliente('a')) as unknown as { id: Id; email: string }
+    const variante = await criarVariante('inteiros')
+
+    const recusado = async (linha: Record<string, unknown>) => {
+      await expect(
+        payload.create({ collection: 'orders', data: dados('0001', cliente, variante.id, linha) }),
+      ).rejects.toThrow()
+      expect(await quantasNaBase()).toBe(0)
+    }
+
+    await recusado({ precoUnitarioCents: 29.9 })
+    await recusado({ precoUnitarioCents: -1 })
+    await recusado({ custoUnitarioCents: 12.5 })
+    await recusado({ quantidade: 1.5 })
+    // `min: 1` só sobrevive porque o `validarInteiro` corre a validação nativa
+    // do Payload antes da sua: um `validate` personalizado substitui-a.
+    await recusado({ quantidade: 0 })
+
+    const total = await payload.create({
+      collection: 'orders',
+      data: { ...dados('0002', cliente, variante.id), totalCents: 59.8 },
+    }).catch((e: unknown) => e)
+    expect(total).toBeInstanceOf(Error)
+
+    // Controlo positivo: com inteiros grava.
+    await payload.create({ collection: 'orders', data: dados('0003', cliente, variante.id) })
+    expect(await quantasNaBase()).toBe(1)
+  })
+
+  it('a morada de envio exige código postal português', async () => {
+    const cliente = (await criarCliente('a')) as unknown as { id: Id; email: string }
+    const variante = await criarVariante('morada')
+
+    await expect(
+      payload.create({
+        collection: 'orders',
+        data: {
+          ...dados('0001', cliente, variante.id),
+          moradaEnvio: { ...moradaEnvio, codigoPostal: '1234567' },
+        },
+      }),
+    ).rejects.toThrow()
+    expect(await quantasNaBase()).toBe(0)
   })
 })

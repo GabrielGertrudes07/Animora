@@ -1,24 +1,11 @@
-import type { CollectionConfig, JSONFieldValidation, NumberFieldSingleValidation } from 'payload'
+import type { CollectionConfig, JSONFieldValidation } from 'payload'
 import { validations } from 'payload'
 
 import { soDeProdutosPublicados } from '../access/leitura'
+import { validarInteiro } from '../validacoes'
 import { soStaff, soStaffCampo } from '../access/staff'
 import { blockOffMatrix } from '../hooks/blockOffMatrix'
 import { blockUnsellableChange, blockUnsellableDelete } from '../hooks/blockUnsellable'
-
-// Dinheiro é sempre em cêntimos inteiros; stock é sempre um número inteiro de unidades.
-// Sem isto, o Postgres aceita 29.9 ou 3.5 e a loja só rebenta mais tarde, quando
-// packages/core tentar formatar o preço (MoneyError: "Cêntimos têm de ser inteiros").
-// Corre primeiro a validação nativa do Payload (required/min/max) — um `validate`
-// custom substitui a nativa por inteiro, por isso reaproveita-se `validations.number`
-// em vez de reimplementar min/max/required aqui.
-const validateInteger: NumberFieldSingleValidation = (value, options) => {
-  const defaultResult = validations.number(value, options)
-  if (defaultResult !== true) return defaultResult
-  return value === null || value === undefined || Number.isInteger(value)
-    ? true
-    : 'Tem de ser um número inteiro'
-}
 
 const EXEMPLO = 'Ex.: { "Tamanho": "S", "Cor": "Preto" }'
 
@@ -172,14 +159,14 @@ export const Variants: CollectionConfig = {
       defaultValue: 0,
       label: 'Preço (cêntimos)',
       admin: { description: '2990 = 29,90 €' },
-      validate: validateInteger,
+      validate: validarInteiro,
     },
     {
       name: 'oldPriceCents',
       type: 'number',
       min: 0,
       label: 'Preço anterior (cêntimos)',
-      validate: validateInteger,
+      validate: validarInteiro,
     },
     {
       name: 'stock',
@@ -188,7 +175,7 @@ export const Variants: CollectionConfig = {
       min: 0,
       defaultValue: 0,
       label: 'Stock',
-      validate: validateInteger,
+      validate: validarInteiro,
     },
     { name: 'active', type: 'checkbox', defaultValue: true, label: 'Ativa' },
     {
@@ -216,7 +203,7 @@ export const Variants: CollectionConfig = {
           min: 0,
           label: 'Custo de compra (cêntimos)',
           admin: { description: 'Usado no cálculo de lucro. Nunca sai para o site.' },
-          validate: validateInteger,
+          validate: validarInteiro,
           access: { read: soStaffCampo },
         },
         { name: 'ean', type: 'text', label: 'EAN', access: { read: soStaffCampo } },
