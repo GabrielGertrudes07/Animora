@@ -1,7 +1,7 @@
 import type { CollectionConfig, NumberFieldSingleValidation } from 'payload'
 import { validations } from 'payload'
 
-import { syncVariants } from '../hooks/syncVariants'
+import { deleteVariantsOfProduct, syncVariants } from '../hooks/syncVariants'
 import { validatePublish } from '../hooks/validatePublish'
 import { uniqueSlug } from '../hooks/uniqueSlug'
 
@@ -32,6 +32,9 @@ export const Products: CollectionConfig = {
     // antes (era `beforeChange`, e validava um conjunto de variantes que o pedido
     // ainda ia substituir). Não trocar a ordem nem separar os dois.
     afterChange: [syncVariants, validatePublish],
+    // Sem isto nenhum produto se consegue apagar: o adaptador gera ON DELETE SET
+    // NULL sobre `variants.product_id`, que é NOT NULL.
+    beforeDelete: [deleteVariantsOfProduct],
   },
   fields: [
     {

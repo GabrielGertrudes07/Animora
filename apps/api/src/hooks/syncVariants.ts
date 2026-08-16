@@ -1,4 +1,4 @@
-import type { CollectionAfterChangeHook, PayloadRequest } from 'payload'
+import type { CollectionAfterChangeHook, CollectionBeforeDeleteHook, PayloadRequest } from 'payload'
 import { mergeVariants, buildSku, combinationKey } from '@animora/core'
 import type { Combination, VariantOption, VariantRow } from '@animora/core'
 
@@ -167,4 +167,27 @@ export const syncVariants: CollectionAfterChangeHook = async ({ doc, req }) => {
   }
 
   return doc
+}
+
+/**
+ * Apaga as variantes do produto antes de o produto desaparecer.
+ *
+ * O campo `product` das variantes é `required: true`, mas o adaptador Postgres
+ * gera `ON DELETE SET NULL` na chave estrangeira. Apagar um produto tentava pôr
+ * `variants.product_id` a NULL numa coluna NOT NULL e rebentava com 500
+ * (`null value in column "product_id" ... violates not-null constraint`). Como
+ * `generateCombinations([])` devolve `[{}]`, todo o produto tem sempre pelo
+ * menos uma variante — o erro disparava em todas as eliminações, sem exceção.
+ *
+ * `beforeDelete` corre dentro da transação do pedido, antes do `deleteOne` do
+ * produto (`payload/dist/collections/operations/deleteByID.js`), por isso as
+ * variantes já não existem quando a chave estrangeira é avaliada. Se a
+ * eliminação do produto falhar mais à frente, o rollback repõe as variantes.
+ */
+export const deleteVariantsOfProduct: CollectionBeforeDeleteHook = async ({ id, req }) => {
+  await req.payload.delete({
+    collection: 'variants',
+    where: { product: { equals: id } },
+    req,
+  })
 }
