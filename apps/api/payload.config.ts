@@ -14,13 +14,24 @@ import { Products } from './src/collections/Products'
 import { Variants } from './src/collections/Variants'
 import { Customers } from './src/collections/Customers'
 import { Orders } from './src/collections/Orders'
+import { Attributes } from './src/collections/Attributes'
 import { checkout } from './src/endpoints/checkout'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default buildConfig({
   admin: { user: Users.slug },
-  collections: [Users, Categories, Brands, Media, Products, Variants, Customers, Orders],
+  collections: [
+    Users,
+    Categories,
+    Brands,
+    Media,
+    Products,
+    Variants,
+    Customers,
+    Orders,
+    Attributes,
+  ],
   endpoints: [checkout],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',

@@ -76,6 +76,7 @@ export interface Config {
     variants: Variant;
     customers: Customer;
     orders: Order;
+    attributes: Attribute;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -91,6 +92,7 @@ export interface Config {
     variants: VariantsSelect<false> | VariantsSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
+    attributes: AttributesSelect<false> | AttributesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -459,6 +461,35 @@ export interface Order {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "attributes".
+ */
+export interface Attribute {
+  id: number;
+  nome: string;
+  /**
+   * Identificador técnico do atributo. Gravado em minúsculas e sem espaços — "Peso do Animal" grava como "peso-do-animal".
+   */
+  chave: string;
+  tipo: 'select' | 'multiselect' | 'intervalo' | 'booleano';
+  /**
+   * Um atributo "interno" nunca é devolvido pela API sem sessão de staff, seja qual for a configuração de filtros do catálogo.
+   */
+  alcance: 'filtro' | 'ficha' | 'interno';
+  controlo: 'caixas' | 'intervalo' | 'amostras' | 'chips';
+  /**
+   * Ordem de apresentação por omissão. Pode ser substituída no ecrã de configuração de filtros.
+   */
+  ordem?: number | null;
+  abertoPorOmissao?: boolean | null;
+  /**
+   * Vazio = aplica-se a todas as categorias.
+   */
+  categorias?: (number | Category)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -512,6 +543,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'orders';
         value: number | Order;
+      } | null)
+    | ({
+        relationTo: 'attributes';
+        value: number | Attribute;
       } | null);
   globalSlug?: string | null;
   user:
@@ -792,6 +827,22 @@ export interface OrdersSelect<T extends boolean = true> {
         localidade?: T;
         telefone?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "attributes_select".
+ */
+export interface AttributesSelect<T extends boolean = true> {
+  nome?: T;
+  chave?: T;
+  tipo?: T;
+  alcance?: T;
+  controlo?: T;
+  ordem?: T;
+  abertoPorOmissao?: T;
+  categorias?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -45,3 +45,16 @@ export const soPublicadosSemSessao: Access = ({ req }) =>
  */
 export const soDeProdutosPublicados: Access = ({ req }) =>
   ehStaff(req.user) ? true : { 'product._status': { equals: 'published' } }
+
+/**
+ * Para a coleção `attributes`. Aqui não há campos internos a proteger um a
+ * um — é o `alcance` do próprio documento que decide: `filtro` e `ficha` são
+ * do catálogo, `interno` é só para admin e relatórios (custo, margem,
+ * fornecedor) e nunca pode sair sem sessão. É o mesmo erro da fase 2 (abrir
+ * `read` expõe a coleção inteira) noutra roupagem — por isso a condição entra
+ * na consulta em vez de um `() => true`, e vale também para `?where=` a pedir
+ * `alcance: interno` explicitamente: a condição combina com `and`, por isso
+ * um pedido explícito por `interno` fica sempre vazio para quem não é staff.
+ */
+export const soFiltroOuFichaSemSessao: Access = ({ req }) =>
+  ehStaff(req.user) ? true : { alcance: { in: ['filtro', 'ficha'] } }

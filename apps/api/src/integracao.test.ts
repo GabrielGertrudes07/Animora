@@ -2242,3 +2242,170 @@ describe('checkout', () => {
     expect(dentroDoLimite(chave, agora + 60_001)).toBe(true)
   })
 })
+
+/**
+ * Atributos de catálogo com alcance (`filtro`, `ficha`, `interno`).
+ *
+ * O mesmo erro da fase 2 (C1: abrir `read` numa coleção expõe todos os campos
+ * e documentos) reaparece aqui noutra roupagem — não há campos internos
+ * dentro do documento, é o próprio documento que é interno ou não, via
+ * `alcance`. Estes testes fixam que a leitura pública nunca devolve um
+ * documento `interno`, nem por pedido explícito, e que um cliente autenticado
+ * não é staff — as duas armadilhas nomeadas no brief deste lote.
+ */
+describe('atributos de catálogo com alcance', () => {
+  const PA = `${P}-attr`
+
+  const criarAtributo = (
+    alcance: 'filtro' | 'ficha' | 'interno',
+    sufixo: string,
+    extra: Record<string, unknown> = {},
+  ) =>
+    payload.create({
+      collection: 'attributes',
+      data: {
+        nome: `Zteste ${sufixo}`,
+        chave: `${PA}-${sufixo}`,
+        tipo: 'select',
+        alcance,
+        controlo: 'caixas',
+        ...extra,
+      },
+    })
+
+  const limparAtributos = () =>
+    payload.delete({ collection: 'attributes', where: { chave: { contains: PA } } })
+
+  const criarClienteAttr = (sufixo: string) =>
+    payload.create({
+      collection: 'customers',
+      data: { email: `${PA}-${sufixo}@cliente.pt`, password: 'animora123', nome: 'Zteste' },
+      overrideAccess: false,
+    })
+
+  const comoCliente = (u: { id: Id }) => ({
+    user: { ...u, collection: 'customers' },
+    overrideAccess: false,
+  })
+
+  beforeAll(limparAtributos)
+  afterEach(limparAtributos)
+
+  it('sem sessão só devolve alcance filtro e ficha — nunca interno, nem por pedido direto', async () => {
+    await criarAtributo('filtro', 'a')
+    await criarAtributo('ficha', 'b')
+    const interno = await criarAtributo('interno', 'c')
+
+    const { docs } = await payload.find({
+      collection: 'attributes',
+      where: { chave: { contains: PA } },
+      overrideAccess: false,
+      depth: 0,
+      limit: 0,
+    })
+    expect((docs as unknown as { alcance: string }[]).map((d) => d.alcance).sort()).toEqual(['ficha', 'filtro'])
+    expect(docs.map((d) => d.id)).not.toContain(interno.id)
+
+    // Pedir o interno explicitamente por `where` não o revela: a condição de
+    // acesso combina com `and`, por isso o pedido fica sempre vazio.
+    const { docs: porId } = await payload.find({
+      collection: 'attributes',
+      where: { id: { equals: interno.id } },
+      overrideAccess: false,
+      depth: 0,
+    })
+    expect(porId).toHaveLength(0)
+
+    const { docs: porAlcance } = await payload.find({
+      collection: 'attributes',
+      where: { and: [{ chave: { contains: PA } }, { alcance: { equals: 'interno' } }] },
+      overrideAccess: false,
+      depth: 0,
+    })
+    expect(porAlcance).toHaveLength(0)
+
+    await expect(
+      payload.findByID({ collection: 'attributes', id: interno.id, overrideAccess: false }),
+    ).rejects.toThrow()
+
+    // Controlo positivo: com sessão o interno continua a ver-se.
+    const comSessao = await payload.findByID({ collection: 'attributes', id: interno.id, depth: 0 })
+    expect(comSessao.alcance).toBe('interno')
+  })
+
+  it('um cliente autenticado vê o mesmo que o anónimo — um cliente não é staff', async () => {
+    await criarAtributo('filtro', 'cliente-filtro')
+    await criarAtributo('ficha', 'cliente-ficha')
+    const interno = await criarAtributo('interno', 'cliente-interno')
+    const cliente = await criarClienteAttr('leitura')
+
+    const { docs } = await payload.find({
+      collection: 'attributes',
+      where: { chave: { contains: PA } },
+      depth: 0,
+      limit: 0,
+      ...comoCliente(cliente),
+    })
+    expect((docs as unknown as { alcance: string }[]).map((d) => d.alcance).sort()).toEqual(['ficha', 'filtro'])
+    expect(docs.map((d) => d.id)).not.toContain(interno.id)
+
+    await expect(
+      payload.findByID({ collection: 'attributes', id: interno.id, ...comoCliente(cliente) }),
+    ).rejects.toThrow()
+  })
+
+  it('escrita só por staff — cliente e anónimo são recusados', async () => {
+    const atributo = await criarAtributo('filtro', 'escrita')
+    const cliente = await criarClienteAttr('escrita')
+    const sessao = comoCliente(cliente)
+
+    const dadosNovo = {
+      nome: 'X',
+      chave: `${PA}-invasor`,
+      tipo: 'select' as const,
+      alcance: 'filtro' as const,
+      controlo: 'caixas' as const,
+    }
+    await expect(
+      payload.create({ collection: 'attributes', data: dadosNovo, overrideAccess: false }),
+    ).rejects.toThrow()
+    await expect(
+      payload.create({ collection: 'attributes', data: dadosNovo, ...sessao }),
+    ).rejects.toThrow()
+
+    await expect(
+      payload.update({
+        collection: 'attributes',
+        id: atributo.id,
+        data: { nome: 'Invadido' },
+        ...sessao,
+      }),
+    ).rejects.toThrow()
+    await expect(
+      payload.delete({ collection: 'attributes', id: atributo.id, ...sessao }),
+    ).rejects.toThrow()
+
+    // O código HTTP não é a prova; o estado na base é.
+    const naBase = await payload.findByID({ collection: 'attributes', id: atributo.id, depth: 0 })
+    expect(naBase.nome).not.toBe('Invadido')
+  })
+
+  it('chave duplicada é recusada', async () => {
+    await criarAtributo('filtro', 'dup')
+    await expect(criarAtributo('filtro', 'dup')).rejects.toThrow()
+  })
+
+  it('chave com espaços e maiúsculas é normalizada para minúsculas sem espaços', async () => {
+    const doc = await payload.create({
+      collection: 'attributes',
+      data: {
+        nome: 'Peso do Animal',
+        chave: `  ${PA} Peso DO Animal  `,
+        tipo: 'intervalo',
+        alcance: 'ficha',
+        controlo: 'intervalo',
+      },
+    })
+    expect(doc.chave).toBe(`${PA} peso do animal`.toLowerCase().replace(/\s+/g, '-'))
+  })
+})
