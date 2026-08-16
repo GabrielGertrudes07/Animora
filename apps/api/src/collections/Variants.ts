@@ -1,6 +1,7 @@
 import type { CollectionConfig, JSONFieldValidation, NumberFieldSingleValidation } from 'payload'
 import { validations } from 'payload'
 
+import { soComSessao, soDeProdutosPublicados } from '../access/leitura'
 import { blockOffMatrix } from '../hooks/blockOffMatrix'
 import { blockUnsellableChange, blockUnsellableDelete } from '../hooks/blockUnsellable'
 
@@ -110,10 +111,15 @@ export const Variants: CollectionConfig = {
   slug: 'variants',
   // Sem isto, o `defaultAccess` do Payload (`Boolean(req.user)`) aplica-se
   // também à leitura, e a loja pública — sem sessão — levava 403 em tudo.
-  // Só a leitura fica aberta; escrita continua a exigir sessão. Os campos
-  // internos (`costCents`, `ean`, `warehouseLocation`, `shippingWeightG`) não
-  // são protegidos aqui — isso é feito por `sanitizeProduct`, em apps/web.
-  access: { read: () => true },
+  // Só a leitura fica aberta; escrita continua a exigir sessão.
+  //
+  // Os campos internos (`costCents`, `ean`, `warehouseLocation`,
+  // `shippingWeightG`) são protegidos AQUI, um a um, mais abaixo. Já esteve
+  // escrito neste comentário que a `sanitizeProduct` da loja tratava disso: era
+  // falso. Ela constrói o HTML da loja campo a campo, e quem pede
+  // `/api/variants` diretamente não passa por lá — durante um tempo o custo de
+  // compra, o EAN e a localização em armazém saíram para quem os pedisse.
+  access: { read: soDeProdutosPublicados },
   hooks: {
     // A invariante "publicado ⇒ tem o que vender" era imposta só do lado do
     // produto. Estes dois fecham-na do lado da variante — ver o ficheiro.
@@ -205,10 +211,22 @@ export const Variants: CollectionConfig = {
           label: 'Custo de compra (cêntimos)',
           admin: { description: 'Usado no cálculo de lucro. Nunca sai para o site.' },
           validate: validateInteger,
+          access: { read: soComSessao },
         },
-        { name: 'ean', type: 'text', label: 'EAN' },
-        { name: 'warehouseLocation', type: 'text', label: 'Localização em armazém' },
-        { name: 'shippingWeightG', type: 'number', min: 0, label: 'Peso para portes (g)' },
+        { name: 'ean', type: 'text', label: 'EAN', access: { read: soComSessao } },
+        {
+          name: 'warehouseLocation',
+          type: 'text',
+          label: 'Localização em armazém',
+          access: { read: soComSessao },
+        },
+        {
+          name: 'shippingWeightG',
+          type: 'number',
+          min: 0,
+          label: 'Peso para portes (g)',
+          access: { read: soComSessao },
+        },
       ],
     },
   ],

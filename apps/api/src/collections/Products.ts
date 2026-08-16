@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
+import { soComSessao, soPublicadosSemSessao } from '../access/leitura'
 import { deleteVariantsOfProduct, syncVariants } from '../hooks/syncVariants'
 import { validatePublish } from '../hooks/validatePublish'
 import { uniqueSlug } from '../hooks/uniqueSlug'
@@ -9,8 +10,10 @@ export const Products: CollectionConfig = {
   versions: { drafts: true },
   // Sem isto, o `defaultAccess` do Payload (`Boolean(req.user)`) aplica-se
   // também à leitura, e a loja pública — sem sessão — levava 403 em tudo.
-  // Só a leitura fica aberta; escrita continua a exigir sessão.
-  access: { read: () => true },
+  // Só a leitura fica aberta; escrita continua a exigir sessão. E aberta apenas
+  // ao que está publicado: com `() => true` bastava um `GET /api/products` para
+  // ler o que ainda não saiu do painel.
+  access: { read: soPublicadosSemSessao },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'brand', '_status'],
@@ -114,7 +117,12 @@ export const Products: CollectionConfig = {
             // de 10 kg são variantes do mesmo produto e custam valores
             // diferentes. O fornecedor fica no produto porque é o mesmo para
             // todas as variantes.
-            { name: 'supplier', type: 'text', label: 'Fornecedor' },
+            {
+              name: 'supplier',
+              type: 'text',
+              label: 'Fornecedor',
+              access: { read: soComSessao },
+            },
           ],
         },
         {

@@ -1009,3 +1009,150 @@ describe('escalada de privilégios', () => {
     }
   })
 })
+
+/**
+ * Leitura anónima — a loja lê a API sem sessão nenhuma, e o endereço da API vai
+ * no HTML de todas as páginas, por isso qualquer visitante lhe pode pedir o que
+ * quiser. Estes testes correm com `overrideAccess: false` e sem `user`: é o que
+ * a Local API faz corresponder a um `GET` sem cookie.
+ *
+ * Existiram porque durante um tempo o `access: { read: () => true }` das
+ * coleções deixou sair custo de compra, fornecedor, EAN, localização em armazém
+ * e produtos por publicar — e um comentário no código afirmava que a
+ * `sanitizeProduct` da loja tratava disso, o que era falso.
+ */
+describe('leitura anónima da API', () => {
+  const anonimo = { overrideAccess: false, depth: 0, limit: 0 } as const
+
+  /** Publicar exige pelo menos uma variante ativa com preço — ver `validatePublish`. */
+  const criarPublicado = async (sufixo: string) => {
+    const p = await criarRascunho(sufixo)
+    const [linha] = await variantesDe(p.id)
+    await payload.update({ collection: 'variants', id: linha!.id, data: { priceCents: 2990 } })
+    await publicar(p.id)
+    return p
+  }
+
+  it('não devolve os campos internos da variante a quem não tem sessão', async () => {
+    const produto = await criarPublicado('anon-var')
+    const [linha] = await variantesDe(produto.id)
+    await payload.update({
+      collection: 'variants',
+      id: linha!.id,
+      data: {
+        costCents: 1200,
+        ean: '5601234567890',
+        warehouseLocation: 'A-12-3',
+        shippingWeightG: 150,
+      },
+    })
+
+    const { docs } = await payload.find({ collection: 'variants', ...anonimo })
+    expect(docs.length).toBeGreaterThan(0)
+    for (const d of docs) {
+      for (const campo of ['costCents', 'ean', 'warehouseLocation', 'shippingWeightG']) {
+        expect(d).not.toHaveProperty(campo)
+      }
+    }
+
+    // Controlo negativo: com sessão os mesmos campos continuam a sair, senão
+    // este teste passaria por o painel ter deixado de os ver.
+    const comSessao = await payload.findByID({ collection: 'variants', id: linha!.id, depth: 0 })
+    expect(comSessao).toMatchObject({ costCents: 1200, ean: '5601234567890' })
+  })
+
+  it('não devolve o fornecedor do produto a quem não tem sessão', async () => {
+    const produto = await criarPublicado('anon-forn')
+    await payload.update({
+      collection: 'products',
+      id: produto.id,
+      data: { supplier: 'Fornecedor Secreto Lda' },
+    })
+
+    const { docs } = await payload.find({ collection: 'products', ...anonimo })
+    expect(docs.length).toBeGreaterThan(0)
+    for (const d of docs) expect(d).not.toHaveProperty('supplier')
+
+    const comSessao = await payload.findByID({ collection: 'products', id: produto.id, depth: 0 })
+    expect(comSessao).toMatchObject({ supplier: 'Fornecedor Secreto Lda' })
+  })
+
+  it('esconde os rascunhos de quem não tem sessão, por lista, por id e com ?draft=true', async () => {
+    const rascunho = await criarRascunho('anon-rascunho')
+    const publicado = await criarPublicado('anon-publicado')
+
+    for (const draft of [false, true]) {
+      const { docs } = await payload.find({ collection: 'products', ...anonimo, draft })
+      const ids = docs.map((d) => d.id)
+      expect(ids).toContain(publicado.id)
+      expect(ids).not.toContain(rascunho.id)
+      expect(docs.every((d) => d._status === 'published')).toBe(true)
+    }
+
+    await expect(
+      payload.findByID({ collection: 'products', id: rascunho.id, overrideAccess: false }),
+    ).rejects.toThrow()
+
+    // Com sessão o rascunho continua a ver-se — a regra é sobre quem pede, não
+    // sobre o documento.
+    const { docs: comSessao } = await payload.find({
+      collection: 'products',
+      depth: 0,
+      limit: 0,
+      draft: true,
+    })
+    expect(comSessao.map((d) => d.id)).toContain(rascunho.id)
+  })
+
+  it('esconde as variantes de um produto por publicar — o SKU vem do título', async () => {
+    const rascunho = await criarRascunho('anon-sku-secreto')
+    const daBase = await variantesDe(rascunho.id)
+    expect(daBase.length).toBeGreaterThan(0)
+
+    const { docs } = await payload.find({ collection: 'variants', ...anonimo })
+    const ids = docs.map((d) => d.id)
+    for (const linha of daBase) expect(ids).not.toContain(linha.id)
+
+    await expect(
+      payload.findByID({ collection: 'variants', id: daBase[0]!.id, overrideAccess: false }),
+    ).rejects.toThrow()
+  })
+
+  it('um rascunho pendente sobre um produto publicado não substitui o conteúdo público', async () => {
+    const produto = await criarPublicado('anon-pendente')
+    await payload.update({
+      collection: 'products',
+      id: produto.id,
+      draft: true,
+      data: { title: 'RASCUNHO PENDENTE SECRETO' },
+    })
+
+    const publico = await payload.findByID({
+      collection: 'products',
+      id: produto.id,
+      overrideAccess: false,
+      draft: true,
+      depth: 0,
+    })
+    expect(publico.title).not.toBe('RASCUNHO PENDENTE SECRETO')
+
+    const comSessao = await payload.findByID({
+      collection: 'products',
+      id: produto.id,
+      draft: true,
+      depth: 0,
+    })
+    expect(comSessao.title).toBe('RASCUNHO PENDENTE SECRETO')
+  })
+
+  it('recusa filtrar por um campo interno em vez de o revelar por adivinhação', async () => {
+    await criarPublicado('anon-filtro')
+    await expect(
+      payload.find({
+        collection: 'variants',
+        ...anonimo,
+        where: { costCents: { greater_than: 0 } },
+      }),
+    ).rejects.toThrow()
+  })
+})
