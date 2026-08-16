@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { PublicProduct } from '../../modules/catalog'
+import { mediaUrl } from '../../lib/api'
 import { Price } from './Price'
 
 export function ProductCard({ product }: { product: PublicProduct }) {
@@ -14,7 +15,7 @@ export function ProductCard({ product }: { product: PublicProduct }) {
         <div className="relative aspect-square bg-cream">
           {img ? (
             <Image
-              src={img.url}
+              src={mediaUrl(img.url)}
               alt={img.alt}
               width={img.width ?? 600}
               height={img.height ?? 600}

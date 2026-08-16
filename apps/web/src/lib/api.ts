@@ -1,5 +1,15 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
 
+/**
+ * O Payload devolve URLs de media relativas (sem `serverURL` configurado),
+ * mas a loja corre numa origem diferente da API. `next/image` só resolve
+ * caminhos relativos contra a própria origem (a loja), não contra a API —
+ * sem isto, toda a imagem do catálogo dava 400 no otimizador.
+ */
+export function mediaUrl(url: string): string {
+  return url.startsWith('/') ? `${BASE}${url}` : url
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
