@@ -483,7 +483,7 @@ export interface Attribute {
   alcance: 'filtro' | 'ficha' | 'interno';
   controlo: 'caixas' | 'intervalo' | 'amostras' | 'chips';
   /**
-   * Ordem de apresentação por omissão. Pode ser substituída no ecrã de configuração de filtros.
+   * Ordem de apresentação por omissão, para os atributos que não estão no ecrã de configuração de filtros. Um atributo que esteja lá é apresentado na posição que a linha tem nesse ecrã, e este número deixa de contar para ele.
    */
   ordem?: number | null;
   abertoPorOmissao?: boolean | null;
@@ -899,7 +899,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface ConfiguracaoFiltro {
   id: number;
   /**
-   * Arraste as linhas para reordenar — é essa ordem que o catálogo usa. Desligar "Visível" remove o filtro da loja sem apagar a linha.
+   * Arraste as linhas para reordenar — é essa ordem que o catálogo usa, à frente do campo "Ordem" de cada atributo. Desligar "Visível" remove o filtro da loja sem apagar a linha; um atributo que não esteja nesta lista não é oferecido como filtro.
    */
   padrao?:
     | {

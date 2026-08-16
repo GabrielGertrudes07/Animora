@@ -2538,6 +2538,59 @@ describe('configuração de filtros do catálogo', () => {
     ).rejects.toThrow(/interno/)
   })
 
+  /**
+   * A terceira aparição da armadilha `ON DELETE SET NULL` sobre coluna
+   * `NOT NULL` (produtos→variantes na fase 1, clientes→encomendas na fase 3).
+   * Aqui a escolha foi recusar, não apagar a linha em cascata: a posição da
+   * linha é a ordem dos filtros na loja e não se repõe sozinha. Ver o porquê
+   * em `globals/ConfiguracaoFiltros.ts`.
+   */
+  it('um atributo em uso na configuração não se apaga — recusa com instruções, e não 500', async () => {
+    const cor = await criarAtributoCfg('filtro', 'cor-usada')
+    const livre = await criarAtributoCfg('filtro', 'sem-uso')
+    const racao = await criarCategoriaCfg('racao-uso')
+
+    await payload.updateGlobal({
+      slug: 'configuracao-filtros',
+      data: {
+        padrao: [{ atributo: cor.id, visivel: true }],
+        porCategoria: [{ categoria: racao.id, atributos: [{ atributo: cor.id, visivel: true }] }],
+      },
+    })
+
+    const recusa = await payload
+      .delete({ collection: 'attributes', id: cor.id })
+      .then(() => null, (e: Error) => e)
+
+    // Não é um erro qualquer: diz o nome, os dois sítios onde está em uso, e o
+    // que o lojista tem de fazer. Um 500 "Something went wrong" não dizia nada.
+    expect(recusa?.message).toContain(String(cor.nome))
+    expect(recusa?.message).toContain('filtros por omissão')
+    expect(recusa?.message).toContain('substituição por categoria')
+    expect(recusa?.message).toContain('Configuração de filtros')
+
+    // E não apagou nada a meio.
+    expect(await payload.findByID({ collection: 'attributes', id: cor.id, depth: 0 })).toBeTruthy()
+
+    // Um atributo que ninguém configurou apaga-se como sempre.
+    await payload.delete({ collection: 'attributes', id: livre.id })
+    const restantes = await payload.find({
+      collection: 'attributes',
+      where: { chave: { contains: PC } },
+      depth: 0,
+      limit: 0,
+    })
+    expect(restantes.docs.map((d) => d.id)).not.toContain(livre.id)
+
+    // Tirada a linha da configuração — o passo que a mensagem manda dar — o
+    // atributo apaga-se.
+    await payload.updateGlobal({ slug: 'configuracao-filtros', data: { padrao: [], porCategoria: [] } })
+    await payload.delete({ collection: 'attributes', id: cor.id })
+    await expect(
+      payload.findByID({ collection: 'attributes', id: cor.id, depth: 0 }),
+    ).rejects.toThrow()
+  })
+
   it('escrita só por staff — anónimo é recusado', async () => {
     await expect(
       payload.updateGlobal({

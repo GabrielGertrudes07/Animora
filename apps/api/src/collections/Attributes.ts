@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { soFiltroOuFichaSemSessao } from '../access/leitura'
 import { soStaff } from '../access/staff'
+import { bloquearApagarSeConfigurado } from '../globals/ConfiguracaoFiltros'
 
 export const Attributes: CollectionConfig = {
   slug: 'attributes',
@@ -24,6 +25,11 @@ export const Attributes: CollectionConfig = {
     useAsTitle: 'nome',
     defaultColumns: ['nome', 'chave', 'alcance', 'tipo', 'ordem'],
   },
+  // Sem esta guarda, apagar um atributo em uso na configuração de filtros dá
+  // 500 sem explicação — a chave estrangeira do global é `ON DELETE SET NULL`
+  // sobre uma coluna `NOT NULL`. Ver o porquê de recusar (em vez de apagar a
+  // linha em cascata) em `globals/ConfiguracaoFiltros.ts`.
+  hooks: { beforeDelete: [bloquearApagarSeConfigurado] },
   fields: [
     { name: 'nome', type: 'text', required: true, label: 'Nome' },
     {

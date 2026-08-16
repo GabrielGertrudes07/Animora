@@ -1,4 +1,4 @@
-import type { GlobalBeforeChangeHook, GlobalConfig } from 'payload'
+import type { CollectionBeforeDeleteHook, GlobalBeforeChangeHook, GlobalConfig } from 'payload'
 import { APIError } from 'payload'
 
 import { soStaff } from '../access/staff'
@@ -79,6 +79,91 @@ export const semAtributosInternos: GlobalBeforeChangeHook = async ({ data, req }
   }
 
   return data
+}
+
+/**
+ * Recusa apagar um atributo que a configuração de filtros ainda usa.
+ *
+ * ## O defeito
+ *
+ * `atributo` é `required: true` nas linhas deste global, e o adaptador Postgres
+ * gera a chave estrangeira com `ON DELETE SET NULL` sobre uma coluna `NOT NULL`.
+ * `DELETE /api/attributes/<em uso>` dava **500 "Something went wrong"**; um
+ * atributo livre dava 200. É a terceira aparição da mesma armadilha neste
+ * projeto (produtos→variantes na fase 1, clientes→encomendas na fase 3).
+ *
+ * ## Recusar, e não apagar a linha em cascata
+ *
+ * As duas soluções já usadas aqui servem casos diferentes, e este é o de
+ * recusar — pelo mesmo motivo que o `blockDeleteIfPublished`:
+ *
+ * - **a ordem das linhas é trabalho manual e é a que a loja mostra.** Desde que
+ *   a posição da linha passou a mandar (ver `resolveActiveAttributeDefs`),
+ *   apagar linhas em cascata mexe numa lista que o lojista arrastou à mão, e
+ *   não há como a repor: o atributo volta a criar-se, a posição não.
+ * - **a barra de filtros da loja mudava sozinha.** Quem apaga um atributo do
+ *   painel não espera que a categoria "Ração" deixe de filtrar por peso sem
+ *   ninguém lhe tocar, nem fica com lista nenhuma do que se perdeu.
+ * - **apagar um atributo é um gesto raro e deliberado.** Custa um passo a mais;
+ *   a cascata custa uma configuração desfeita em silêncio.
+ *
+ * A cascata é a escolha certa quando o filho não tem vida própria (uma variante
+ * sem produto não é nada, e por isso produtos→variantes apagam em cascata). Uma
+ * linha de configuração tem: é uma decisão de montra.
+ *
+ * ## Porque não leva o lock consultivo das outras guardas
+ *
+ * Esta conta antes de decidir, como as outras, mas não é ela que garante a
+ * invariante — é a chave estrangeira. Uma escrita concorrente da configuração
+ * a entrar entre a contagem e a eliminação acaba sempre em rollback (o `DELETE`
+ * viola o `NOT NULL`, ou o `UPDATE` do global aponta para uma linha que já não
+ * existe): feio, mas nunca deixa referência pendurada. O hook está aqui para
+ * transformar o 500 sem explicação num 400 que diz o que fazer, não para
+ * fechar uma corrida — e serializar todas as eliminações de atributos contra o
+ * resto do catálogo para poupar um 500 raro não se paga.
+ */
+export const bloquearApagarSeConfigurado: CollectionBeforeDeleteHook = async ({ id, req }) => {
+  const config = await req.payload.findGlobal({
+    slug: 'configuracao-filtros',
+    depth: 0,
+    overrideAccess: true,
+    req,
+  })
+
+  const alvo = String(id)
+  const usa = (linhas: unknown): boolean => idsDeLinhas(linhas).some((v) => String(v) === alvo)
+
+  const noPadrao = usa(config.padrao)
+  const categorias = (Array.isArray(config.porCategoria) ? config.porCategoria : []).filter(
+    (linha: { atributos?: unknown }) => usa(linha?.atributos),
+  ).length
+
+  if (!noPadrao && categorias === 0) return
+
+  const onde = [
+    ...(noPadrao ? ['nos filtros por omissão'] : []),
+    ...(categorias > 0
+      ? [categorias === 1 ? 'numa substituição por categoria' : `em ${categorias} substituições por categoria`]
+      : []),
+  ].join(' e ')
+
+  // Só no caminho da recusa: no caminho normal não se paga uma leitura para
+  // compor uma mensagem que não vai ser escrita.
+  const doc = await req.payload.findByID({
+    collection: 'attributes',
+    id,
+    depth: 0,
+    overrideAccess: true,
+    req,
+  })
+
+  throw new APIError(
+    `Não é possível apagar o atributo "${doc.nome}": está a ser usado na Configuração de filtros ` +
+      `(${onde}). Abra Definições → Configuração de filtros, apague a linha desse atributo, grave, ` +
+      'e só depois apague o atributo. É de propósito que não acontece sozinho: a ordem das linhas ' +
+      'é a ordem dos filtros na loja, e apagá-las em cascata mudava a montra sem ninguém lhe tocar.',
+    400,
+  )
 }
 
 const camposDeLinha = (label: string) => [
