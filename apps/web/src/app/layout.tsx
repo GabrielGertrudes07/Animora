@@ -1,8 +1,30 @@
 import type { Metadata } from 'next'
+import { Fraunces, Nunito_Sans } from 'next/font/google'
 import '../styles/globals.css'
 import { Header } from '../components/layout/Header'
 import { Footer } from '../components/layout/Footer'
 import { CarrinhoProvider } from '../modules/cart/CarrinhoProvider'
+
+/**
+ * As duas famílias da loja, auto-alojadas por `next/font` — sem pedido a
+ * servidores de fontes em tempo de execução e sem salto de tipo ao carregar.
+ *
+ * Fraunces (serifa suave, com `SOFT`/`WONK` a arredondar-lhe os cantos) só nos
+ * títulos: é ela que tira o ar de template. Nunito Sans no texto, que é para
+ * ler. Duas e mais nenhuma.
+ */
+const fonteTitulo = Fraunces({
+  subsets: ['latin'],
+  axes: ['SOFT', 'WONK', 'opsz'],
+  variable: '--fonte-titulo',
+  display: 'swap',
+})
+
+const fonteTexto = Nunito_Sans({
+  subsets: ['latin'],
+  variable: '--fonte-texto',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: {
@@ -15,7 +37,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-PT">
+    <html lang="pt-PT" className={`${fonteTitulo.variable} ${fonteTexto.variable}`}>
       <body>
         <a
           href="#conteudo"

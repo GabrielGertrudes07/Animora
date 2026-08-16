@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 
 import { clienteAtual } from '../../../modules/account/sessao'
 import { listProductsByIds } from '../../../modules/catalog'
+import { EstadoVazio } from '../../../components/ui/EstadoVazio'
 import { ProductCard } from '../../../components/ui/ProductCard'
 
 export const metadata: Metadata = { title: 'Favoritos' }
@@ -27,17 +28,16 @@ export default async function FavoritosPage() {
       <h1 className="mt-2 text-3xl font-bold text-ink">Favoritos</h1>
 
       {produtos.length === 0 ? (
-        <div className="mt-8 rounded-card bg-white p-8 text-center shadow-sm">
-          <p className="text-lg font-semibold text-ink">Ainda não guardou nenhum favorito.</p>
-          <p className="mt-2 text-ink-muted">
-            Na ficha de cada produto há um coração para o guardar aqui.
-          </p>
-          <Link
-            href="/"
-            className="mt-6 inline-block rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark"
+        <div className="mt-8">
+          <EstadoVazio
+            ilustracao="coracao"
+            titulo="Ainda não guardou nenhum favorito"
+            texto="Na ficha de cada produto há um coração para o guardar aqui."
           >
-            Ver produtos
-          </Link>
+            <Link href="/produtos" className="botao-principal">
+              Ver produtos
+            </Link>
+          </EstadoVazio>
         </div>
       ) : (
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

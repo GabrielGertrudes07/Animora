@@ -9,6 +9,7 @@ import { carregarLinhas } from '../../modules/cart/acoes'
 import { useCarrinho } from '../../modules/cart/CarrinhoProvider'
 import { QTY_MAX, totaisDoCarrinho, type LinhaCarrinho } from '../../modules/cart/carrinho'
 import { Totais } from '../../components/ui/Totais'
+import { EstadoVazio } from '../../components/ui/EstadoVazio'
 
 /**
  * A página do carrinho.
@@ -68,17 +69,16 @@ export default function CarrinhoPage() {
       {!pronto || aCarregar ? (
         <p className="mt-8 text-ink-muted">A carregar o carrinho…</p>
       ) : linhas.length === 0 ? (
-        <div className="mt-8 rounded-card bg-white p-8 text-center shadow-sm">
-          <p className="text-lg font-semibold text-ink">O carrinho está vazio.</p>
-          <p className="mt-2 text-ink-muted">
-            Ainda não escolheu nada. As categorias estão todas no cabeçalho.
-          </p>
-          <Link
-            href="/"
-            className="mt-6 inline-block rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark"
+        <div className="mt-8">
+          <EstadoVazio
+            ilustracao="tigela"
+            titulo="O carrinho está vazio"
+            texto="A tigela ainda está por encher. Vê tudo o que há à venda ou escolhe uma categoria no cabeçalho."
           >
-            Ver produtos
-          </Link>
+            <Link href="/produtos" className="botao-principal">
+              Ver produtos
+            </Link>
+          </EstadoVazio>
         </div>
       ) : (
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_20rem]">
@@ -160,7 +160,7 @@ export default function CarrinhoPage() {
             <Totais totais={totais} />
             <Link
               href="/checkout"
-              className="mt-6 block rounded-xl bg-terracota px-6 py-3 text-center font-semibold text-white transition-colors hover:bg-terracota-dark"
+              className="botao-principal mt-6 block"
             >
               Finalizar compra
             </Link>

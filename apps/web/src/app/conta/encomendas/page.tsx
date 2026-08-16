@@ -5,6 +5,7 @@ import { formatEuros } from '@animora/core'
 
 import { clienteAtual } from '../../../modules/account/sessao'
 import { dataLegivel, estadoLegivel, listarEncomendas } from '../../../modules/account/encomendas'
+import { EstadoVazio } from '../../../components/ui/EstadoVazio'
 
 export const metadata: Metadata = { title: 'As minhas encomendas' }
 
@@ -21,14 +22,16 @@ export default async function EncomendasPage() {
       <h1 className="mt-2 text-3xl font-bold text-ink">Encomendas</h1>
 
       {encomendas.length === 0 ? (
-        <div className="mt-8 rounded-card bg-white p-8 text-center shadow-sm">
-          <p className="text-lg font-semibold text-ink">Ainda não fez nenhuma encomenda.</p>
-          <Link
-            href="/"
-            className="mt-6 inline-block rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark"
+        <div className="mt-8">
+          <EstadoVazio
+            ilustracao="caixa"
+            titulo="Ainda não fez nenhuma encomenda"
+            texto="Quando fizer a primeira, fica aqui com o estado e o detalhe de cada linha."
           >
-            Ver produtos
-          </Link>
+            <Link href="/produtos" className="botao-principal">
+              Ver produtos
+            </Link>
+          </EstadoVazio>
         </div>
       ) : (
         <ul className="mt-8 flex flex-col gap-4">

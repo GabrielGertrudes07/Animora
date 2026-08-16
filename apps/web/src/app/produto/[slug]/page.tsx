@@ -69,14 +69,11 @@ export default async function ProdutoPage({ params }: Props) {
         </div>
 
         <div>
-          <p className="text-sm uppercase tracking-wide text-ink-muted">{p.brand.name}</p>
-          <h1 className="mt-1 text-3xl font-bold text-ink">{p.title}</h1>
-          <Price
-            cents={preco.cents}
-            old={preco.old}
-            desde={preco.desde}
-            className="mt-4 block"
-          />
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sage">
+            {p.brand.name}
+          </p>
+          <h1 className="mt-2 text-4xl leading-tight text-ink">{p.title}</h1>
+          <Price cents={preco.cents} old={preco.old} desde={preco.desde} className="mt-5 block" />
 
           <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-muted">
             Opções disponíveis

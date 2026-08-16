@@ -13,6 +13,13 @@ export default {
         cream: '#F7F5EF',
         line: 'rgba(111, 143, 114, 0.18)',
       },
+      fontFamily: {
+        // Duas famílias e mais nada: uma de título com carácter (Fraunces,
+        // serifa suave) e uma de texto legível (Nunito Sans). Carregadas por
+        // `next/font` no layout, que as auto-aloja e evita o salto de fonte.
+        display: ['var(--fonte-titulo)', 'Georgia', 'serif'],
+        sans: ['var(--fonte-texto)', 'system-ui', 'sans-serif'],
+      },
       borderRadius: { card: '18px' },
       boxShadow: {
         sm: '0 10px 20px rgba(24, 53, 42, 0.06)',

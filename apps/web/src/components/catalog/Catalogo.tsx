@@ -10,6 +10,7 @@ import {
   parseFilters,
 } from '../../modules/catalog'
 import { ProductCard } from '../ui/ProductCard'
+import { EstadoVazio } from '../ui/EstadoVazio'
 import { FiltrosCatalogo } from './FiltrosCatalogo'
 import { OrdenarPor } from './OrdenarPor'
 
@@ -68,10 +69,12 @@ export async function Catalogo({ titulo, descricao, categoriaId, searchParams, v
 
   return (
     <main id="conteudo" className="mx-auto max-w-7xl px-6 py-10">
-      <h1 className="text-3xl font-bold text-ink">{titulo}</h1>
-      {descricao ? <p className="mt-2 max-w-2xl text-ink-muted">{descricao}</p> : null}
+      <h1 className="text-4xl text-ink">{titulo}</h1>
+      {descricao ? (
+        <p className="mt-3 max-w-2xl leading-relaxed text-ink-muted">{descricao}</p>
+      ) : null}
 
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
         <p className="text-ink-muted">
           {produtos.length === 1 ? '1 produto' : `${produtos.length} produtos`}
         </p>
@@ -88,14 +91,15 @@ export async function Catalogo({ titulo, descricao, categoriaId, searchParams, v
 
         <div className="min-w-0 flex-1">
           {produtos.length === 0 ? (
-            <div className="rounded-card bg-white p-10 text-center shadow-sm">
-              <h2 className="text-xl font-semibold text-ink">
-                {comFiltros ? 'Nenhum produto corresponde aos filtros' : vazio.titulo}
-              </h2>
-              <p className="mt-2 text-ink-muted">
-                {comFiltros ? 'Experimenta alargar os filtros escolhidos.' : vazio.texto}
-              </p>
-            </div>
+            comFiltros ? (
+              <EstadoVazio
+                ilustracao="lupa"
+                titulo="Nenhum produto corresponde aos filtros"
+                texto="Experimenta alargar o preço ou tirar uma das marcas escolhidas."
+              />
+            ) : (
+              <EstadoVazio ilustracao="tigela" titulo={vazio.titulo} texto={vazio.texto} />
+            )
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {produtos.map((p) => (
