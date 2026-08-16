@@ -77,3 +77,13 @@ export async function listBrands(): Promise<{ name: string; slug: string }[]> {
   )
   return res.docs.map((d) => ({ name: d.name, slug: d.slug }))
 }
+
+/** Para a navegação do cabeçalho — categorias reais, nunca escritas à mão. */
+export async function listCategories(): Promise<{ name: string; slug: string }[]> {
+  const res = await apiGet<Paginated<{ name: string; slug: string }>>(
+    `/api/categories?limit=${NO_LIMIT}&depth=0`,
+  )
+  return res.docs
+    .map((d) => ({ name: d.name, slug: d.slug }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt'))
+}

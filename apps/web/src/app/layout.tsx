@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import '../styles/globals.css'
+import { Header } from '../components/layout/Header'
 
 export const metadata: Metadata = {
   title: {
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Saltar para o conteúdo
         </a>
+        <Header />
         {children}
       </body>
     </html>
