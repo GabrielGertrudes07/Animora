@@ -3,7 +3,7 @@ import { mergeVariants, buildSku, combinationKey } from '@animora/core'
 import type { Combination, VariantOption, VariantRow } from '@animora/core'
 
 import { A_APAGAR_PRODUTO } from './blockUnsellable'
-import { serializarGuarda } from './serializar'
+import { reservar, serializarGuarda } from './serializar'
 
 /**
  * Fecha a janela entre escolher o SKU e gravá-lo.
@@ -189,8 +189,9 @@ export const deleteVariantsOfProduct: CollectionBeforeDeleteHook = async ({ id, 
   // O guarda da coleção `variants` recusa apagar a última variante vendável de
   // um produto publicado. Aqui é para apagar mesmo: o produto vai desaparecer
   // com elas, e sem esta marca nenhum produto publicado e precificado se
-  // conseguiria apagar.
-  req.context[A_APAGAR_PRODUTO] = true
+  // conseguiria apagar. Marca só ESTE produto — as variantes dos outros
+  // continuam protegidas dentro do mesmo pedido.
+  reservar(req, A_APAGAR_PRODUTO, id)
 
   await req.payload.delete({
     collection: 'variants',

@@ -7,10 +7,18 @@ import { reservar, serializarGuarda } from './serializar'
 const SEM_VENDA = 'variantesSemVenda'
 
 /**
- * Marca, no pedido, que é o produto inteiro que está a ser apagado.
+ * Os produtos que ESTE pedido está a apagar por inteiro.
  *
  * O `deleteVariantsOfProduct` apaga as variantes de propósito, e aí a
  * invariante não faz sentido: o produto publicado também vai desaparecer.
+ *
+ * É um conjunto de ids e não um booleano: um interruptor ligado uma vez e nunca
+ * desligado desativava a guarda para o **pedido inteiro**, incluindo variantes
+ * de produtos que não estão a ser apagados. Hoje nenhum caminho mistura as duas
+ * coisas no mesmo pedido, portanto era seguro — mas seguro por coincidência, e a
+ * coincidência não está escrita em lado nenhum. Guardar os ids custa a mesma
+ * linha e passa a ser seguro por construção. Reaproveita o `reservar`, que é
+ * exatamente "o que este pedido já decidiu sobre estes ids".
  */
 export const A_APAGAR_PRODUTO = 'aApagarProduto'
 
@@ -59,9 +67,12 @@ const assegurarQueSobraVenda = async (
   req: PayloadRequest,
 ): Promise<void> => {
   if (produto === undefined || produto === null) return
-  if (req.context[A_APAGAR_PRODUTO]) return
 
-  // Antes de qualquer `await`: as guardas dos documentos irmãos do lote correm
+  // Só o produto que está mesmo a ser apagado, não o pedido todo.
+  const aApagar = req.context[A_APAGAR_PRODUTO]
+  if (aApagar instanceof Set && aApagar.has(String(produto))) return
+
+  // Antes de contar: as guardas dos documentos irmãos do lote correm
   // intercaladas com esta, e só veem esta decisão se ela já cá estiver.
   const reservadas = reservar(req, SEM_VENDA, variante)
 
