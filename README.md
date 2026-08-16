@@ -18,6 +18,39 @@ pnpm --filter @animora/api dev   # admin em http://localhost:3000/admin
 pnpm --filter @animora/web dev   # loja em http://localhost:3001
 ```
 
+## Seeder — catálogo de demonstração
+
+```bash
+pnpm seed   # ou: pnpm --filter @animora/api seed
+```
+
+Apaga o catálogo existente (categorias, marcas, atributos, produtos,
+variantes, imagens, clientes, encomendas) e recria um catálogo realista de
+pet shop portuguesa: 10 categorias, 12 marcas, 5 atributos (Tamanho, Cor, Peso
+do saco, Animal de destino, Porte) já configurados como filtros, 42 produtos
+publicados com 69 variantes — com e sem opções, alguns esgotados, alguns com
+stock baixo, alguns em promoção, custo de compra preenchido na maioria mas
+não em todas as variantes — 7 clientes e 20 encomendas dos últimos 60 dias
+(estados variados, uma cancelada).
+
+As imagens são geradas localmente com o `sharp` (sem serviços externos): um
+cartaz por produto, com o nome composto sobre um fundo de cor por categoria.
+
+Repetível: corre `payload run src/seed.ts` por baixo, apaga tudo o que cria
+antes de recriar com dados deterministas — correr duas vezes seguidas dá o
+mesmo catálogo, sem duplicar nada. Nunca toca em `users`: o proprietário
+(`admin@animora.pt`) fica intacto, e a trava do dashboard
+(`Definições → Dashboard de vendas com dados reais`) fica sempre desligada
+no fim.
+
+Os testes de integração do dashboard isolam-se apagando toda a tabela
+`orders` antes de cada um (ver `apps/api/src/integracao.test.ts`), para as
+contas exatas que fazem não dependerem de mais nenhuma encomenda na base —
+incluindo as do seeder. Ou seja: **correr `pnpm -r test` depois do seeder
+apaga as encomendas de demonstração** (o catálogo — produtos, variantes,
+categorias, marcas, clientes — fica intacto). Corra `pnpm seed` outra vez a
+seguir aos testes para as repor.
+
 ## Testes
 
 ```bash
