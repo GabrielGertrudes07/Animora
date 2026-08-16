@@ -15,6 +15,7 @@ import { Variants } from './src/collections/Variants'
 import { Customers } from './src/collections/Customers'
 import { Orders } from './src/collections/Orders'
 import { Attributes } from './src/collections/Attributes'
+import { ConfiguracaoFiltros } from './src/globals/ConfiguracaoFiltros'
 import { checkout } from './src/endpoints/checkout'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -32,6 +33,7 @@ export default buildConfig({
     Orders,
     Attributes,
   ],
+  globals: [ConfiguracaoFiltros],
   endpoints: [checkout],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',

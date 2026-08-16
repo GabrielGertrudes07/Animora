@@ -2409,3 +2409,145 @@ describe('atributos de catálogo com alcance', () => {
     expect(doc.chave).toBe(`${PA} peso do animal`.toLowerCase().replace(/\s+/g, '-'))
   })
 })
+
+/**
+ * Ecrã de configuração dos filtros do catálogo (`configuracao-filtros`).
+ *
+ * `ordem`, `controlo` e `abertoPorOmissao` já são campos do próprio atributo
+ * — este global só decide, por cima, quais ficam ativos, por que posição (a
+ * ordem do array, que o hook não recalcula) e a substituição por categoria.
+ * O ponto central é o mesmo do resto do lote: um atributo `interno` não pode
+ * ser tornado público por aqui, nem por um pedido direto que salte a UI.
+ */
+describe('configuração de filtros do catálogo', () => {
+  const PC = `${P}-cfg`
+  type LinhaFiltro = { atributo: Id; visivel?: boolean | null }
+
+  const criarAtributoCfg = (alcance: 'filtro' | 'ficha' | 'interno', sufixo: string) =>
+    payload.create({
+      collection: 'attributes',
+      data: { nome: `Zteste ${sufixo}`, chave: `${PC}-${sufixo}`, tipo: 'select', alcance, controlo: 'caixas' },
+    })
+
+  const criarCategoriaCfg = (sufixo: string) =>
+    payload.create({ collection: 'categories', data: { name: `Zteste ${sufixo}`, slug: `${PC}-${sufixo}` } })
+
+  const limparConfigFiltros = async () => {
+    await payload.updateGlobal({
+      slug: 'configuracao-filtros',
+      data: { padrao: [], porCategoria: [] },
+    })
+    await payload.delete({ collection: 'attributes', where: { chave: { contains: PC } } })
+    await payload.delete({ collection: 'categories', where: { slug: { contains: PC } } })
+  }
+
+  beforeAll(limparConfigFiltros)
+  afterEach(limparConfigFiltros)
+
+  it('reordenar altera a ordem, e desligar a visibilidade tira o atributo dos visíveis', async () => {
+    const peso = await criarAtributoCfg('filtro', 'peso')
+    const tamanho = await criarAtributoCfg('filtro', 'tamanho')
+
+    await payload.updateGlobal({
+      slug: 'configuracao-filtros',
+      data: {
+        padrao: [
+          { atributo: tamanho.id, visivel: true },
+          { atributo: peso.id, visivel: true },
+        ],
+      },
+    })
+    const lido = await payload.findGlobal({ slug: 'configuracao-filtros', depth: 0 })
+    expect((lido.padrao ?? []).map((l: LinhaFiltro) => l.atributo)).toEqual([tamanho.id, peso.id])
+
+    // Reordenar: inverte a posição.
+    await payload.updateGlobal({
+      slug: 'configuracao-filtros',
+      data: {
+        padrao: [
+          { atributo: peso.id, visivel: false },
+          { atributo: tamanho.id, visivel: true },
+        ],
+      },
+    })
+    const depois = await payload.findGlobal({ slug: 'configuracao-filtros', depth: 0 })
+    expect((depois.padrao ?? []).map((l: LinhaFiltro) => l.atributo)).toEqual([peso.id, tamanho.id])
+
+    const visiveis = (depois.padrao ?? [])
+      .filter((l: LinhaFiltro) => l.visivel)
+      .map((l: LinhaFiltro) => l.atributo)
+    expect(visiveis).toEqual([tamanho.id])
+    expect(visiveis).not.toContain(peso.id)
+  })
+
+  it('um atributo interno não pode ser tornado público — nem em "padrao" nem em "porCategoria"', async () => {
+    const cor = await criarAtributoCfg('filtro', 'cor')
+    const custo = await criarAtributoCfg('interno', 'custo')
+    const categoria = await criarCategoriaCfg('generica')
+
+    await expect(
+      payload.updateGlobal({
+        slug: 'configuracao-filtros',
+        data: {
+          padrao: [
+            { atributo: cor.id, visivel: true },
+            { atributo: custo.id, visivel: true },
+          ],
+        },
+      }),
+    ).rejects.toThrow(/interno/)
+
+    // A recusa não deixa o interno gravado a meio.
+    const naBase = await payload.findGlobal({ slug: 'configuracao-filtros', depth: 0 })
+    expect((naBase.padrao ?? []).map((l: LinhaFiltro) => l.atributo)).not.toContain(custo.id)
+
+    await expect(
+      payload.updateGlobal({
+        slug: 'configuracao-filtros',
+        data: {
+          porCategoria: [{ categoria: categoria.id, atributos: [{ atributo: custo.id, visivel: true }] }],
+        },
+      }),
+    ).rejects.toThrow(/interno/)
+  })
+
+  it('escrita só por staff — anónimo é recusado', async () => {
+    await expect(
+      payload.updateGlobal({
+        slug: 'configuracao-filtros',
+        data: { padrao: [] },
+        overrideAccess: false,
+      }),
+    ).rejects.toThrow()
+  })
+
+  it('substituição por categoria: Ração filtra por peso, Coleiras por tamanho', async () => {
+    const peso = await criarAtributoCfg('filtro', 'peso2')
+    const tamanho = await criarAtributoCfg('filtro', 'tamanho2')
+    const racao = await criarCategoriaCfg('racao')
+    const coleiras = await criarCategoriaCfg('coleiras')
+
+    await payload.updateGlobal({
+      slug: 'configuracao-filtros',
+      data: {
+        padrao: [{ atributo: peso.id, visivel: true }],
+        porCategoria: [
+          { categoria: racao.id, atributos: [{ atributo: peso.id, visivel: true }] },
+          { categoria: coleiras.id, atributos: [{ atributo: tamanho.id, visivel: true }] },
+        ],
+      },
+    })
+
+    const lido = await payload.findGlobal({ slug: 'configuracao-filtros', depth: 0 })
+    const overrides = new Map(
+      (lido.porCategoria ?? []).map((o: { categoria: Id; atributos?: LinhaFiltro[] | null }) => [
+        o.categoria,
+        (o.atributos ?? []).map((a: LinhaFiltro) => a.atributo),
+      ]),
+    )
+    expect(overrides.get(racao.id)).toEqual([peso.id])
+    expect(overrides.get(coleiras.id)).toEqual([tamanho.id])
+    // O conjunto por omissão continua distinto das substituições.
+    expect((lido.padrao ?? []).map((l: LinhaFiltro) => l.atributo)).toEqual([peso.id])
+  })
+})

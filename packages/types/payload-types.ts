@@ -102,8 +102,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'configuracao-filtros': ConfiguracaoFiltro;
+  };
+  globalsSelect: {
+    'configuracao-filtros': ConfiguracaoFiltrosSelect<false> | ConfiguracaoFiltrosSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -885,6 +889,76 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "configuracao-filtros".
+ */
+export interface ConfiguracaoFiltro {
+  id: number;
+  /**
+   * Arraste as linhas para reordenar — é essa ordem que o catálogo usa. Desligar "Visível" remove o filtro da loja sem apagar a linha.
+   */
+  padrao?:
+    | {
+        /**
+         * Atributos de alcance interno aparecem na lista, mas a gravação é recusada: nunca podem ficar visíveis no catálogo.
+         */
+        atributo: number | Attribute;
+        visivel?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Uma categoria listada aqui substitui por completo os filtros por omissão — não os complementa. Ex.: em "Ração" filtra-se por peso, em "Coleiras" por tamanho.
+   */
+  porCategoria?:
+    | {
+        categoria: number | Category;
+        atributos?:
+          | {
+              /**
+               * Atributos de alcance interno aparecem na lista, mas a gravação é recusada: nunca podem ficar visíveis no catálogo.
+               */
+              atributo: number | Attribute;
+              visivel?: boolean | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "configuracao-filtros_select".
+ */
+export interface ConfiguracaoFiltrosSelect<T extends boolean = true> {
+  padrao?:
+    | T
+    | {
+        atributo?: T;
+        visivel?: T;
+        id?: T;
+      };
+  porCategoria?:
+    | T
+    | {
+        categoria?: T;
+        atributos?:
+          | T
+          | {
+              atributo?: T;
+              visivel?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
