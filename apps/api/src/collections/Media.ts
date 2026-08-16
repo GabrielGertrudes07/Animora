@@ -1,8 +1,15 @@
 import type { CollectionConfig } from 'payload'
 
+import { blockDeleteIfPublished } from '../hooks/blockDeleteIfPublished'
+
 export const Media: CollectionConfig = {
   slug: 'media',
   admin: { useAsTitle: 'alt' },
+  hooks: {
+    beforeDelete: [
+      blockDeleteIfPublished('esta imagem', ['gallery.image', 'primaryImage', 'shareImage']),
+    ],
+  },
   upload: {
     staticDir: 'media',
     // Ponto focal: sem isto, o corte quadrado do card decapita os animais.
