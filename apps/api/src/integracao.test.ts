@@ -15,6 +15,7 @@
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { getPayload, type Payload } from 'payload'
+import { combinationKey } from '@animora/core'
 
 import config from '../payload.config'
 import { protectLastOwner } from './collections/Users'
@@ -197,6 +198,54 @@ describe('sincronização de variantes', () => {
     for (const tamanho of ['S', 'M']) {
       expect(porTamanho(depois, tamanho)!.id).toBe(porTamanho(antes, tamanho)!.id)
       expect(porTamanho(depois, tamanho)!.priceCents).toBe(porTamanho(antes, tamanho)!.priceCents)
+    }
+  })
+
+  it('com mais de dez variantes, mudar opções preserva ids e preços de todas', async () => {
+    // 4 tamanhos × 3 cores = 12 linhas, acima do `limit` por defeito de 10 do
+    // `find`. É o único teste que distingue o `limit: 0` do `syncVariants` do
+    // limite por omissão: sem ele, as variantes acima da décima são lidas como
+    // inexistentes, não entram no conjunto conhecido, e são recriadas a zero —
+    // preços apagados em silêncio. Nenhum produto dos outros testes passa das
+    // três variantes, por isso todos continuavam verdes com a regressão posta.
+    const cores = ['Preto', 'Branco', 'Azul']
+    const produto = await criarRascunho('doze', [
+      opcao('Tamanho', 'P', 'M', 'G', 'GG'),
+      opcao('Cor', ...cores),
+    ])
+
+    const antes = await variantesDe(produto.id)
+    expect(antes).toHaveLength(12)
+
+    // Um preço diferente por linha: uma linha recriada dá 0, e uma linha trocada
+    // dá o preço de outra combinação — os dois casos aparecem.
+    for (const [i, linha] of antes.entries()) {
+      await payload.update({
+        collection: 'variants',
+        id: linha.id,
+        data: { priceCents: 1000 + i * 10, stock: i + 1 },
+      })
+    }
+    await publicar(produto.id)
+
+    const original = new Map(
+      (await variantesDe(produto.id)).map((l) => [combinationKey(l.combination), l]),
+    )
+
+    await payload.update({
+      collection: 'products',
+      id: produto.id,
+      data: { options: [opcao('Tamanho', 'P', 'M', 'G'), opcao('Cor', ...cores)] },
+    })
+
+    const depois = await variantesDe(produto.id)
+    expect(depois).toHaveLength(9)
+    for (const linha of depois) {
+      const antiga = original.get(combinationKey(linha.combination))
+      expect(antiga).toBeDefined()
+      expect(linha.id).toBe(antiga!.id)
+      expect(linha.priceCents).toBe(antiga!.priceCents)
+      expect(linha.stock).toBe(antiga!.stock)
     }
   })
 
