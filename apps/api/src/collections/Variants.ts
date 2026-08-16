@@ -1,6 +1,8 @@
 import type { CollectionConfig, JSONFieldValidation, NumberFieldSingleValidation } from 'payload'
 import { validations } from 'payload'
 
+import { blockUnsellableChange, blockUnsellableDelete } from '../hooks/blockUnsellable'
+
 // Dinheiro é sempre em cêntimos inteiros; stock é sempre um número inteiro de unidades.
 // Sem isto, o Postgres aceita 29.9 ou 3.5 e a loja só rebenta mais tarde, quando
 // packages/core tentar formatar o preço (MoneyError: "Cêntimos têm de ser inteiros").
@@ -99,6 +101,12 @@ const validateCombination: JSONFieldValidation = async (value, options) => {
 
 export const Variants: CollectionConfig = {
   slug: 'variants',
+  hooks: {
+    // A invariante "publicado ⇒ tem o que vender" era imposta só do lado do
+    // produto. Estes dois fecham-na do lado da variante — ver o ficheiro.
+    beforeChange: [blockUnsellableChange],
+    beforeDelete: [blockUnsellableDelete],
+  },
   admin: {
     useAsTitle: 'sku',
     defaultColumns: ['sku', 'product', 'priceCents', 'stock', 'active'],

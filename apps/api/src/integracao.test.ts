@@ -358,6 +358,65 @@ describe('sincronização de variantes', () => {
   })
 })
 
+describe('invariante do produto publicado, pelo lado da variante', () => {
+  /** Produto publicado com uma única variante vendável. */
+  const publicadoComPreco = async (sufixo: string, valores: string[] = ['S']) => {
+    const produto = await criarRascunho(sufixo, [opcao('Tamanho', ...valores)])
+    const [primeira] = await variantesDe(produto.id)
+    await payload.update({
+      collection: 'variants',
+      id: primeira!.id,
+      data: { priceCents: 2990, stock: 4 },
+    })
+    await publicar(produto.id)
+    return { produto, variante: primeira! }
+  }
+
+  it('apagar a última variante com preço é recusado', async () => {
+    const { produto, variante } = await publicadoComPreco('ultima-apagar')
+
+    await expect(payload.delete({ collection: 'variants', id: variante.id })).rejects.toThrow(
+      /última variante ativa com preço/,
+    )
+
+    // Sem a guarda isto devolvia 200 e deixava o produto publicado com zero
+    // variantes — à venda sem nada para vender, e impossível de voltar a gravar.
+    expect(await variantesDe(produto.id)).toHaveLength(1)
+  })
+
+  it('zerar o preço ou desativar a última variante com preço é recusado', async () => {
+    const { variante } = await publicadoComPreco('ultima-zerar')
+
+    for (const data of [{ priceCents: 0 }, { active: false }]) {
+      await expect(
+        payload.update({ collection: 'variants', id: variante.id, data }),
+      ).rejects.toThrow(/última variante ativa com preço/)
+    }
+
+    const depois = await payload.findByID({ collection: 'variants', id: variante.id, depth: 0 })
+    expect(depois.priceCents).toBe(2990)
+    expect(depois.active).toBe(true)
+  })
+
+  it('a guarda não estorva o que é legítimo', async () => {
+    // Rascunho: ainda não está à venda, mexe-se à vontade.
+    const rascunho = await criarRascunho('guarda-rascunho', [opcao('Tamanho', 'S')])
+    const [linha] = await variantesDe(rascunho.id)
+    await payload.update({ collection: 'variants', id: linha!.id, data: { priceCents: 0 } })
+
+    // Publicado com duas variantes vendáveis: zerar uma delas não deixa o
+    // produto sem nada para vender.
+    const { produto, variante } = await publicadoComPreco('guarda-duas', ['S', 'M'])
+    const outra = (await variantesDe(produto.id)).find((l) => l.id !== variante.id)!
+    await payload.update({ collection: 'variants', id: outra.id, data: { priceCents: 1990 } })
+    await payload.update({ collection: 'variants', id: variante.id, data: { priceCents: 0 } })
+
+    // E apagar o produto publicado continua a levar as variantes à frente.
+    await payload.delete({ collection: 'products', id: produto.id })
+    expect(await variantesDe(produto.id)).toHaveLength(0)
+  })
+})
+
 describe('escalada de privilégios', () => {
   const criarAdmin = async (sufixo: string) =>
     payload.create({

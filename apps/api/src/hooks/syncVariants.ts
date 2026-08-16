@@ -2,6 +2,8 @@ import type { CollectionAfterChangeHook, CollectionBeforeDeleteHook, PayloadRequ
 import { mergeVariants, buildSku, combinationKey } from '@animora/core'
 import type { Combination, VariantOption, VariantRow } from '@animora/core'
 
+import { A_APAGAR_PRODUTO } from './blockUnsellable'
+
 /** Chave do lock consultivo. Arbitrária — só tem de ser sempre a mesma. */
 const SKU_LOCK_KEY = 918273
 
@@ -213,6 +215,12 @@ export const syncVariants: CollectionAfterChangeHook = async ({ doc, req }) => {
  * eliminação do produto falhar mais à frente, o rollback repõe as variantes.
  */
 export const deleteVariantsOfProduct: CollectionBeforeDeleteHook = async ({ id, req }) => {
+  // O guarda da coleção `variants` recusa apagar a última variante vendável de
+  // um produto publicado. Aqui é para apagar mesmo: o produto vai desaparecer
+  // com elas, e sem esta marca nenhum produto publicado e precificado se
+  // conseguiria apagar.
+  req.context[A_APAGAR_PRODUTO] = true
+
   await req.payload.delete({
     collection: 'variants',
     where: { product: { equals: id } },
