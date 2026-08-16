@@ -15,6 +15,7 @@ import { Variants } from './src/collections/Variants'
 import { Customers } from './src/collections/Customers'
 import { Orders } from './src/collections/Orders'
 import { Attributes } from './src/collections/Attributes'
+import { Reviews } from './src/collections/Reviews'
 import { ConfiguracaoFiltros } from './src/globals/ConfiguracaoFiltros'
 import { Definicoes } from './src/globals/Definicoes'
 import { checkout } from './src/endpoints/checkout'
@@ -43,6 +44,7 @@ export default buildConfig({
     Customers,
     Orders,
     Attributes,
+    Reviews,
   ],
   globals: [ConfiguracaoFiltros, Definicoes],
   endpoints: [checkout, dashboard],

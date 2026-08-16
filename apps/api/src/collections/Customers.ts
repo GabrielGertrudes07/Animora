@@ -3,6 +3,7 @@ import { APIError } from 'payload'
 
 import { ehStaff } from '../access/staff'
 import { anonimizarEncomendas } from '../hooks/anonimizarEncomendas'
+import { apagarAvaliacoesDe } from './Reviews'
 import { validarCodigoPostal } from '../validacoes'
 
 /**
@@ -60,7 +61,12 @@ export const Customers: CollectionConfig = {
     beforeValidate: [palavraPasseDecente],
     // Sem isto, apagar uma conta com encomendas dava 500 e o pedido de RGPD não
     // tinha caminho nenhum. Ver o ficheiro.
-    beforeDelete: [anonimizarEncomendas],
+    //
+    // As avaliações vão pelo mesmo caminho e pela mesma razão de base
+    // (`reviews.cliente_id` é NOT NULL com FK `ON DELETE SET NULL`), mas
+    // apagadas em vez de anonimizadas: uma avaliação é conteúdo pessoal e não
+    // tem contabilidade nenhuma a sustentá-la. Ver `Reviews.ts`.
+    beforeDelete: [anonimizarEncomendas, apagarAvaliacoesDe('cliente')],
   },
   access: {
     read: proprioOuStaff,

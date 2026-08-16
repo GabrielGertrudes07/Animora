@@ -133,6 +133,10 @@ const limparCatalogo = async () => {
       ],
     },
   })
+  // As avaliações apontam para produtos e clientes. O `beforeDelete` de ambos
+  // já as leva consigo; isto é para o caso de esse caminho estar partido — sem
+  // isto, uma avaliação órfã bloqueava a limpeza de todos os testes seguintes.
+  await payload.delete({ collection: 'reviews', where: { 'produto.slug': { contains: P } } })
   // Produtos a seguir: apagá-los apaga as variantes, e um produto publicado
   // impede a eliminação da marca, da categoria e da imagem que usa.
   await payload.delete({ collection: 'products', where: { slug: { contains: P } } })
@@ -3029,5 +3033,374 @@ describe('dashboard de vendas com trava comercial', () => {
     // 100 − 1 da E1 − 2 da E3, que voltaram ao cancelar = 99; menos 96 = 3.
     expect(d.stock.baixo.find((a) => a.sku === racao.sku)).toMatchObject({ stock: 3 })
     expect(d.stock.ruturas.some((a) => a.sku === racao.sku)).toBe(false)
+  })
+})
+
+/**
+ * Avaliações.
+ *
+ * Nenhuma destas invariantes se mede pelo código HTTP — mede-se pelo que ficou
+ * na base e pelo que saiu no documento serializado:
+ *
+ * 1. **Só avalia quem comprou.** Estrelas sem compra são prova social
+ *    fabricada, que é a primeira das três regras de honestidade da
+ *    especificação (§3).
+ * 2. **Nasce `pendente`.** Quem escreve não escolhe o estado.
+ * 3. **A leitura pública não deixa sair um email.** É a lição da fase 2 outra
+ *    vez, agora com texto e nomes de pessoas reais em vez do custo de compra —
+ *    por isso os testes serializam a resposta inteira e procuram o email lá
+ *    dentro, a três profundidades, em vez de olhar para o campo que esperavam
+ *    encontrar.
+ */
+describe('avaliações', () => {
+  const como = (u: { id: Id }, collection: 'customers' | 'users') => ({
+    user: { ...u, collection },
+    overrideAccess: false,
+  })
+
+  const anonimo = { overrideAccess: false } as const
+
+  type Cliente = { id: Id; email: string; nome: string }
+
+  const criarCliente = async (sufixo: string, nome: string): Promise<Cliente> =>
+    (await payload.create({
+      collection: 'customers',
+      data: {
+        email: `${P}-${sufixo}@cliente.pt`,
+        password: 'animora123',
+        nome,
+      },
+    })) as unknown as Cliente
+
+  const criarStaff = async (sufixo: string) =>
+    payload.create({
+      collection: 'users',
+      data: { email: `${P}-${sufixo}@animora.pt`, password: 'animora123', role: 'admin' },
+    })
+
+  /** Um produto publicado, com preço, pronto a ser comprado. */
+  const criarProduto = async (sufixo: string) => {
+    const produto = await criarRascunho(`av-${sufixo}`)
+    const [linha] = await variantesDe(produto.id)
+    await payload.update({
+      collection: 'variants',
+      id: linha!.id,
+      data: { priceCents: 2990, costCents: 1200 },
+    })
+    await publicar(produto.id)
+    return { produto, variante: linha! }
+  }
+
+  /** Uma encomenda daquele cliente com aquela variante — o único caminho que
+   * abre a porta a avaliar. `overrideAccess` porque é o que o checkout faz. */
+  const comprar = async (
+    numero: string,
+    cliente: Cliente,
+    variante: Id,
+    estado = 'a-aguardar-pagamento',
+  ) =>
+    payload.create({
+      collection: 'orders',
+      data: {
+        numero: `${P}-${numero}`,
+        cliente: cliente.id,
+        email: cliente.email,
+        estado,
+        linhas: [
+          {
+            variante,
+            titulo: 'Zteste artigo',
+            sku: 'ZTESTE-1',
+            quantidade: 1,
+            precoUnitarioCents: 2990,
+            custoUnitarioCents: 1200,
+          },
+        ],
+        subtotalCents: 2990,
+        portesCents: 499,
+        totalCents: 3489,
+        moradaEnvio: {
+          nomeDestinatario: 'Ana Silva',
+          linha1: 'Rua das Flores 12',
+          codigoPostal: '1234-567',
+          localidade: 'Lisboa',
+        },
+      },
+      overrideAccess: true,
+    })
+
+  const escrever = (cliente: Cliente, produto: Id, extra: Record<string, unknown> = {}) =>
+    payload.create({
+      collection: 'reviews',
+      data: { produto, cliente: cliente.id, estrelas: 5, texto: 'Gostei muito.', ...extra },
+      ...como(cliente, 'customers'),
+    })
+
+  /**
+   * Só as avaliações destes testes, e não a coleção inteira: a demonstração há
+   * de ter avaliações semeadas, e um `count` sem filtro passava a medi-las
+   * também. É a mesma correção que os testes do dashboard já levaram.
+   */
+  const quantasNaBase = async () =>
+    (await payload.count({ collection: 'reviews', where: { 'produto.slug': { contains: P } } }))
+      .totalDocs
+
+  it('quem não comprou o produto não avalia — e não fica nada na base', async () => {
+    const cliente = await criarCliente('a', 'Marta Sousa')
+    const semCompra = await criarProduto('sem-compra')
+
+    await expect(escrever(cliente, semCompra.produto.id)).rejects.toThrow(/comprou/i)
+    expect(await quantasNaBase()).toBe(0)
+
+    // Controlo positivo: comprado o produto, a mesma escrita passa. Sem isto o
+    // teste passaria por a coleção recusar tudo.
+    const comprado = await criarProduto('com-compra')
+    await comprar('9001', cliente, comprado.variante.id)
+    await escrever(cliente, comprado.produto.id)
+    expect(await quantasNaBase()).toBe(1)
+
+    // E comprar um produto não abre a porta ao outro.
+    await expect(escrever(cliente, semCompra.produto.id)).rejects.toThrow(/comprou/i)
+    expect(await quantasNaBase()).toBe(1)
+  })
+
+  it('uma encomenda cancelada não é uma compra', async () => {
+    const cliente = await criarCliente('a', 'Marta Sousa')
+    const { produto, variante } = await criarProduto('cancelada')
+    const encomenda = await comprar('9002', cliente, variante.id)
+    await payload.update({ collection: 'orders', id: encomenda.id, data: { estado: 'cancelado' } })
+
+    await expect(escrever(cliente, produto.id)).rejects.toThrow(/comprou/i)
+    expect(await quantasNaBase()).toBe(0)
+  })
+
+  it('quem comprou avalia, e a avaliação nasce pendente mesmo pedindo aprovada', async () => {
+    const cliente = await criarCliente('a', 'Marta Sousa')
+    const { produto, variante } = await criarProduto('nasce')
+    await comprar('9003', cliente, variante.id)
+
+    const av = await escrever(cliente, produto.id, { estado: 'aprovada' })
+
+    // O que conta é o estado na base, não o que a criação devolveu.
+    const naBase = await payload.findByID({ collection: 'reviews', id: av.id, depth: 0 })
+    expect(naBase.estado).toBe('pendente')
+    expect(naBase.estrelas).toBe(5)
+    expect(naBase.nomeAutor).toBe('Marta')
+  })
+
+  it('o cliente do corpo é ignorado: ninguém avalia em nome de outro', async () => {
+    const a = await criarCliente('a', 'Marta Sousa')
+    const b = await criarCliente('b', 'João Pereira')
+    const { produto, variante } = await criarProduto('nome-alheio')
+    await comprar('9004', a, variante.id)
+
+    // A comprou; B não. A escreve dizendo que o autor é B.
+    const av = await payload.create({
+      collection: 'reviews',
+      data: { produto: produto.id, cliente: b.id, estrelas: 4, texto: 'Boa.' },
+      ...como(a, 'customers'),
+    })
+
+    const naBase = await payload.findByID({ collection: 'reviews', id: av.id, depth: 0 })
+    expect(naBase.cliente).toBe(a.id)
+    expect(naBase.nomeAutor).toBe('Marta')
+
+    // E o caminho inverso: B, que não comprou, não passa por dizer que é A.
+    await expect(
+      payload.create({
+        collection: 'reviews',
+        data: { produto: produto.id, cliente: a.id, estrelas: 4 },
+        ...como(b, 'customers'),
+      }),
+    ).rejects.toThrow(/comprou/i)
+  })
+
+  it('estrelas: 0, 6 e 3,5 são recusadas e não gravam nada', async () => {
+    const cliente = await criarCliente('a', 'Marta Sousa')
+    const { produto, variante } = await criarProduto('estrelas')
+    await comprar('9005', cliente, variante.id)
+
+    for (const estrelas of [0, 6, 3.5, -1]) {
+      await expect(escrever(cliente, produto.id, { estrelas })).rejects.toThrow()
+      expect(await quantasNaBase()).toBe(0)
+    }
+
+    // Controlo positivo: 1 e 5 passam, senão este teste passaria por o campo
+    // ter deixado de aceitar seja o que for.
+    for (const estrelas of [1, 5]) await escrever(cliente, produto.id, { estrelas })
+    expect(await quantasNaBase()).toBe(2)
+  })
+
+  it('sem sessão só saem as aprovadas — e nenhum email de cliente, a depth 0, 1 e 2', async () => {
+    const a = await criarCliente('a', 'Marta Sousa')
+    const b = await criarCliente('b', 'João Pereira')
+    const { produto, variante } = await criarProduto('publica')
+    await comprar('9006', a, variante.id)
+    await comprar('9007', b, variante.id)
+
+    const aprovada = await escrever(a, produto.id, { texto: 'Aprovada de A.' })
+    const pendente = await escrever(b, produto.id, { texto: 'Pendente de B.' })
+    await payload.update({
+      collection: 'reviews',
+      id: aprovada.id,
+      data: { estado: 'aprovada' },
+      overrideAccess: true,
+    })
+
+    for (const depth of [0, 1, 2]) {
+      const { docs } = await payload.find({
+        collection: 'reviews',
+        where: { produto: { equals: produto.id } },
+        limit: 0,
+        depth,
+        ...anonimo,
+      })
+      expect(docs.map((d) => d.id)).toEqual([aprovada.id])
+
+      const serializado = JSON.stringify(docs)
+      expect(serializado).not.toContain(a.email)
+      expect(serializado).not.toContain(b.email)
+      expect(serializado).not.toContain('@cliente.pt')
+      // Nem o apelido: o que sai é o nome próprio e mais nada.
+      expect(serializado).not.toContain('Sousa')
+      expect(serializado).toContain('Marta')
+
+      // Por id, e não só por lista: a pendente de B dá "não encontrado".
+      await expect(
+        payload.findByID({ collection: 'reviews', id: pendente.id, depth, ...anonimo }),
+      ).rejects.toThrow()
+    }
+
+    // Controlo negativo: com sessão de staff a pendente aparece, senão este
+    // teste passaria por a coleção ter ficado vazia.
+    const { docs: comStaff } = await payload.find({
+      collection: 'reviews',
+      where: { produto: { equals: produto.id } },
+      limit: 0,
+      depth: 0,
+    })
+    expect(comStaff.map((d) => d.id).sort()).toEqual([aprovada.id, pendente.id].sort())
+  })
+
+  it('um cliente lê as suas em qualquer estado e nunca as pendentes de outro', async () => {
+    const a = await criarCliente('a', 'Marta Sousa')
+    const b = await criarCliente('b', 'João Pereira')
+    const { produto, variante } = await criarProduto('isolamento')
+    await comprar('9008', a, variante.id)
+    await comprar('9009', b, variante.id)
+
+    const daA = await escrever(a, produto.id, { texto: 'Pendente de A.' })
+    const daB = await escrever(b, produto.id, { texto: 'Pendente de B.' })
+
+    const { docs } = await payload.find({
+      collection: 'reviews',
+      where: { produto: { equals: produto.id } },
+      limit: 0,
+      depth: 0,
+      ...como(a, 'customers'),
+    })
+    expect(docs.map((d) => d.id)).toEqual([daA.id])
+    expect(JSON.stringify(docs)).not.toContain('Pendente de B.')
+
+    await expect(
+      payload.findByID({ collection: 'reviews', id: daB.id, depth: 0, ...como(a, 'customers') }),
+    ).rejects.toThrow()
+
+    // Aprovada a de B, A passa a lê-la — e continua sem ver o email dele.
+    await payload.update({
+      collection: 'reviews',
+      id: daB.id,
+      data: { estado: 'aprovada' },
+      overrideAccess: true,
+    })
+    const { docs: agora } = await payload.find({
+      collection: 'reviews',
+      where: { produto: { equals: produto.id } },
+      limit: 0,
+      depth: 2,
+      ...como(a, 'customers'),
+    })
+    expect(agora.map((d) => d.id).sort()).toEqual([daA.id, daB.id].sort())
+    expect(JSON.stringify(agora)).not.toContain(b.email)
+  })
+
+  it('só o staff muda o estado', async () => {
+    const cliente = await criarCliente('a', 'Marta Sousa')
+    const staff = await criarStaff('mod')
+    const { produto, variante } = await criarProduto('moderacao')
+    await comprar('9010', cliente, variante.id)
+    const av = await escrever(cliente, produto.id)
+
+    const estadoNaBase = async () =>
+      (await payload.findByID({ collection: 'reviews', id: av.id, depth: 0 })).estado
+
+    for (const sessao of [como(cliente, 'customers'), anonimo]) {
+      await expect(
+        payload.update({
+          collection: 'reviews',
+          id: av.id,
+          data: { estado: 'aprovada' },
+          ...sessao,
+        }),
+      ).rejects.toThrow()
+      // O que conta não é o 403: é o estado continuar `pendente` na base.
+      expect(await estadoNaBase()).toBe('pendente')
+    }
+
+    // O próprio autor também não se aprova pelo texto: a coleção só aceita
+    // escrita de staff, ponto.
+    await expect(
+      payload.update({
+        collection: 'reviews',
+        id: av.id,
+        data: { texto: 'Outro texto.' },
+        ...como(cliente, 'customers'),
+      }),
+    ).rejects.toThrow()
+
+    await payload.update({
+      collection: 'reviews',
+      id: av.id,
+      data: { estado: 'aprovada' },
+      ...como(staff, 'users'),
+    })
+    expect(await estadoNaBase()).toBe('aprovada')
+  })
+
+  it('o staff não escreve avaliações — só as modera', async () => {
+    const cliente = await criarCliente('a', 'Marta Sousa')
+    const staff = await criarStaff('autor')
+    const { produto, variante } = await criarProduto('staff-nao-escreve')
+    await comprar('9011', cliente, variante.id)
+
+    await expect(
+      payload.create({
+        collection: 'reviews',
+        data: { produto: produto.id, cliente: cliente.id, estrelas: 5, texto: 'Excelente!' },
+        ...como(staff, 'users'),
+      }),
+    ).rejects.toThrow()
+    expect(await quantasNaBase()).toBe(0)
+  })
+
+  it('apagar a conta ou o produto leva as avaliações com eles, sem 500', async () => {
+    const cliente = await criarCliente('a', 'Marta Sousa')
+    const { produto, variante } = await criarProduto('apagar-conta')
+    await comprar('9012', cliente, variante.id)
+    await escrever(cliente, produto.id)
+
+    await payload.delete({ collection: 'customers', id: cliente.id })
+    expect(await quantasNaBase()).toBe(0)
+
+    const outro = await criarCliente('b', 'João Pereira')
+    const segundo = await criarProduto('apagar-produto')
+    await comprar('9013', outro, segundo.variante.id)
+    await escrever(outro, segundo.produto.id)
+
+    // A encomenda aponta para a variante do produto; apaga-se primeiro, como o
+    // painel faria, para o teste medir só o caminho das avaliações.
+    await payload.delete({ collection: 'orders', where: { numero: { equals: `${P}-9013` } } })
+    await payload.delete({ collection: 'products', id: segundo.produto.id })
+    expect(await quantasNaBase()).toBe(0)
   })
 })

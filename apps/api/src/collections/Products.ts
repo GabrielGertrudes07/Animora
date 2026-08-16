@@ -5,6 +5,7 @@ import { soStaff, soStaffCampo } from '../access/staff'
 import { deleteVariantsOfProduct, syncVariants } from '../hooks/syncVariants'
 import { validatePublish } from '../hooks/validatePublish'
 import { uniqueSlug } from '../hooks/uniqueSlug'
+import { apagarAvaliacoesDe } from './Reviews'
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -37,8 +38,9 @@ export const Products: CollectionConfig = {
     beforeChange: [validatePublish],
     afterChange: [syncVariants],
     // Sem isto nenhum produto se consegue apagar: o adaptador gera ON DELETE SET
-    // NULL sobre `variants.product_id`, que é NOT NULL.
-    beforeDelete: [deleteVariantsOfProduct],
+    // NULL sobre `variants.product_id`, que é NOT NULL. As avaliações têm o
+    // mesmo problema em `reviews.produto_id` — ver `Reviews.ts`.
+    beforeDelete: [deleteVariantsOfProduct, apagarAvaliacoesDe('produto')],
   },
   fields: [
     {
