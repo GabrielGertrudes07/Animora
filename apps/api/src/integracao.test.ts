@@ -18,7 +18,6 @@ import { getPayload, type Payload } from 'payload'
 import { combinationKey } from '@animora/core'
 
 import config from '../payload.config'
-import { protectLastOwner } from './collections/Users'
 
 const P = 'zteste'
 
@@ -297,7 +296,9 @@ describe('sincronização de variantes', () => {
         id: produto.id,
         data: { _status: 'published', options: [opcao('Tamanho', 'XL')] },
       }),
-    ).rejects.toThrow(/variante ativa com preço/)
+      // A mensagem nomeia a variante com preço que ia ficar de fora, em vez de
+      // pedir preços a quem já os tem preenchidos.
+    ).rejects.toThrow(/não correspondem a nenhuma combinação/)
 
     const depois = await payload.findByID({ collection: 'products', id: produto.id, depth: 0 })
     expect(depois._status).not.toBe('published')
@@ -315,6 +316,19 @@ describe('sincronização de variantes', () => {
 
     const depois = await payload.findByID({ collection: 'products', id: produto.id, depth: 0 })
     expect(depois._status).not.toBe('published')
+  })
+
+  it('controlo positivo: com preço, imagem, marca e categoria publica', async () => {
+    // Sem isto, uma guarda a recusar tudo passava por correção. As quatro
+    // exigências da publicação estão aqui todas satisfeitas.
+    const produto = await criarRascunho('controlo', [opcao('Tamanho', 'S')])
+    const [s] = await variantesDe(produto.id)
+    await payload.update({ collection: 'variants', id: s!.id, data: { priceCents: 2990 } })
+
+    const publicado = await publicar(produto.id)
+
+    expect(publicado._status).toBe('published')
+    expect(await variantesDe(produto.id)).toHaveLength(1)
   })
 
   it('em massa: publicar sem preços é recusado e não grava nada', async () => {
@@ -459,6 +473,252 @@ describe('invariante do produto publicado, pelo lado da variante', () => {
 })
 
 /**
+ * O caminho em massa e o caminho paralelo, para cada guarda que conta antes de
+ * decidir.
+ *
+ * Estes testes existem porque o mesmo defeito apareceu quatro vezes neste ramo,
+ * sempre pela mesma porta: uma guarda que conta os irmãos passa quando os
+ * irmãos estão a ser mudados ao mesmo tempo. Toda a verificação anterior foi
+ * feita com um documento de cada vez, que é o único caminho onde essas guardas
+ * funcionavam. Sem estes testes, a quinta instância entra pela mesma porta.
+ */
+describe('guardas em massa e em paralelo', () => {
+  const publicadoComDuas = async (sufixo: string) => {
+    const produto = await criarRascunho(sufixo, [opcao('Tamanho', 'S', 'M')])
+    const linhas = await variantesDe(produto.id)
+    await payload.update({ collection: 'variants', id: linhas[0]!.id, data: { priceCents: 1990 } })
+    await payload.update({ collection: 'variants', id: linhas[1]!.id, data: { priceCents: 4990 } })
+    await publicar(produto.id)
+    return produto
+  }
+
+  const vendaveis = async (produto: Id) =>
+    (
+      await payload.count({
+        collection: 'variants',
+        where: {
+          and: [
+            { product: { equals: produto } },
+            { active: { equals: true } },
+            { priceCents: { greater_than: 0 } },
+          ],
+        },
+      })
+    ).totalDocs
+
+  const estaPublicado = async (produto: Id) =>
+    (await payload.findByID({ collection: 'products', id: produto, depth: 0 }))._status ===
+    'published'
+
+  it('em massa: desativar todas as variantes de um produto publicado é recusado', async () => {
+    const produto = await publicadoComDuas('massa-desativar')
+
+    // O caminho do painel: escolher as linhas na lista e desativar de uma vez.
+    // Cada guarda via a irmã ainda vendável, todas passavam, e o produto ficava
+    // publicado com zero para vender — 200, sem erro nenhum.
+    const { errors } = await payload.update({
+      collection: 'variants',
+      where: { product: { equals: produto.id } },
+      data: { active: false },
+    })
+
+    expect(errors.length).toBeGreaterThan(0)
+    expect(await estaPublicado(produto.id)).toBe(true)
+    expect(await vendaveis(produto.id)).toBeGreaterThan(0)
+  })
+
+  it('em massa: apagar todas as variantes de um produto publicado é recusado', async () => {
+    const produto = await publicadoComDuas('massa-apagar')
+
+    const { errors } = await payload.delete({
+      collection: 'variants',
+      where: { product: { equals: produto.id } },
+    })
+
+    expect(errors.length).toBeGreaterThan(0)
+    expect(await vendaveis(produto.id)).toBeGreaterThan(0)
+  })
+
+  it('em paralelo: dois pedidos a zerar o preço não deixam o produto sem venda', async () => {
+    const produto = await publicadoComDuas('paralelo-zerar')
+    const linhas = await variantesDe(produto.id)
+
+    // Pedidos separados, transações separadas: aqui não há `req` partilhado, é
+    // o lock consultivo que os põe em fila.
+    const r = await Promise.allSettled(
+      linhas.map((l) =>
+        payload.update({ collection: 'variants', id: l.id, data: { priceCents: 0 } }),
+      ),
+    )
+
+    expect(r.some((x) => x.status === 'rejected')).toBe(true)
+    expect(await estaPublicado(produto.id)).toBe(true)
+    expect(await vendaveis(produto.id)).toBeGreaterThan(0)
+  })
+
+  it('em paralelo: publicar e zerar o preço da única variante não passam os dois', async () => {
+    const produto = await criarRascunho('paralelo-publicar', [opcao('Tamanho', 'S')])
+    const [s] = await variantesDe(produto.id)
+    await payload.update({ collection: 'variants', id: s!.id, data: { priceCents: 1990 } })
+
+    // O `validatePublish` calcula o conjunto futuro, o que chega para os
+    // documentos do mesmo pedido — mas não para outro pedido a mexer nas
+    // variantes ao mesmo tempo: um lia o preço antigo, o outro via o produto
+    // ainda em rascunho, e passavam os dois.
+    await Promise.allSettled([
+      payload.update({ collection: 'products', id: produto.id, data: { _status: 'published' } }),
+      payload.update({ collection: 'variants', id: s!.id, data: { priceCents: 0 } }),
+    ])
+
+    expect((await estaPublicado(produto.id)) && (await vendaveis(produto.id)) === 0).toBe(false)
+  })
+
+  it('em massa: apagar marcas que produtos publicados usam é recusado', async () => {
+    // Esta guarda tem a mesma forma que as outras e não tem o mesmo defeito:
+    // apagar a marca A não muda quantos produtos publicados usam a marca B,
+    // portanto os irmãos do lote não mexem no conjunto que cada uma conta. O
+    // teste fixa isso, para a próxima leitura não ter de repetir a análise.
+    const marcas: Id[] = []
+    for (const letra of ['a', 'b', 'c']) {
+      const m = (
+        await payload.create({
+          collection: 'brands',
+          data: { name: `Zteste ${letra}`, slug: `${P}-massa-marca-${letra}` },
+        })
+      ).id
+      marcas.push(m)
+      const produto = await payload.create({
+        collection: 'products',
+        data: {
+          title: `Zteste marca ${letra}`,
+          slug: `${P}-usa-marca-${letra}`,
+          brand: m,
+          categories: [categoria],
+          gallery: [{ image: imagem }],
+          options: [opcao('Tamanho', 'S')],
+        },
+      })
+      const [s] = await variantesDe(produto.id)
+      await payload.update({ collection: 'variants', id: s!.id, data: { priceCents: 1990 } })
+      await publicar(produto.id)
+    }
+
+    const { errors } = await payload.delete({
+      collection: 'brands',
+      where: { slug: { contains: `${P}-massa-marca-` } },
+    })
+
+    expect(errors).toHaveLength(3)
+    expect(
+      (
+        await payload.count({
+          collection: 'brands',
+          where: { slug: { contains: `${P}-massa-marca-` } },
+        })
+      ).totalDocs,
+    ).toBe(3)
+
+    await payload.delete({ collection: 'products', where: { slug: { contains: `${P}-usa-marca-` } } })
+    await payload.delete({ collection: 'brands', where: { slug: { contains: `${P}-massa-marca-` } } })
+  })
+
+  it('os fluxos legítimos continuam a passar no caminho em massa', async () => {
+    // Despublicar e limpar: fora da loja, mexe-se à vontade, também em massa.
+    const limpar = await publicadoComDuas('massa-legitimo-limpar')
+    await payload.update({ collection: 'products', id: limpar.id, data: { _status: 'draft' } })
+    const desativadas = await payload.update({
+      collection: 'variants',
+      where: { product: { equals: limpar.id } },
+      data: { active: false },
+    })
+    expect(desativadas.errors).toHaveLength(0)
+    expect(await vendaveis(limpar.id)).toBe(0)
+
+    // Apagar o produto inteiro leva as variantes à frente, publicado ou não.
+    const apagar = await publicadoComDuas('massa-legitimo-apagar')
+    await payload.delete({ collection: 'products', id: apagar.id })
+    expect(await variantesDe(apagar.id)).toHaveLength(0)
+
+    // Substituir uma variante por outra: precificar a nova antes de tirar a
+    // velha continua a funcionar num produto publicado.
+    const trocar = await publicadoComDuas('massa-legitimo-trocar')
+    const linhas = await variantesDe(trocar.id)
+    await payload.update({ collection: 'variants', id: linhas[1]!.id, data: { priceCents: 5990 } })
+    await payload.delete({ collection: 'variants', id: linhas[0]!.id })
+    expect(await vendaveis(trocar.id)).toBe(1)
+    expect(await estaPublicado(trocar.id)).toBe(true)
+  })
+})
+
+describe('combinação fora da matriz do produto', () => {
+  it('mudar a combinação para fora das opções do produto é recusado', async () => {
+    const produto = await criarRascunho('fora-matriz', [opcao('Tamanho', 'S')])
+    const [s] = await variantesDe(produto.id)
+    await payload.update({ collection: 'variants', id: s!.id, data: { priceCents: 1990 } })
+    await publicar(produto.id)
+
+    // Devolvia 200. O produto ficava publicado, com variante ativa e com preço,
+    // e à mesma encravado: a linha XL não corresponde a nenhuma opção, portanto
+    // não conta para a publicação e desaparece na gravação seguinte.
+    await expect(
+      payload.update({
+        collection: 'variants',
+        id: s!.id,
+        data: { combination: { Tamanho: 'XL' } },
+      }),
+    ).rejects.toThrow(/não corresponde a nenhuma opção/)
+
+    // E o produto continua a poder ser gravado, que era o que se perdia.
+    await payload.update({
+      collection: 'products',
+      id: produto.id,
+      data: { title: 'Zteste fora matriz 2' },
+    })
+    expect(await variantesDe(produto.id)).toHaveLength(1)
+  })
+
+  it('mudar para uma combinação que existe na matriz é permitido', async () => {
+    const produto = await criarRascunho('dentro-matriz', [opcao('Tamanho', 'S', 'M')])
+    const linhas = await variantesDe(produto.id)
+    const m = porTamanho(linhas, 'M')!
+
+    // Corrigir uma combinação errada à mão tem de continuar a ser possível.
+    await payload.delete({ collection: 'variants', id: porTamanho(linhas, 'S')!.id })
+    await payload.update({
+      collection: 'variants',
+      id: m.id,
+      data: { combination: { Tamanho: 'S' } },
+    })
+
+    const depois = await variantesDe(produto.id)
+    expect(porTamanho(depois, 'S')!.id).toBe(m.id)
+  })
+
+  it('a guarda não estorva o rascunho que reduziu as opções', async () => {
+    const produto = await criarRascunho('matriz-rascunho', [opcao('Tamanho', 'S', 'L')])
+    for (const linha of await variantesDe(produto.id)) {
+      await payload.update({ collection: 'variants', id: linha.id, data: { priceCents: 2990 } })
+    }
+    await publicar(produto.id)
+
+    // O rascunho cria mas nunca apaga: a variante L fica fora da matriz do
+    // rascunho e dentro da matriz publicada. Tem de continuar editável — era
+    // esta a maneira de partir o fluxo de rascunho com uma guarda de matriz.
+    await payload.update({
+      collection: 'products',
+      id: produto.id,
+      draft: true,
+      data: { options: [opcao('Tamanho', 'S')] },
+    })
+
+    const l = porTamanho(await variantesDe(produto.id), 'L')!
+    await payload.update({ collection: 'variants', id: l.id, data: { priceCents: 3990, stock: 2 } })
+    const depois = await payload.findByID({ collection: 'variants', id: l.id, depth: 0 })
+    expect(depois.priceCents).toBe(3990)
+  })
+})
+
+/**
  * Estes testes nunca tocam na conta de desenvolvimento.
  *
  * A versão anterior atacava o `owner` verdadeiro: fazia login com a password
@@ -552,23 +812,83 @@ describe('escalada de privilégios', () => {
     expect(donos.docs.filter((d) => String(d.email).includes(P))).toHaveLength(1)
   })
 
-  it('o último proprietário não pode ser apagado', async () => {
-    // A outra metade do caminho 5: mesmo o owner não pode esvaziar a tabela.
-    //
-    // Testado com um `req` de fachada, e não contra a base de dados, porque a
-    // guarda só dispara quando existe exatamente UM owner — e a base de
-    // desenvolvimento tem sempre lá o legítimo. Chegar a "um só owner" com uma
-    // conta descartável obrigava a apagar a conta real, que é exatamente o que
-    // estes testes não podem fazer. O que se verifica aqui é a decisão da
-    // guarda; que ela está ligada à coleção vê-se em `Users.ts`.
-    const args = (donos: { id: Id }[], id: Id) =>
-      ({
-        id,
-        req: { payload: { find: async () => ({ docs: donos }) } },
-      }) as unknown as Parameters<typeof protectLastOwner>[0]
+  /**
+   * A guarda do último proprietário só decide quando os owners que sobram são
+   * os que o pedido está a apagar — e a base de desenvolvimento tem sempre lá o
+   * legítimo. A versão anterior deste teste contornava isso com um `req` de
+   * fachada, o que testava a decisão mas nunca o caminho em massa nem o
+   * paralelo, que é exatamente onde a guarda estava furada.
+   *
+   * Para o cenário existir, o owner de desenvolvimento é despromovido a admin
+   * durante o teste e reposto no `finally`. A tabela nunca fica vazia (ele
+   * continua lá), portanto o `first-register` nunca reabre a meio.
+   */
+  it('em massa e em paralelo: os proprietários não podem ser apagados todos', async () => {
+    const dev = (
+      await payload.find({
+        collection: 'users',
+        where: { email: { equals: 'admin@animora.pt' } },
+        limit: 1,
+      })
+    ).docs[0]!
 
-    await expect(protectLastOwner(args([{ id: 1 }], 1))).rejects.toThrow(/último proprietário/)
-    // Controlo: com outro owner na tabela, apagar é legítimo e passa.
-    await expect(protectLastOwner(args([{ id: 1 }, { id: 2 }], 1))).resolves.toBeUndefined()
+    const papelDoDev = (role: 'owner' | 'admin') =>
+      payload.update({ collection: 'users', id: dev.id, data: { role } })
+
+    const criarDono = (sufixo: string) =>
+      payload.create({
+        collection: 'users',
+        data: { email: `${P}-${sufixo}@animora.pt`, password: 'animora123', role: 'owner' },
+      })
+
+    const donos = async () =>
+      (await payload.count({ collection: 'users', where: { role: { equals: 'owner' } } })).totalDocs
+
+    /** Entre passos: só o dev consegue apagar owners que a guarda protege. */
+    const limparDonos = async () => {
+      await papelDoDev('owner')
+      await payload.delete({ collection: 'users', where: { email: { contains: P } } })
+      await papelDoDev('admin')
+    }
+
+    try {
+      await papelDoDev('admin')
+
+      // 1) Em massa. Cada guarda contava dois owners, concluía "não sou o
+      //    último" e passava — as duas. Zero owners, tabela vazia,
+      //    `first-register` reaberto a aceitar qualquer papel sem autenticação.
+      await criarDono('dono-a')
+      await criarDono('dono-b')
+      const massa = await payload.delete({
+        collection: 'users',
+        where: { email: { contains: `${P}-dono-` } },
+      })
+      expect(massa.docs).toHaveLength(0)
+      expect(massa.errors).toHaveLength(2)
+      expect(await donos()).toBe(2)
+      await limparDonos()
+
+      // 2) Dois pedidos em paralelo, o mesmo defeito por outro caminho.
+      const paralelos = [await criarDono('par-a'), await criarDono('par-b')]
+      const r = await Promise.allSettled(
+        paralelos.map((d) => payload.delete({ collection: 'users', id: d.id })),
+      )
+      expect(r.some((x) => x.status === 'rejected')).toBe(true)
+      expect(await donos()).toBeGreaterThan(0)
+      await limparDonos()
+
+      // 3) O que é legítimo continua a passar: com dois owners, apagar um é
+      //    normal; o que sobra é que não se apaga.
+      const [primeiro, segundo] = [await criarDono('ok-a'), await criarDono('ok-b')]
+      await payload.delete({ collection: 'users', id: primeiro.id })
+      expect(await donos()).toBe(1)
+      await expect(payload.delete({ collection: 'users', id: segundo.id })).rejects.toThrow(
+        /último proprietário/,
+      )
+      expect(await donos()).toBe(1)
+    } finally {
+      await papelDoDev('owner')
+      await payload.delete({ collection: 'users', where: { email: { contains: P } } })
+    }
   })
 })
