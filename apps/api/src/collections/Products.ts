@@ -7,6 +7,10 @@ import { uniqueSlug } from '../hooks/uniqueSlug'
 export const Products: CollectionConfig = {
   slug: 'products',
   versions: { drafts: true },
+  // Sem isto, o `defaultAccess` do Payload (`Boolean(req.user)`) aplica-se
+  // também à leitura, e a loja pública — sem sessão — levava 403 em tudo.
+  // Só a leitura fica aberta; escrita continua a exigir sessão.
+  access: { read: () => true },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'brand', '_status'],

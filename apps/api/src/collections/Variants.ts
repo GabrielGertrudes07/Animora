@@ -108,6 +108,12 @@ const validateCombination: JSONFieldValidation = async (value, options) => {
 
 export const Variants: CollectionConfig = {
   slug: 'variants',
+  // Sem isto, o `defaultAccess` do Payload (`Boolean(req.user)`) aplica-se
+  // também à leitura, e a loja pública — sem sessão — levava 403 em tudo.
+  // Só a leitura fica aberta; escrita continua a exigir sessão. Os campos
+  // internos (`costCents`, `ean`, `warehouseLocation`, `shippingWeightG`) não
+  // são protegidos aqui — isso é feito por `sanitizeProduct`, em apps/web.
+  access: { read: () => true },
   hooks: {
     // A invariante "publicado ⇒ tem o que vender" era imposta só do lado do
     // produto. Estes dois fecham-na do lado da variante — ver o ficheiro.

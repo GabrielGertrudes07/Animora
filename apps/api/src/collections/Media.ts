@@ -4,6 +4,11 @@ import { blockDeleteIfPublished } from '../hooks/blockDeleteIfPublished'
 
 export const Media: CollectionConfig = {
   slug: 'media',
+  // Sem isto, o `defaultAccess` do Payload (`Boolean(req.user)`) aplica-se
+  // também à leitura, e as imagens do catálogo — servidas sem sessão pelo
+  // browser do cliente — levavam 403. Só a leitura fica aberta; escrita
+  // continua a exigir sessão.
+  access: { read: () => true },
   admin: { useAsTitle: 'alt' },
   hooks: {
     beforeDelete: [

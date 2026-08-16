@@ -4,6 +4,10 @@ import { blockDeleteIfPublished } from '../hooks/blockDeleteIfPublished'
 
 export const Brands: CollectionConfig = {
   slug: 'brands',
+  // Sem isto, o `defaultAccess` do Payload (`Boolean(req.user)`) aplica-se
+  // também à leitura, e a loja pública — sem sessão — levava 403 em tudo.
+  // Só a leitura fica aberta; escrita continua a exigir sessão.
+  access: { read: () => true },
   admin: { useAsTitle: 'name' },
   hooks: { beforeDelete: [blockDeleteIfPublished('esta marca', ['brand'])] },
   fields: [
