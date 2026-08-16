@@ -22,8 +22,8 @@ const SEM_VENDA = 'variantesSemVenda'
  */
 export const A_APAGAR_PRODUTO = 'aApagarProduto'
 
-/** O campo `product` da variante vem populado ou como id, conforme o `depth`. */
-export const idDoProduto = (valor: unknown): number | string | undefined =>
+/** Uma relação vem populada ou como id, conforme o `depth` do pedido. */
+export const idDaRelacao = (valor: unknown): number | string | undefined =>
   typeof valor === 'object' && valor !== null
     ? (valor as { id?: number | string }).id
     : (valor as number | string | undefined)
@@ -116,7 +116,7 @@ const assegurarQueSobraVenda = async (
 /** Apagar a última variante vendável de um produto publicado. */
 export const blockUnsellableDelete: CollectionBeforeDeleteHook = async ({ id, req }) => {
   const variante = await req.payload.findByID({ collection: 'variants', id, depth: 0, req })
-  await assegurarQueSobraVenda(idDoProduto(variante.product), id, req)
+  await assegurarQueSobraVenda(idDaRelacao(variante.product), id, req)
 }
 
 /** Zerar o preço ou desativar a última variante vendável de um produto publicado. */
@@ -137,7 +137,7 @@ export const blockUnsellableChange: CollectionBeforeChangeHook = async ({
   // produtos não é fluxo do painel. Se um dia for, verificar também o produto
   // de origem aqui.
   await assegurarQueSobraVenda(
-    idDoProduto(originalDoc.product),
+    idDaRelacao(originalDoc.product),
     originalDoc.id as number | string,
     req,
   )

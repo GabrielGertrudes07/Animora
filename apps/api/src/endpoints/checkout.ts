@@ -2,7 +2,7 @@ import type { Endpoint, PayloadRequest } from 'payload'
 import { APIError, commitTransaction, initTransaction, killTransaction } from 'payload'
 import { calcularTotais } from '@animora/core'
 
-import { idDoProduto } from '../hooks/blockUnsellable'
+import { idDaRelacao } from '../hooks/blockUnsellable'
 import { serializarGuarda } from '../hooks/serializar'
 
 /**
@@ -202,7 +202,7 @@ const comprar = async (
         {
           id: {
             in: [...variantes.values()]
-              .map((v) => idDoProduto(v.product))
+              .map((v) => idDaRelacao(v.product))
               .filter((id) => id !== undefined),
           },
         },
@@ -218,12 +218,12 @@ const comprar = async (
 
   const indisponiveis: (number | string)[] = []
   const semStock: Record<string, unknown>[] = []
-  const linhas: { variante: number | string; stockNovo: number; dados: Record<string, unknown> }[] =
+  const linhas: { variante: number | string; quantidade: number; dados: Record<string, unknown> }[] =
     []
 
   for (const [id, quantidade] of pedidas) {
     const v = variantes.get(id)
-    const titulo = v && titulos.get(String(idDoProduto(v.product)))
+    const titulo = v && titulos.get(String(idDaRelacao(v.product)))
 
     // Inexistente, desativada, sem preço ou de um produto por publicar: são
     // todas a mesma resposta ao cliente — este artigo não está à venda.
@@ -239,7 +239,7 @@ const comprar = async (
 
     linhas.push({
       variante: v.id,
-      stockNovo: v.stock - quantidade,
+      quantidade,
       dados: {
         variante: v.id,
         titulo,
@@ -269,11 +269,14 @@ const comprar = async (
     })
   }
 
+  // Quanto DESCE, não quanto fica: um valor absoluto calculado aqui é um valor
+  // velho no instante em que chega à base, e é assim que uma gravação do painel
+  // ressuscitava vendas. Ver `hooks/ajustarStock.ts`, que é quem escreve.
   for (const linha of linhas) {
     await req.payload.update({
       collection: 'variants',
       id: linha.variante,
-      data: { stock: linha.stockNovo },
+      data: { ajusteStock: -linha.quantidade },
       overrideAccess: true,
       req,
     })

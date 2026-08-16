@@ -338,7 +338,14 @@ export interface Variant {
    */
   priceCents: number;
   oldPriceCents?: number | null;
+  /**
+   * Só muda por venda, por cancelamento, ou pelo ajuste abaixo. O número que este formulário traz é o de quando ele abriu; gravá-lo por cima ressuscitava unidades já vendidas — ver `hooks/ajustarStock.ts`.
+   */
   stock: number;
+  /**
+   * Quanto MUDA, não quanto fica: 10 se recebeu mercadoria, -1 se partiu uma unidade. É somado ao stock do momento da gravação e volta a ficar vazio. Depois de um inventário, recarregue a página e some a diferença.
+   */
+  ajusteStock?: number | null;
   active?: boolean | null;
   lengthCm?: number | null;
   widthCm?: number | null;
@@ -699,6 +706,7 @@ export interface VariantsSelect<T extends boolean = true> {
   priceCents?: T;
   oldPriceCents?: T;
   stock?: T;
+  ajusteStock?: T;
   active?: T;
   lengthCm?: T;
   widthCm?: T;

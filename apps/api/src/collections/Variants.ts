@@ -4,6 +4,7 @@ import { validations } from 'payload'
 import { soDeProdutosPublicados } from '../access/leitura'
 import { validarInteiro } from '../validacoes'
 import { soStaff, soStaffCampo } from '../access/staff'
+import { ajustarStock } from '../hooks/ajustarStock'
 import { blockOffMatrix } from '../hooks/blockOffMatrix'
 import { blockUnsellableChange, blockUnsellableDelete } from '../hooks/blockUnsellable'
 
@@ -118,7 +119,10 @@ export const Variants: CollectionConfig = {
     // produto. Estes dois fecham-na do lado da variante — ver o ficheiro.
     // O `blockOffMatrix` fecha a outra maneira de encravar o produto pelo lado
     // da variante: mudar a combinação para fora das opções do produto.
-    beforeChange: [blockOffMatrix, blockUnsellableChange],
+    // O `ajustarStock` é o último porque é o único que escreve `data.stock`, e
+    // fá-lo a partir do que está na base nesse instante — não do que o
+    // formulário trouxe.
+    beforeChange: [blockOffMatrix, blockUnsellableChange, ajustarStock],
     beforeDelete: [blockUnsellableDelete],
   },
   admin: {
@@ -175,6 +179,25 @@ export const Variants: CollectionConfig = {
       min: 0,
       defaultValue: 0,
       label: 'Stock',
+      admin: {
+        readOnly: true,
+        description:
+          'Só muda por venda, por cancelamento, ou pelo ajuste abaixo. O número que este ' +
+          'formulário traz é o de quando ele abriu; gravá-lo por cima ressuscitava unidades já ' +
+          'vendidas — ver `hooks/ajustarStock.ts`.',
+      },
+      validate: validarInteiro,
+    },
+    {
+      name: 'ajusteStock',
+      type: 'number',
+      label: 'Ajustar stock (unidades)',
+      admin: {
+        description:
+          'Quanto MUDA, não quanto fica: 10 se recebeu mercadoria, -1 se partiu uma unidade. É ' +
+          'somado ao stock do momento da gravação e volta a ficar vazio. Depois de um ' +
+          'inventário, recarregue a página e some a diferença.',
+      },
       validate: validarInteiro,
     },
     { name: 'active', type: 'checkbox', defaultValue: true, label: 'Ativa' },

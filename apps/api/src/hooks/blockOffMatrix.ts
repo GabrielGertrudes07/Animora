@@ -3,7 +3,7 @@ import { APIError } from 'payload'
 import { combinationKey, generateCombinations } from '@animora/core'
 import type { Combination } from '@animora/core'
 
-import { idDoProduto } from './blockUnsellable'
+import { idDaRelacao } from './blockUnsellable'
 import { opcoesDoCore } from './syncVariants'
 import type { OpcaoDoPainel } from './syncVariants'
 
@@ -75,7 +75,7 @@ export const blockOffMatrix: CollectionBeforeChangeHook = async ({
   const anterior = originalDoc.combination as Combination
   if (combinationKey(nova) === combinationKey(anterior)) return data
 
-  const produto = idDoProduto(data.product ?? originalDoc.product)
+  const produto = idDaRelacao(data.product ?? originalDoc.product)
   if (produto === undefined || produto === null) return data
 
   const pai = await req.payload.findByID({

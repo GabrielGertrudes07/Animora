@@ -95,6 +95,24 @@ const variantesDe = async (produto: Id): Promise<Linha[]> => {
   return docs as unknown as Linha[]
 }
 
+/**
+ * Põe o stock num número, pelo único caminho que existe: um ajuste.
+ *
+ * `data: { stock: n }` não faz nada de propósito — um valor absoluto submetido é
+ * descartado, porque é sempre o valor de quando quem o submete o leu (ver
+ * `hooks/ajustarStock.ts`). Os testes preparam o cenário como o lojista o
+ * prepararia: dizendo quanto muda.
+ */
+const definirStock = async (variante: Id, unidades: number): Promise<void> => {
+  const atual = (await payload.findByID({ collection: 'variants', id: variante, depth: 0 }))
+    .stock as number
+  await payload.update({
+    collection: 'variants',
+    id: variante,
+    data: { ajusteStock: unidades - atual },
+  })
+}
+
 const porTamanho = (linhas: Linha[], tamanho: string): Linha | undefined =>
   linhas.find((l) => l.combination.Tamanho === tamanho)
 
@@ -158,7 +176,7 @@ describe('sincronização de variantes', () => {
     await payload.update({
       collection: 'variants',
       id: s.id,
-      data: { priceCents: 2990, stock: 12 },
+      data: { priceCents: 2990, ajusteStock: 12 },
     })
     await publicar(produto.id)
 
@@ -186,7 +204,7 @@ describe('sincronização de variantes', () => {
       await payload.update({
         collection: 'variants',
         id: linha.id,
-        data: { priceCents: 1000 + i, stock: 5 },
+        data: { priceCents: 1000 + i, ajusteStock: 5 },
       })
     }
     await publicar(produto.id)
@@ -231,7 +249,7 @@ describe('sincronização de variantes', () => {
       await payload.update({
         collection: 'variants',
         id: linha.id,
-        data: { priceCents: 1000 + i * 10, stock: i + 1 },
+        data: { priceCents: 1000 + i * 10, ajusteStock: i + 1 },
       })
     }
     await publicar(produto.id)
@@ -264,7 +282,7 @@ describe('sincronização de variantes', () => {
       await payload.update({
         collection: 'variants',
         id: linha.id,
-        data: { priceCents: 2990, stock: 12 },
+        data: { priceCents: 2990, ajusteStock: 12 },
       })
     }
     await publicar(produto.id)
@@ -294,7 +312,7 @@ describe('sincronização de variantes', () => {
     await payload.update({
       collection: 'variants',
       id: s!.id,
-      data: { priceCents: 2990, stock: 12 },
+      data: { priceCents: 2990, ajusteStock: 12 },
     })
 
     // Um só pedido que publica E troca a opção: a variante com preço desaparece
@@ -357,7 +375,7 @@ describe('sincronização de variantes', () => {
     await payload.update({
       collection: 'variants',
       id: s!.id,
-      data: { priceCents: 4990, stock: 5 },
+      data: { priceCents: 4990, ajusteStock: 5 },
     })
     await publicar(produto.id)
 
@@ -430,7 +448,7 @@ describe('invariante do produto publicado, pelo lado da variante', () => {
     await payload.update({
       collection: 'variants',
       id: primeira!.id,
-      data: { priceCents: 2990, stock: 4 },
+      data: { priceCents: 2990, ajusteStock: 4 },
     })
     await publicar(produto.id)
     return { produto, variante: primeira! }
@@ -838,7 +856,7 @@ describe('combinação fora da matriz do produto', () => {
     })
 
     const l = porTamanho(await variantesDe(produto.id), 'L')!
-    await payload.update({ collection: 'variants', id: l.id, data: { priceCents: 3990, stock: 2 } })
+    await payload.update({ collection: 'variants', id: l.id, data: { priceCents: 3990, ajusteStock: 2 } })
     const depois = await payload.findByID({ collection: 'variants', id: l.id, depth: 0 })
     expect(depois.priceCents).toBe(3990)
   })
@@ -1670,7 +1688,10 @@ describe('checkout', () => {
     return { id: c.id, email: String(c.email), collection: 'customers' }
   }
 
-  /** Produto publicado com uma variante só, com preço, custo e stock à medida. */
+  /**
+   * Produto publicado com uma variante só, com preço, custo e stock à medida.
+   * A variante nasce a 0 unidades, por isso o ajuste é o stock que fica.
+   */
   const criarArtigo = async (
     sufixo: string,
     { preco = 2990, custo = 1200, stock = 5 } = {},
@@ -1680,7 +1701,7 @@ describe('checkout', () => {
     await payload.update({
       collection: 'variants',
       id: variante!.id,
-      data: { priceCents: preco, costCents: custo, stock },
+      data: { priceCents: preco, costCents: custo, ajusteStock: stock },
     })
     await publicar(produto.id)
     return variante!
@@ -1770,7 +1791,7 @@ describe('checkout', () => {
 
     // Duas linhas da mesma variante são uma só de 2 — verificadas uma a uma
     // contra a mesma leitura, passavam ambas com uma unidade em armazém.
-    await payload.update({ collection: 'variants', id: variante.id, data: { stock: 1 } })
+    await definirStock(variante.id, 1)
     const duplicada = await comprar(cliente, [
       { variantId: variante.id, qty: 1 },
       { variantId: variante.id, qty: 1 },
@@ -1792,7 +1813,7 @@ describe('checkout', () => {
     const variante = await criarArtigo('corrida', { stock: 1 })
 
     for (let corrida = 1; corrida <= 6; corrida++) {
-      await payload.update({ collection: 'variants', id: variante.id, data: { stock: 1 } })
+      await definirStock(variante.id, 1)
 
       const respostas = await Promise.all(
         Array.from({ length: 5 }, () => comprar(cliente, [{ variantId: variante.id, qty: 1 }])),
@@ -1837,7 +1858,7 @@ describe('checkout', () => {
     expect(await stockDe(ma.id)).toBe(1)
 
     // Controlo positivo: com stock nas duas, o mesmo carrinho passa.
-    await payload.update({ collection: 'variants', id: ma.id, data: { stock: 3 } })
+    await definirStock(ma.id, 3)
     const segunda = await comprar(cliente, [
       { variantId: boa.id, qty: 2 },
       { variantId: ma.id, qty: 3 },
@@ -1924,7 +1945,7 @@ describe('checkout', () => {
       await payload.update({
         collection: 'variants',
         id: irma.id,
-        data: { priceCents: 1990, stock: 4 },
+        data: { priceCents: 1990, ajusteStock: 4 },
       })
     }
     await publicar(comDuas.id)
@@ -1938,7 +1959,7 @@ describe('checkout', () => {
     await payload.update({
       collection: 'variants',
       id: porPublicar!.id,
-      data: { priceCents: 1990, stock: 9 },
+      data: { priceCents: 1990, ajusteStock: 9 },
     })
 
     for (const variantId of [999999, porPublicar!.id, desativada.id]) {
@@ -2037,4 +2058,88 @@ describe('checkout', () => {
       payload.findByID({ collection: 'orders', id: deB.id, ...comoA }),
     ).rejects.toThrow()
   })
+
+  /**
+   * O defeito Critical, exatamente como foi reproduzido.
+   *
+   * Não precisa de concorrência nenhuma: a janela é o tempo que o formulário do
+   * painel fica aberto. Ele submete o documento inteiro, com o `stock` que leu
+   * quando abriu, e ganha o último a gravar.
+   */
+  it('uma gravação no painel não ressuscita o stock que as vendas desceram', async () => {
+    const cliente = await criarCliente('a')
+    const variante = await criarArtigo('painel', { stock: 5 })
+
+    // O gestor abre o formulário: lê o documento inteiro.
+    const formulario = await payload.findByID({
+      collection: 'variants',
+      id: variante.id,
+      depth: 0,
+    })
+    expect(formulario.stock).toBe(5)
+
+    for (let i = 0; i < 3; i++) {
+      expect((await comprar(cliente, [{ variantId: variante.id, qty: 1 }])).status).toBe(201)
+    }
+    expect(await stockDe(variante.id)).toBe(2)
+
+    // O gestor grava. Só corrigiu o EAN — mas o corpo leva o stock de há bocado.
+    await payload.update({
+      collection: 'variants',
+      id: variante.id,
+      data: { ...formulario, ean: '5601234567890' },
+    })
+
+    // O critério: as três vendas continuam feitas.
+    expect(await stockDe(variante.id)).toBe(2)
+    expect(await naBase()).toHaveLength(3)
+    expect((await payload.findByID({ collection: 'variants', id: variante.id, depth: 0 })).ean).toBe(
+      '5601234567890',
+    )
+  })
+
+  it('o lojista ajusta o stock a sério, e o ajuste nunca o deixa negativo', async () => {
+    const cliente = await criarCliente('a')
+    const variante = await criarArtigo('ajuste', { stock: 5 })
+
+    // Recebeu mercadoria.
+    await payload.update({ collection: 'variants', id: variante.id, data: { ajusteStock: 10 } })
+    expect(await stockDe(variante.id)).toBe(15)
+
+    // Partiu-se uma unidade.
+    await payload.update({ collection: 'variants', id: variante.id, data: { ajusteStock: -1 } })
+    expect(await stockDe(variante.id)).toBe(14)
+
+    // O ajuste é somado ao stock do momento, não ao que o formulário viu: uma
+    // venda pelo meio conta.
+    expect((await comprar(cliente, [{ variantId: variante.id, qty: 4 }])).status).toBe(201)
+    await payload.update({ collection: 'variants', id: variante.id, data: { ajusteStock: 1 } })
+    expect(await stockDe(variante.id)).toBe(11)
+
+    // E não há ajuste que ponha o stock abaixo de zero.
+    await expect(
+      payload.update({ collection: 'variants', id: variante.id, data: { ajusteStock: -12 } }),
+    ).rejects.toThrow(/negativo/i)
+    expect(await stockDe(variante.id)).toBe(11)
+
+    // O campo não guarda nada: é uma ordem de movimento, não um estado.
+    expect(
+      (await payload.findByID({ collection: 'variants', id: variante.id, depth: 0 })).ajusteStock,
+    ).toBeNull()
+  })
+
+  it('dez pedidos simultâneos a três unidades: exatamente três encomendas', async () => {
+    const cliente = await criarCliente('a')
+    const variante = await criarArtigo('dez', { stock: 3 })
+
+    const respostas = await Promise.all(
+      Array.from({ length: 10 }, () => comprar(cliente, [{ variantId: variante.id, qty: 1 }])),
+    )
+
+    expect(respostas.filter((r) => r.status === 201)).toHaveLength(3)
+    expect(respostas.filter((r) => r.status === 409)).toHaveLength(7)
+    expect(await naBase()).toHaveLength(3)
+    expect(await stockDe(variante.id)).toBe(0)
+  })
+
 })
