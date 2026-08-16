@@ -43,7 +43,9 @@ export function CascataProdutos({
           y: 24,
           duration: 0.5,
           ease: 'power2.out',
-          stagger: 0.07,
+          // O atraso total é fixo, não por cartão: numa grelha de quarenta
+          // produtos, 0,07 s cada dava três segundos até o último aparecer.
+          stagger: { amount: 0.5 },
           clearProps: 'transform,opacity',
           scrollTrigger: { trigger: el, start: 'top 92%', once: true },
         })
