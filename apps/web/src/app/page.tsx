@@ -1,10 +1,16 @@
 import Link from 'next/link'
-import { listProducts } from '../modules/catalog'
+import { listCategories, listProducts } from '../modules/catalog'
 import { ProductCard } from '../components/ui/ProductCard'
 import { Icon } from '../components/icons/sprite'
 
 export default async function Home() {
   const destaques = (await listProducts({ ordem: 'relevancia' })).slice(0, 4)
+  // O botão principal ligava a `/coleiras` escrito à mão. Bastava essa
+  // categoria mudar de slug ou ser apagada para o botão principal da loja ir a
+  // 404 — ao lado de um rodapé escrito de propósito para não inventar links.
+  // Agora vem da base, como o cabeçalho: `listCategories` já ordena por nome.
+  // Sem categorias não há loja para explorar, e o botão não aparece.
+  const [primeiraCategoria] = await listCategories()
 
   return (
     <main id="conteudo">
@@ -20,12 +26,14 @@ export default async function Home() {
           <p className="mt-6 max-w-2xl text-lg text-cream/80">
             Alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.
           </p>
-          <Link
-            href="/coleiras"
-            className="mt-8 inline-block rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark"
-          >
-            Explorar loja
-          </Link>
+          {primeiraCategoria ? (
+            <Link
+              href={`/${primeiraCategoria.slug}`}
+              className="mt-8 inline-block rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark"
+            >
+              Explorar {primeiraCategoria.name}
+            </Link>
+          ) : null}
         </div>
       </section>
 
