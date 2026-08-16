@@ -27,8 +27,11 @@ export const Products: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [uniqueSlug],
-    beforeChange: [validatePublish],
-    afterChange: [syncVariants],
+    // A ordem é o próprio mecanismo: o `validatePublish` lê a tabela de variantes
+    // que o `syncVariants` reescreve, por isso tem de correr a seguir a ele, e não
+    // antes (era `beforeChange`, e validava um conjunto de variantes que o pedido
+    // ainda ia substituir). Não trocar a ordem nem separar os dois.
+    afterChange: [syncVariants, validatePublish],
   },
   fields: [
     {
