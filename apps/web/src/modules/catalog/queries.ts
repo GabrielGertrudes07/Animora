@@ -1,7 +1,8 @@
 import { apiGet } from '../../lib/api'
 import { sanitizeProduct } from './sanitize'
-import type { PublicProduct } from './types'
-import type { CatalogFilters } from './filters'
+import { filtrarPorAtributos } from './facets'
+import type { AttributeDef, PublicProduct } from './types'
+import type { CatalogFilters, ConfiguracaoFiltrosRaw } from './filters'
 
 type Paginated<T> = { docs: T[]; totalDocs: number }
 
@@ -58,9 +59,17 @@ async function variantsOf(productId: number, revalidate?: number) {
  * pensados só para a query string — a saber lidar com algo que nunca
  * vem de lá.
  */
+/**
+ * `atributosAtivos` é a lista já resolvida para a categoria (ver
+ * `resolveActiveAttributeDefs`) — quem chama decide quais atributos contam
+ * como filtro aqui. Sem ela, `f.atributos` fica sem efeito nenhum: é a mesma
+ * allowlist da API aplicada outra vez, do lado da loja, para quem monta a
+ * query string à mão.
+ */
 export async function listProducts(
   f: CatalogFilters,
   categoriaId?: number,
+  atributosAtivos: AttributeDef[] = [],
 ): Promise<PublicProduct[]> {
   const params = new URLSearchParams({
     limit: String(NO_LIMIT),
@@ -85,6 +94,8 @@ export async function listProducts(
       p.variants.some((v) => v.priceCents >= f.precoMin! && v.priceCents <= f.precoMax!),
     )
   }
+
+  if (f.atributos) produtos = filtrarPorAtributos(produtos, f.atributos, atributosAtivos)
 
   const menorPreco = (p: PublicProduct) => Math.min(...p.variants.map((v) => v.priceCents))
 
@@ -172,11 +183,41 @@ export async function listAllSlugs(): Promise<string[]> {
   return res.docs.map((d) => d.slug)
 }
 
-export async function listBrands(): Promise<{ name: string; slug: string }[]> {
-  const res = await apiGet<Paginated<{ name: string; slug: string }>>(
-    `/api/brands?limit=${NO_LIMIT}&depth=0`,
+/**
+ * As definições de atributo, tal como a API as devolve sem sessão: já só
+ * `filtro` e `ficha`, nunca `interno` (`access/leitura.ts` na API — a loja
+ * não repete essa verificação, confia nela).
+ *
+ * Mas só os de `alcance: 'filtro'` viram filtro aqui — `ficha` "aparece nas
+ * especificações, não filtra" (é a própria label do campo em `Attributes.ts`
+ * na API). A API não impede tecnicamente que um `ficha` entre em
+ * `ConfiguracaoFiltros` (só bloqueia `interno`), por isso esta segunda
+ * verificação fica do lado da loja: um atributo de ficha nunca deve oferecer
+ * um filtro, e mais um sítio a checar `alcance` é barato comparado com a
+ * confusão de um cliente filtrar por um campo pensado só para a ficha.
+ */
+export async function listAttributeDefs(): Promise<AttributeDef[]> {
+  const res = await apiGet<Paginated<Record<string, unknown>>>(
+    `/api/attributes?limit=${NO_LIMIT}&depth=0&sort=ordem`,
   )
-  return res.docs.map((d) => ({ name: d.name, slug: d.slug }))
+  return res.docs
+    .filter((d) => d.alcance === 'filtro')
+    .filter((d) => d.tipo === 'select' || d.tipo === 'multiselect' || d.tipo === 'intervalo' || d.tipo === 'booleano')
+    .map((d) => ({
+      id: Number(d.id),
+      nome: String(d.nome ?? ''),
+      chave: String(d.chave ?? ''),
+      tipo: d.tipo as AttributeDef['tipo'],
+      controlo: String(d.controlo ?? 'caixas') as AttributeDef['controlo'],
+      ordem: Number(d.ordem ?? 0),
+      abertoPorOmissao: Boolean(d.abertoPorOmissao),
+    }))
+}
+
+/** O conjunto de filtros configurado no painel (`ConfiguracaoFiltros`, global
+ * de leitura pública) — por omissão e por categoria. */
+export async function getConfiguracaoFiltros(): Promise<ConfiguracaoFiltrosRaw> {
+  return apiGet<ConfiguracaoFiltrosRaw>('/api/globals/configuracao-filtros?depth=0')
 }
 
 /** Para a navegação do cabeçalho — categorias reais, nunca escritas à mão. */

@@ -8,7 +8,13 @@ vi.mock('../../lib/api', () => ({
   apiGet: (...args: unknown[]) => apiGetMock(...args),
 }))
 
-import { listProducts, getCategoryBySlug, getProductBySlug } from './queries'
+import {
+  listProducts,
+  getCategoryBySlug,
+  getProductBySlug,
+  listAttributeDefs,
+  getConfiguracaoFiltros,
+} from './queries'
 
 function paginated<T>(docs: T[]) {
   return { docs, totalDocs: docs.length }
@@ -62,6 +68,99 @@ describe('listProducts — filtro por categoria', () => {
     await listProducts({ ordem: 'relevancia' })
 
     expect(urlDeProdutos()).not.toContain('categories')
+  })
+})
+
+describe('listProducts — filtro por atributo', () => {
+  const tamanho = {
+    id: 1,
+    nome: 'Tamanho',
+    chave: 'tamanho',
+    tipo: 'multiselect' as const,
+    controlo: 'caixas' as const,
+    ordem: 0,
+    abertoPorOmissao: false,
+  }
+
+  it('reduz mesmo os resultados quando um valor de atributo é escolhido', async () => {
+    apiGetMock.mockImplementation(async (path: string) => {
+      if (path.startsWith('/api/products'))
+        return paginated([
+          { ...produtoCru, id: 1 },
+          { ...produtoCru, id: 2 },
+        ])
+      return paginated([{ ...varianteCrua, combination: { Tamanho: 'S' } }])
+    })
+
+    const semFiltro = await listProducts({ ordem: 'relevancia' }, undefined, [tamanho])
+    expect(semFiltro).toHaveLength(2)
+
+    const comFiltro = await listProducts({ ordem: 'relevancia', atributos: { tamanho: ['M'] } }, undefined, [
+      tamanho,
+    ])
+    expect(comFiltro).toHaveLength(0)
+  })
+
+  it('sem atributosAtivos, um filtro de atributo não tem efeito nenhum (allowlist fecha por omissão)', async () => {
+    apiGetMock.mockImplementation(async (path: string) => {
+      if (path.startsWith('/api/products')) return paginated([produtoCru])
+      if (path.startsWith('/api/variants')) return paginated([{ ...varianteCrua, combination: { Tamanho: 'S' } }])
+      return paginated([])
+    })
+
+    const produtos = await listProducts({ ordem: 'relevancia', atributos: { tamanho: ['M'] } })
+    expect(produtos).toHaveLength(1)
+  })
+})
+
+describe('listAttributeDefs', () => {
+  it('mapeia os campos e ordena pelo que a API já devolveu', async () => {
+    apiGetMock.mockResolvedValue(
+      paginated([
+        {
+          id: 5,
+          nome: 'Cor',
+          chave: 'cor',
+          tipo: 'select',
+          controlo: 'amostras',
+          ordem: 2,
+          abertoPorOmissao: true,
+          alcance: 'filtro',
+        },
+      ]),
+    )
+    const defs = await listAttributeDefs()
+    expect(defs).toEqual([
+      { id: 5, nome: 'Cor', chave: 'cor', tipo: 'select', controlo: 'amostras', ordem: 2, abertoPorOmissao: true },
+    ])
+    const chamada = apiGetMock.mock.calls[0]?.[0] as string
+    expect(chamada).toContain('/api/attributes')
+  })
+
+  it('descarta um atributo de alcance "ficha" — aparece na ficha, não filtra', async () => {
+    apiGetMock.mockResolvedValue(
+      paginated([
+        {
+          id: 6,
+          nome: 'Material',
+          chave: 'material',
+          tipo: 'select',
+          controlo: 'caixas',
+          ordem: 1,
+          abertoPorOmissao: false,
+          alcance: 'ficha',
+        },
+      ]),
+    )
+    expect(await listAttributeDefs()).toEqual([])
+  })
+})
+
+describe('getConfiguracaoFiltros', () => {
+  it('lê o global correto', async () => {
+    apiGetMock.mockResolvedValue({ padrao: [], porCategoria: [] })
+    await getConfiguracaoFiltros()
+    expect(apiGetMock.mock.calls[0]?.[0]).toContain('/api/globals/configuracao-filtros')
   })
 })
 

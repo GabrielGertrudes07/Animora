@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { parseFilters, filtersToQuery } from './filters'
+import {
+  parseFilters,
+  filtersToQuery,
+  resolveActiveAttributeDefs,
+  restringirAtributosAtivos,
+} from './filters'
+import type { AttributeDef } from './types'
 
 describe('parseFilters', () => {
   it('devolve valores por omissão quando nao ha nada na query', () => {
@@ -45,6 +51,69 @@ describe('parseFilters', () => {
     expect(f.fornecedor).toBeUndefined()
     expect(f.costCents).toBeUndefined()
   })
+
+  it('lê qualquer outra chave como um possível filtro de atributo — a decisão real fica para resolveActiveAttributeDefs/filtrarPorAtributos', () => {
+    const f = parseFilters({ fornecedor: 'x', tamanho: ['S', 'M'] })
+    expect(f.atributos).toEqual({ fornecedor: ['x'], tamanho: ['S', 'M'] })
+  })
+})
+
+describe('resolveActiveAttributeDefs', () => {
+  const tamanho: AttributeDef = {
+    id: 1,
+    nome: 'Tamanho',
+    chave: 'tamanho',
+    tipo: 'multiselect',
+    controlo: 'caixas',
+    ordem: 1,
+    abertoPorOmissao: false,
+  }
+  const peso: AttributeDef = {
+    id: 2,
+    nome: 'Peso',
+    chave: 'peso',
+    tipo: 'intervalo',
+    controlo: 'intervalo',
+    ordem: 2,
+    abertoPorOmissao: false,
+  }
+  const defs = [tamanho, peso]
+
+  it('sem categoria, usa "padrao" e respeita a ordem das linhas', () => {
+    const config = { padrao: [{ atributo: 2, visivel: true }, { atributo: 1, visivel: true }] }
+    expect(resolveActiveAttributeDefs(defs, config).map((d) => d.chave)).toEqual(['peso', 'tamanho'])
+  })
+
+  it('visivel: false tira o atributo da lista', () => {
+    const config = { padrao: [{ atributo: 1, visivel: false }, { atributo: 2, visivel: true }] }
+    expect(resolveActiveAttributeDefs(defs, config).map((d) => d.chave)).toEqual(['peso'])
+  })
+
+  it('uma categoria com substituição ignora "padrao" por completo', () => {
+    const config = {
+      padrao: [{ atributo: 1, visivel: true }],
+      porCategoria: [{ categoria: 9, atributos: [{ atributo: 2, visivel: true }] }],
+    }
+    expect(resolveActiveAttributeDefs(defs, config, 9).map((d) => d.chave)).toEqual(['peso'])
+  })
+
+  it('uma categoria sem substituição cai para "padrao"', () => {
+    const config = {
+      padrao: [{ atributo: 1, visivel: true }],
+      porCategoria: [{ categoria: 9, atributos: [{ atributo: 2, visivel: true }] }],
+    }
+    expect(resolveActiveAttributeDefs(defs, config, 777).map((d) => d.chave)).toEqual(['tamanho'])
+  })
+
+  it('um id que não corresponde a nenhum atributo conhecido — como um interno, que nunca chega aqui — desaparece em silêncio', () => {
+    const config = { padrao: [{ atributo: 999, visivel: true }, { atributo: 1, visivel: true }] }
+    expect(resolveActiveAttributeDefs(defs, config).map((d) => d.chave)).toEqual(['tamanho'])
+  })
+
+  it('aceita a relação já populada (objeto com id), não só o id cru', () => {
+    const config = { padrao: [{ atributo: { id: 1, nome: 'Tamanho' }, visivel: true }] }
+    expect(resolveActiveAttributeDefs(defs, config).map((d) => d.chave)).toEqual(['tamanho'])
+  })
 })
 
 describe('filtersToQuery', () => {
@@ -64,5 +133,35 @@ describe('filtersToQuery', () => {
     const sp = Object.fromEntries(new URLSearchParams(filtersToQuery(original)))
     const voltou = parseFilters({ ...sp, marca: ['a', 'b'] })
     expect(voltou).toEqual(original)
+  })
+})
+
+describe('restringirAtributosAtivos', () => {
+  const tamanho: AttributeDef = {
+    id: 1,
+    nome: 'Tamanho',
+    chave: 'tamanho',
+    tipo: 'multiselect',
+    controlo: 'caixas',
+    ordem: 1,
+    abertoPorOmissao: false,
+  }
+
+  it('tira do objeto uma chave que não é atributo ativo — nunca chega ao HTML/estado do cliente', () => {
+    const f = parseFilters({ 'margem-alvo': '1-100', tamanho: 'S' })
+    const restrito = restringirAtributosAtivos(f, [tamanho])
+    expect(restrito.atributos).toEqual({ tamanho: ['S'] })
+    expect(JSON.stringify(restrito)).not.toContain('margem-alvo')
+  })
+
+  it('sem nenhum atributo ativo remove "atributos" por completo, em vez de o deixar vazio', () => {
+    const f = parseFilters({ 'margem-alvo': '1-100' })
+    const restrito = restringirAtributosAtivos(f, [])
+    expect(restrito.atributos).toBeUndefined()
+  })
+
+  it('não mexe no resto dos filtros (marca, preço, ordem)', () => {
+    const f = parseFilters({ marca: 'happypaws', preco: '10-50', ordem: 'preco-asc' })
+    expect(restringirAtributosAtivos(f, [])).toEqual(f)
   })
 })
