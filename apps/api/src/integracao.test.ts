@@ -574,10 +574,19 @@ describe('guardas em massa e em paralelo', () => {
   })
 
   it('em massa: apagar marcas que produtos publicados usam é recusado', async () => {
-    // Esta guarda tem a mesma forma que as outras e não tem o mesmo defeito:
-    // apagar a marca A não muda quantos produtos publicados usam a marca B,
-    // portanto os irmãos do lote não mexem no conjunto que cada uma conta. O
-    // teste fixa isso, para a próxima leitura não ter de repetir a análise.
+    // Só a via DENTRO do pedido. Aqui os irmãos do lote não se afetam — apagar a
+    // marca A não muda quantos produtos publicados usam a marca B — e por isso
+    // esta guarda não precisa da reserva em `req.context` que as outras têm.
+    //
+    // A versão anterior deste comentário parava aqui e concluía que a guarda
+    // "não tem o mesmo defeito", para poupar a análise à leitura seguinte. A
+    // metade que faltava era a que interessava: entre pedidos furava, e ficou
+    // por apanhar precisamente porque estava escrito aqui que não era preciso
+    // olhar. Uma publicação a entrar entre a contagem desta guarda e a
+    // eliminação da linha deixava um produto `published` com `brand: null`, à
+    // venda e impossível de gravar. Está fechado pelo lock consultivo em
+    // `blockDeleteIfPublished`, e é o teste a seguir que o verifica — em vez de
+    // um comentário a afirmá-lo.
     const marcas: Id[] = []
     for (const letra of ['a', 'b', 'c']) {
       const m = (
@@ -620,6 +629,114 @@ describe('guardas em massa e em paralelo', () => {
 
     await payload.delete({ collection: 'products', where: { slug: { contains: `${P}-usa-marca-` } } })
     await payload.delete({ collection: 'brands', where: { slug: { contains: `${P}-massa-marca-` } } })
+  })
+
+  /**
+   * A via ENTRE PEDIDOS da guarda de eliminação — a que o teste acima não cobre
+   * e que um comentário confiante deu por analisada durante uma ronda inteira.
+   *
+   * A eliminação conta os produtos publicados que usam a marca, e a contagem lê
+   * o estado anterior às escritas dos outros pedidos. Uma publicação que
+   * confirme entre essa contagem e a eliminação da linha passa despercebida: a
+   * chave estrangeira `ON DELETE SET NULL` põe `brand` a null num produto já
+   * publicado, que fica à venda e impossível de gravar.
+   *
+   * Reproduzido por HTTP antes da correção, em 5 de 6 corridas (e nas três
+   * coleções: `brands`, `categories`, `media`). A janela desloca-se com a
+   * duração do pedido — a 0 e a 50 ms não aparecia — por isso o teste varre três
+   * desfasamentos em vez de fixar um. Não é determinista pelo lado da falha: é
+   * determinista pelo lado da correção, porque com o lock nenhuma ordem produz
+   * o estado partido.
+   */
+  it('entre pedidos: publicar durante uma eliminação em lote de marcas não deixa o produto sem marca', async () => {
+    const LOTE = `${P}-lote-marca`
+    const SLUG = `${P}-lote-produto`
+
+    const limparLote = async () => {
+      await payload.delete({ collection: 'products', where: { slug: { contains: SLUG } } })
+      await payload.delete({ collection: 'brands', where: { slug: { contains: LOTE } } })
+    }
+
+    const preparar = async (enchimento = 120) => {
+      // A marca do produto é criada por ÚLTIMO. O lote é processado do mais
+      // recente para o mais antigo, e as guardas de todos os documentos correm
+      // antes das eliminações de todos (`docs.map` + `Promise.all` sobre uma só
+      // ligação). Quem entra no início do lote tem a janela mais larga entre a
+      // sua contagem e a eliminação da sua linha — é essa janela que a
+      // publicação tem de atravessar. As restantes marcas só existem para a
+      // alargar; sem elas a janela é curta demais para o defeito aparecer.
+      for (let i = 0; i < enchimento; i++) {
+        await payload.create({
+          collection: 'brands',
+          data: { name: `Zteste lote ${i}`, slug: `${LOTE}-${i}` },
+        })
+      }
+      const alvo = await payload.create({
+        collection: 'brands',
+        data: { name: 'Zteste lote alvo', slug: `${LOTE}-alvo` },
+      })
+      const produto = await payload.create({
+        collection: 'products',
+        data: {
+          title: 'Zteste lote',
+          slug: SLUG,
+          brand: alvo.id,
+          categories: [categoria],
+          gallery: [{ image: imagem }],
+          options: [opcao('Tamanho', 'S')],
+        },
+      })
+      const [s] = await variantesDe(produto.id)
+      await payload.update({ collection: 'variants', id: s!.id, data: { priceCents: 1990 } })
+      return { alvo, produto }
+    }
+
+    try {
+      for (const atraso of [0, 60, 150]) {
+        const { alvo, produto } = await preparar()
+
+        await Promise.allSettled([
+          payload.delete({ collection: 'brands', where: { slug: { contains: LOTE } } }),
+          new Promise((r) => setTimeout(r, atraso)).then(() =>
+            payload.update({
+              collection: 'products',
+              id: produto.id,
+              data: { _status: 'published' },
+            }),
+          ),
+        ])
+
+        const depois = await payload.findByID({ collection: 'products', id: produto.id, depth: 0 })
+
+        // O estado que esta guarda existe para impedir, e que ela deixava passar.
+        //
+        // As duas ordens seguras chegam aqui e as duas passam: ou a publicação
+        // confirma primeiro e a contagem vê-a (marca intacta, produto publicado),
+        // ou a eliminação confirma primeiro e a publicação é recusada (marca
+        // apagada, produto ainda rascunho — legítimo, um rascunho sem marca é
+        // permitido). O que não pode existir é o cruzamento das duas.
+        expect(depois._status === 'published' && !depois.brand).toBe(false)
+
+        await limparLote()
+      }
+
+      // Controlo positivo, sem concorrência: apagar uma marca que nenhum produto
+      // publicado usa continua a ser um 200, e publicar continua a publicar.
+      const livre = await payload.create({
+        collection: 'brands',
+        data: { name: 'Zteste lote livre', slug: `${LOTE}-livre` },
+      })
+      const { errors } = await payload.delete({
+        collection: 'brands',
+        where: { id: { equals: livre.id } },
+      })
+      expect(errors).toHaveLength(0)
+
+      const { produto } = await preparar(0)
+      expect((await publicar(produto.id))._status).toBe('published')
+    } finally {
+      await limparLote()
+    }
   })
 
   it('os fluxos legítimos continuam a passar no caminho em massa', async () => {
