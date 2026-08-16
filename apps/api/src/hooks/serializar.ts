@@ -42,9 +42,38 @@ import type { PayloadRequest } from 'payload'
  * ## Uma chave só
  *
  * `pg_advisory_xact_lock` com uma chave única para o projeto inteiro: atribuição
- * de SKU, publicação, e as guardas de eliminação. Dois locks adquiridos por
- * ordens diferentes é deadlock; com um só, a ordem não existe e o ciclo é
- * impossível por construção. Larga sozinho no commit e no rollback.
+ * de SKU, publicação, e as guardas de eliminação. Larga sozinho no commit e no
+ * rollback.
+ *
+ * A garantia que uma chave só dá, e onde ela acaba:
+ *
+ * - **Cobre os locks consultivos entre si.** Com um lock só não há duas ordens
+ *   de aquisição possíveis, portanto não há ciclo entre pedidos que só disputem
+ *   este lock. É por isso que a chave é uma e não uma por entidade.
+ * - **Não cobre a ordem "lock consultivo vs. row lock".** O Postgres trata os
+ *   dois no mesmo gestor de bloqueios, e este código tem mesmo as duas ordens: a
+ *   publicação pega no lock antes de escrever (`validatePublish`, em
+ *   `beforeChange`), enquanto o caminho de rascunho escreve a linha do produto e
+ *   só depois pede o lock (`syncVariants`, em `afterChange`). Um pedido a
+ *   segurar a linha e à espera do lock, cruzado com outro a segurar o lock e à
+ *   espera da linha, é um ciclo — o Postgres deteta-o e mata um dos dois com
+ *   `deadlock detected`.
+ * - **Consequência, medida.** Gravar um rascunho que cria variantes, ao mesmo
+ *   tempo que se apaga a marca desse produto, dá `deadlock detected` em 6 de 6
+ *   corridas com os dois pedidos a partir juntos (e 0 de 6 a partir de 50 ms de
+ *   desfasamento). O Postgres mata um dos dois — nas corridas foi o `DELETE
+ *   /api/brands/<id>`, com 500 e rollback: a marca não é apagada, o rascunho
+ *   fica gravado, nada corrompido, e repetir resolve. Antes de o
+ *   `blockDeleteIfPublished` passar a pegar no lock, o mesmo par dava 200/200 em
+ *   6 de 6: é um custo desta correção, aceite em troca de fechar a corrida que
+ *   deixava produtos publicados sem marca. Não confundir com o `deadlock
+ *   detected` observado no mesmo endpoint antes disto: esse é um ciclo puro de
+ *   row locks pela chave estrangeira `ON DELETE SET NULL`, e existe com ou sem
+ *   este lock.
+ *
+ * Quem acrescentar uma segunda chave tem de fixar uma ordem de aquisição única —
+ * mas mesmo com uma só, quem mudar a ordem entre escrever e bloquear em qualquer
+ * um destes caminhos muda o desenho, não faz um ajuste.
  *
  * ponytail: um lock global para todas as guardas. Serializa gravações de
  * catálogo sem relação entre si durante os milissegundos de cada transação —
@@ -87,11 +116,18 @@ export async function serializarGuarda(req: PayloadRequest): Promise<void> {
  * Regista que este pedido já decidiu tirar `id`, e devolve tudo o que ele já
  * decidiu tirar até agora — incluindo este.
  *
- * Tem de ser chamada **antes do primeiro `await` da guarda**. É o que garante
- * que, num lote, a última guarda a correr vê as decisões de todas as outras: o
- * conjunto só cresce, portanto quem chega ao fim conta zero e recusa. Se duas
- * se cruzarem antes de qualquer contagem, recusam as duas — mais conservador do
- * que o caminho de documento único, e do lado certo.
+ * A invariante é **reservar antes de contar** — não "antes do primeiro `await`
+ * da guarda", como esta documentação já disse. O `blockUnsellableDelete` chama-a
+ * depois de um `await findByID`, porque precisa de saber a que produto pertence
+ * a variante, e está correto: o que decide é o conjunto estar completo no
+ * momento em que alguém o consulta, e quem o consulta é a contagem. Quem
+ * "corrigir" a ordem para pôr a reserva antes do `findByID` está a mexer na
+ * coisa errada; quem puser uma contagem antes da reserva é que reabre a corrida.
+ *
+ * É o que garante que, num lote, a última guarda a contar vê as decisões de
+ * todas as outras: o conjunto só cresce, portanto quem chega ao fim conta zero e
+ * recusa. Se duas se cruzarem antes de qualquer contagem, recusam as duas — mais
+ * conservador do que o caminho de documento único, e do lado certo.
  */
 export function reservar(
   req: PayloadRequest,

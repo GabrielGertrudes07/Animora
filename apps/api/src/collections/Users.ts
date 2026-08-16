@@ -26,7 +26,7 @@ const A_APAGAR = 'donosAApagar'
  * estão explicadas em `hooks/serializar.ts`.
  */
 export const protectLastOwner: CollectionBeforeDeleteHook = async ({ id, req }) => {
-  // Antes do primeiro `await`, para as guardas irmãs do mesmo lote verem esta.
+  // Antes de contar, para as guardas irmãs do mesmo lote verem esta decisão.
   const aApagar = reservar(req, A_APAGAR, id)
 
   await serializarGuarda(req)
