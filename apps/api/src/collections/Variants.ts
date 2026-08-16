@@ -1,7 +1,8 @@
 import type { CollectionConfig, JSONFieldValidation, NumberFieldSingleValidation } from 'payload'
 import { validations } from 'payload'
 
-import { soComSessao, soDeProdutosPublicados } from '../access/leitura'
+import { soDeProdutosPublicados } from '../access/leitura'
+import { soStaff, soStaffCampo } from '../access/staff'
 import { blockOffMatrix } from '../hooks/blockOffMatrix'
 import { blockUnsellableChange, blockUnsellableDelete } from '../hooks/blockUnsellable'
 
@@ -119,7 +120,12 @@ export const Variants: CollectionConfig = {
   // falso. Ela constrói o HTML da loja campo a campo, e quem pede
   // `/api/variants` diretamente não passa por lá — durante um tempo o custo de
   // compra, o EAN e a localização em armazém saíram para quem os pedisse.
-  access: { read: soDeProdutosPublicados },
+  access: {
+    read: soDeProdutosPublicados,
+    create: soStaff,
+    update: soStaff,
+    delete: soStaff,
+  },
   hooks: {
     // A invariante "publicado ⇒ tem o que vender" era imposta só do lado do
     // produto. Estes dois fecham-na do lado da variante — ver o ficheiro.
@@ -211,21 +217,21 @@ export const Variants: CollectionConfig = {
           label: 'Custo de compra (cêntimos)',
           admin: { description: 'Usado no cálculo de lucro. Nunca sai para o site.' },
           validate: validateInteger,
-          access: { read: soComSessao },
+          access: { read: soStaffCampo },
         },
-        { name: 'ean', type: 'text', label: 'EAN', access: { read: soComSessao } },
+        { name: 'ean', type: 'text', label: 'EAN', access: { read: soStaffCampo } },
         {
           name: 'warehouseLocation',
           type: 'text',
           label: 'Localização em armazém',
-          access: { read: soComSessao },
+          access: { read: soStaffCampo },
         },
         {
           name: 'shippingWeightG',
           type: 'number',
           min: 0,
           label: 'Peso para portes (g)',
-          access: { read: soComSessao },
+          access: { read: soStaffCampo },
         },
       ],
     },

@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
+import { soStaff } from '../access/staff'
 import { blockDeleteIfPublished } from '../hooks/blockDeleteIfPublished'
 
 export const Brands: CollectionConfig = {
@@ -7,7 +8,7 @@ export const Brands: CollectionConfig = {
   // Sem isto, o `defaultAccess` do Payload (`Boolean(req.user)`) aplica-se
   // também à leitura, e a loja pública — sem sessão — levava 403 em tudo.
   // Só a leitura fica aberta; escrita continua a exigir sessão.
-  access: { read: () => true },
+  access: { read: () => true, create: soStaff, update: soStaff, delete: soStaff },
   admin: { useAsTitle: 'name' },
   hooks: { beforeDelete: [blockDeleteIfPublished('esta marca', ['brand'])] },
   fields: [

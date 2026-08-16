@@ -102,6 +102,7 @@ const limparCatalogo = async () => {
   // impede a eliminação da marca, da categoria e da imagem que usa.
   await payload.delete({ collection: 'products', where: { slug: { contains: P } } })
   await payload.delete({ collection: 'users', where: { email: { contains: P } } })
+  await payload.delete({ collection: 'customers', where: { email: { contains: P } } })
 }
 
 beforeAll(async () => {
@@ -1154,5 +1155,221 @@ describe('leitura anónima da API', () => {
         where: { costCents: { greater_than: 0 } },
       }),
     ).rejects.toThrow()
+  })
+})
+
+/**
+ * Contas de cliente.
+ *
+ * Duas famílias de teste, e a segunda é a que ninguém pediu:
+ *
+ * 1. **Isolamento entre contas.** Uma coleção de clientes não tem campos
+ *    "internos" a proteger um a um — é o documento inteiro que é sensível.
+ *
+ * 2. **Um cliente não é staff.** Criar uma coleção com `auth: true` muda o
+ *    significado de `req.user` em TODO o projeto: deixa de querer dizer "staff"
+ *    e passa a querer dizer "qualquer pessoa que se registou na loja". Todas as
+ *    regras escritas como `Boolean(req.user)` mudaram de sentido ao mesmo
+ *    tempo, e as operações que nenhuma coleção declarava (`create`, `update`,
+ *    `delete`) já eram `Boolean(req.user)` por omissão do Payload. Estes testes
+ *    falham todos com `ehStaff = Boolean(user)` — foi assim que o problema foi
+ *    encontrado, e é isso que o controlo negativo abaixo fixa.
+ */
+describe('contas de cliente', () => {
+  const como = (u: { id: Id }, collection: 'customers' | 'users') => ({
+    user: { ...u, collection },
+    overrideAccess: false,
+  })
+
+  const morada = {
+    etiqueta: 'Casa',
+    nomeDestinatario: 'Ana Silva',
+    linha1: 'Rua das Flores 12',
+    codigoPostal: '1234-567',
+    localidade: 'Lisboa',
+    telefone: '910000000',
+  }
+
+  const criarCliente = (sufixo: string) =>
+    payload.create({
+      collection: 'customers',
+      data: {
+        email: `${P}-${sufixo}@cliente.pt`,
+        password: 'animora123',
+        nome: `Cliente ${sufixo}`,
+        moradas: [morada],
+      },
+      overrideAccess: false,
+    })
+
+  const nomeNaBase = async (id: Id) =>
+    (await payload.findByID({ collection: 'customers', id, depth: 0 })).nome
+
+  it('um cliente vê-se a si próprio e mais ninguém', async () => {
+    const a = await criarCliente('a')
+    const b = await criarCliente('b')
+
+    const { docs } = await payload.find({
+      collection: 'customers',
+      limit: 0,
+      depth: 0,
+      ...como(a, 'customers'),
+    })
+    expect(docs.map((d) => d.id)).toEqual([a.id])
+
+    await expect(
+      payload.findByID({ collection: 'customers', id: b.id, ...como(a, 'customers') }),
+    ).rejects.toThrow()
+
+    // Sem sessão não se lê ninguém — nem a lista, nem um id concreto. Aqui a
+    // regra devolve `false` em vez de um `Where`, e o Payload recusa o pedido
+    // inteiro (`executeAccess`) em vez de devolver uma lista vazia.
+    await expect(
+      payload.find({ collection: 'customers', limit: 0, depth: 0, overrideAccess: false }),
+    ).rejects.toThrow()
+    await expect(
+      payload.findByID({ collection: 'customers', id: a.id, overrideAccess: false }),
+    ).rejects.toThrow()
+
+    // O staff vê os dois: a regra é sobre quem pergunta.
+    const staff = await payload.find({
+      collection: 'customers',
+      where: { email: { contains: P } },
+      limit: 0,
+      depth: 0,
+      ...como({ id: 1 }, 'users'),
+    })
+    expect(staff.docs.map((d) => d.id).sort()).toEqual([a.id, b.id].sort())
+  })
+
+  it('um cliente não altera nem apaga a conta de outro', async () => {
+    const a = await criarCliente('a')
+    const b = await criarCliente('b')
+
+    await expect(
+      payload.update({
+        collection: 'customers',
+        id: b.id,
+        data: { nome: 'INVADIDO' },
+        ...como(a, 'customers'),
+      }),
+    ).rejects.toThrow()
+    // O código HTTP não é a prova; o nome na base é.
+    expect(await nomeNaBase(b.id)).toBe('Cliente b')
+
+    await expect(
+      payload.delete({ collection: 'customers', id: b.id, ...como(a, 'customers') }),
+    ).rejects.toThrow()
+    expect(await nomeNaBase(b.id)).toBe('Cliente b')
+
+    // Controlo positivo: na sua própria conta mexe à vontade.
+    await payload.update({
+      collection: 'customers',
+      id: a.id,
+      data: { nome: 'Ana Renomeada' },
+      ...como(a, 'customers'),
+    })
+    expect(await nomeNaBase(a.id)).toBe('Ana Renomeada')
+  })
+
+  it('o código postal tem de ser português: 1234-567 e não 1234567', async () => {
+    const a = await criarCliente('a')
+
+    await expect(
+      payload.update({
+        collection: 'customers',
+        id: a.id,
+        data: { moradas: [{ ...morada, codigoPostal: '1234567' }] },
+      }),
+    ).rejects.toThrow()
+
+    const guardado = await payload.update({
+      collection: 'customers',
+      id: a.id,
+      data: { moradas: [{ ...morada, codigoPostal: '4700-001' }] },
+    })
+    expect(guardado.moradas?.[0]?.codigoPostal).toBe('4700-001')
+  })
+
+  it('um cliente não é staff: não lê nem escreve nada do painel', async () => {
+    const a = await criarCliente('a')
+    const sessao = como(a, 'customers')
+
+    // Um produto publicado, com custo de compra e fornecedor preenchidos.
+    const produto = await criarRascunho('cliente-staff')
+    const [linha] = await variantesDe(produto.id)
+    await payload.update({
+      collection: 'variants',
+      id: linha!.id,
+      data: { priceCents: 2990, costCents: 1200, ean: '5601234567890' },
+    })
+    await publicar(produto.id)
+    const rascunho = await criarRascunho('cliente-rascunho')
+
+    // 1) a tabela de staff não é assunto de clientes
+    await expect(
+      payload.find({ collection: 'users', limit: 0, depth: 0, ...sessao }),
+    ).rejects.toThrow()
+
+    // 2) e muito menos criar uma conta de staff: `admin` já entra no painel
+    await expect(
+      payload.create({
+        collection: 'users',
+        data: { email: `${P}-invasor@animora.pt`, password: 'animora123' },
+        ...sessao,
+      }),
+    ).rejects.toThrow()
+    const invasores = await payload.find({
+      collection: 'users',
+      where: { email: { contains: `${P}-invasor` } },
+      limit: 0,
+      depth: 0,
+    })
+    expect(invasores.docs).toHaveLength(0)
+
+    // 3) o catálogo é de leitura para quem compra
+    await expect(
+      payload.update({
+        collection: 'products',
+        id: produto.id,
+        data: { title: 'PIRATEADO' },
+        ...sessao,
+      }),
+    ).rejects.toThrow()
+    await expect(
+      payload.delete({ collection: 'products', id: produto.id, ...sessao }),
+    ).rejects.toThrow()
+    await expect(
+      payload.update({
+        collection: 'variants',
+        id: linha!.id,
+        data: { priceCents: 1 },
+        ...sessao,
+      }),
+    ).rejects.toThrow()
+    const naBase = await payload.findByID({ collection: 'products', id: produto.id, depth: 0 })
+    expect(naBase.title).not.toBe('PIRATEADO')
+    expect((await variantesDe(produto.id)).map((l) => l.priceCents)).toContain(2990)
+
+    // 4) a margem não é do cliente — é a fuga da fase 2 por outra porta
+    const variantes = await payload.find({ collection: 'variants', limit: 0, depth: 0, ...sessao })
+    expect(variantes.docs.length).toBeGreaterThan(0)
+    for (const d of variantes.docs) {
+      for (const campo of ['costCents', 'ean', 'warehouseLocation', 'shippingWeightG']) {
+        expect(d).not.toHaveProperty(campo)
+      }
+    }
+
+    // 5) nem os produtos que ainda não saíram do painel
+    const produtos = await payload.find({
+      collection: 'products',
+      limit: 0,
+      depth: 0,
+      draft: true,
+      ...sessao,
+    })
+    expect(produtos.docs.map((d) => d.id)).not.toContain(rascunho.id)
+    expect(produtos.docs.every((d) => d._status === 'published')).toBe(true)
+    for (const d of produtos.docs) expect(d).not.toHaveProperty('supplier')
   })
 })

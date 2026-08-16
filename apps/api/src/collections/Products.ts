@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
-import { soComSessao, soPublicadosSemSessao } from '../access/leitura'
+import { soPublicadosSemSessao } from '../access/leitura'
+import { soStaff, soStaffCampo } from '../access/staff'
 import { deleteVariantsOfProduct, syncVariants } from '../hooks/syncVariants'
 import { validatePublish } from '../hooks/validatePublish'
 import { uniqueSlug } from '../hooks/uniqueSlug'
@@ -13,7 +14,15 @@ export const Products: CollectionConfig = {
   // Só a leitura fica aberta; escrita continua a exigir sessão. E aberta apenas
   // ao que está publicado: com `() => true` bastava um `GET /api/products` para
   // ler o que ainda não saiu do painel.
-  access: { read: soPublicadosSemSessao },
+  // Escrever é do staff, explicitamente. Sem `create`/`update`/`delete` o
+  // Payload aplica o `defaultAccess` (`Boolean(req.user)`) — e desde que existem
+  // clientes com sessão isso queria dizer "qualquer pessoa registada na loja".
+  access: {
+    read: soPublicadosSemSessao,
+    create: soStaff,
+    update: soStaff,
+    delete: soStaff,
+  },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'brand', '_status'],
@@ -121,7 +130,7 @@ export const Products: CollectionConfig = {
               name: 'supplier',
               type: 'text',
               label: 'Fornecedor',
-              access: { read: soComSessao },
+              access: { read: soStaffCampo },
             },
           ],
         },

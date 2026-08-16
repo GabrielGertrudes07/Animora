@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
+import { soStaff } from '../access/staff'
 import { blockDeleteIfPublished } from '../hooks/blockDeleteIfPublished'
 
 export const Media: CollectionConfig = {
@@ -8,7 +9,7 @@ export const Media: CollectionConfig = {
   // também à leitura, e as imagens do catálogo — servidas sem sessão pelo
   // browser do cliente — levavam 403. Só a leitura fica aberta; escrita
   // continua a exigir sessão.
-  access: { read: () => true },
+  access: { read: () => true, create: soStaff, update: soStaff, delete: soStaff },
   admin: { useAsTitle: 'alt' },
   hooks: {
     beforeDelete: [

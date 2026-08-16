@@ -1,6 +1,7 @@
 import type { CollectionBeforeDeleteHook, CollectionConfig } from 'payload'
 import { APIError } from 'payload'
 
+import { ehDono, ehStaff, soDono, soStaff } from '../access/staff'
 import { reservar, serializarGuarda } from '../hooks/serializar'
 
 /** Proprietários que ESTE pedido já decidiu apagar. Ver `hooks/serializar.ts`. */
@@ -63,16 +64,23 @@ export const Users: CollectionConfig = {
   // autenticado apagava e alterava qualquer conta. O `access` do campo `role`
   // (mais abaixo) protege o campo `role`, não a conta inteira.
   access: {
+    // A tabela de staff não é assunto de clientes: sem isto o `defaultAccess`
+    // (`Boolean(req.user)`) deixava qualquer pessoa registada na loja listar os
+    // emails do staff, e — pior — CRIAR uma conta de staff. O papel saía
+    // rebaixado a `admin` pelo access do campo `role`, mas `admin` já entra no
+    // painel: era registo na loja a valer acesso à administração.
+    read: soStaff,
+    create: soStaff,
     // Apagar contas é do proprietário. Um admin apagava o owner, apagava-se a si
     // próprio e voltava pelo `first-register` já como owner.
-    delete: ({ req }) => req.user?.role === 'owner',
+    delete: soDono,
     // Um admin fazia PATCH na password do owner e entrava na conta dele — escalada
     // completa sem tocar no campo `role`. Cada um trata da sua conta; mexer nas dos
     // outros é do proprietário.
     update: ({ req }) => {
-      if (!req.user) return false
-      if (req.user.role === 'owner') return true
-      return { id: { equals: req.user.id } }
+      if (!ehStaff(req.user)) return false
+      if (ehDono(req.user)) return true
+      return { id: { equals: req.user!.id } }
     },
   },
   hooks: {
@@ -91,8 +99,8 @@ export const Users: CollectionConfig = {
       access: {
         // Só o proprietário pode definir ou alterar papéis. Sem isto, um admin
         // cria-se (ou promove-se) a owner — quer no create, quer no update.
-        create: ({ req }) => req.user?.role === 'owner',
-        update: ({ req }) => req.user?.role === 'owner',
+        create: ({ req }) => ehDono(req.user),
+        update: ({ req }) => ehDono(req.user),
       },
     },
   ],

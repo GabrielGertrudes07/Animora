@@ -12,12 +12,13 @@ import { Brands } from './src/collections/Brands'
 import { Media } from './src/collections/Media'
 import { Products } from './src/collections/Products'
 import { Variants } from './src/collections/Variants'
+import { Customers } from './src/collections/Customers'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default buildConfig({
   admin: { user: Users.slug },
-  collections: [Users, Categories, Brands, Media, Products, Variants],
+  collections: [Users, Categories, Brands, Media, Products, Variants, Customers],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',
   // O `sharp` instalado e o tipo `SharpDependency` que o Payload 3.88 declara
