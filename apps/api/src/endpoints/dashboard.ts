@@ -123,23 +123,73 @@ export class DashboardError extends Error {}
 // Período
 // ---------------------------------------------------------------------------
 
-const emUTC = (data: Date): Date =>
-  new Date(Date.UTC(data.getUTCFullYear(), data.getUTCMonth(), data.getUTCDate()))
+/**
+ * O dia da loja acaba à meia-noite de Lisboa, não à meia-noite UTC.
+ *
+ * Cortar em UTC deslocava todos os relatórios uma hora durante a hora de verão
+ * — cerca de sete meses por ano em Portugal. Medido: uma encomenda das **00:30
+ * de 16/08 em Lisboa** (23:30 UTC de 15/08) saía no relatório de 15/08. Num
+ * fecho de mês isso é a última noite de julho a cair em junho: o relatório não
+ * bate com os livros da loja, e ninguém percebe porquê.
+ *
+ * O comentário que aqui estava justificava UTC com "não depender do fuso da
+ * máquina". A objeção é boa e continua respeitada: `Europe/Lisbon` é fixo no
+ * código, não é `process.env.TZ` — o mesmo pedido dá o mesmo número em Lisboa,
+ * em Frankfurt ou num contentor a correr em UTC. Só que agora é o âncora do
+ * mercado declarado, e não um âncora emprestado.
+ *
+ * Quem abrir uma loja noutro fuso muda esta constante (ou passa-a a definição
+ * da loja); o resto do ficheiro não sabe qual é.
+ */
+const FUSO = 'Europe/Lisbon'
 
-const diaISO = (data: Date): string => data.toISOString().slice(0, 10)
+/** O dia civil em Lisboa (`2026-08-16`) a que um instante pertence. */
+const diaISO = (data: Date): string => data.toLocaleDateString('en-CA', { timeZone: FUSO })
 
-const lerDia = (valor: unknown, nome: string): Date => {
+/** Desvio de Lisboa face a UTC no instante dado, em ms: 0 no inverno, uma hora no verão. */
+const desvioDeLisboa = (instante: Date): number => {
+  const marca =
+    new Intl.DateTimeFormat('en-US', { timeZone: FUSO, timeZoneName: 'longOffset' })
+      .formatToParts(instante)
+      .find((p) => p.type === 'timeZoneName')?.value ?? 'GMT'
+  const partes = /^GMT([+-])(\d\d):(\d\d)$/.exec(marca)
+  if (!partes) return 0
+  const [, sinal, horas, minutos] = partes
+  return (sinal === '-' ? -1 : 1) * (Number(horas) * 3_600_000 + Number(minutos) * 60_000)
+}
+
+/** O instante em que o dia civil dado começa em Lisboa. */
+const inicioDoDia = (dia: string): Date => {
+  const meiaNoiteUTC = new Date(`${dia}T00:00:00.000Z`).getTime()
+  // Duas passagens: a primeira pergunta o desvio ao instante errado (a meia-noite
+  // UTC), a segunda ao instante que ele indica. Chega e sobra em Portugal, onde a
+  // mudança da hora é às 01:00 de um domingo e nunca faz a meia-noite desaparecer.
+  const aproximado = meiaNoiteUTC - desvioDeLisboa(new Date(meiaNoiteUTC))
+  return new Date(meiaNoiteUTC - desvioDeLisboa(new Date(aproximado)))
+}
+
+/**
+ * `dia` mais `n` dias de calendário. Aritmética de dias civis, não de 24 horas:
+ * somar `DIA_MS` a um instante atravessa a mudança da hora e cai às 23:00 ou à
+ * 01:00 do dia seguinte, e o corte do dia deixava de ser à meia-noite.
+ */
+const somarDias = (dia: string, n: number): string =>
+  new Date(new Date(`${dia}T00:00:00.000Z`).getTime() + n * DIA_MS).toISOString().slice(0, 10)
+
+const lerDia = (valor: unknown, nome: string): string => {
   if (typeof valor !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
     throw new DashboardError(`"${nome}" tem de ser uma data no formato 2026-08-16.`)
   }
   const data = new Date(`${valor}T00:00:00.000Z`)
   // O `Date` não recusa o 30 de fevereiro: transborda em silêncio para 2 de
   // março, e o relatório saía de um mês diferente do pedido sem dizer nada. A
-  // ida e volta apanha isso — é a única maneira de o `Date` o admitir.
-  if (Number.isNaN(data.getTime()) || diaISO(data) !== valor) {
+  // ida e volta apanha isso — é a única maneira de o `Date` o admitir. Em UTC de
+  // propósito: aqui trata-se de validar o texto do pedido, não de situar um
+  // instante no fuso da loja.
+  if (Number.isNaN(data.getTime()) || data.toISOString().slice(0, 10) !== valor) {
     throw new DashboardError(`"${nome}" não é uma data que exista: ${valor}.`)
   }
-  return data
+  return valor
 }
 
 /**
@@ -147,16 +197,18 @@ const lerDia = (valor: unknown, nome: string): Date => {
  * os últimos 30 dias. Uma só das duas é recusada em vez de adivinhada: um
  * período meio escolhido é um relatório que ninguém sabe ler.
  *
- * Tudo em UTC, incluindo o "hoje" por omissão. Portugal anda entre UTC e UTC+1
- * conforme a hora de verão, e ancorar o corte do dia ao fuso da máquina faria o
- * mesmo pedido devolver números diferentes conforme onde corre.
+ * Os dois extremos — e o "hoje" por omissão — são dias civis de Lisboa,
+ * convertidos em instantes só à saída. Ver `FUSO`.
  */
 export const lerJanela = (query: Record<string, unknown>): Janela => {
   const { de, ate } = query
 
   if (de === undefined && ate === undefined) {
-    const amanha = new Date(emUTC(new Date()).getTime() + DIA_MS)
-    return { de: new Date(amanha.getTime() - DIAS_POR_OMISSAO * DIA_MS), ate: amanha }
+    const hoje = diaISO(new Date())
+    return {
+      de: inicioDoDia(somarDias(hoje, 1 - DIAS_POR_OMISSAO)),
+      ate: inicioDoDia(somarDias(hoje, 1)),
+    }
   }
   if (de === undefined || ate === undefined) {
     throw new DashboardError('Indique "de" e "ate", ou nenhuma das duas para os últimos 30 dias.')
@@ -165,26 +217,28 @@ export const lerJanela = (query: Record<string, unknown>): Janela => {
   const inicio = lerDia(de, 'de')
   // Inclusiva para quem pede, meio-aberta cá dentro: sem isto, as encomendas
   // do último dia depois da meia-noite ficavam de fora do relatório.
-  const fim = new Date(lerDia(ate, 'ate').getTime() + DIA_MS)
+  const janela = { de: inicioDoDia(inicio), ate: inicioDoDia(somarDias(lerDia(ate, 'ate'), 1)) }
 
-  if (fim <= inicio) {
+  if (janela.ate <= janela.de) {
     throw new DashboardError(`O fim do período ("${String(ate)}") é anterior ao início.`)
   }
-  return { de: inicio, ate: fim }
+  return janela
 }
 
+/** Dias de calendário, e não horas a dividir: uma janela com mudança da hora lá
+ * dentro tem 23 ou 25 horas num dos dias, e o arredondamento é o que a fecha. */
 const diasDe = (janela: Janela): number => Math.round((janela.ate.getTime() - janela.de.getTime()) / DIA_MS)
 
-/** O período imediatamente anterior, com o mesmo comprimento. */
+/** O período imediatamente anterior, com o mesmo comprimento em dias. */
 const anteriorDe = (janela: Janela): Janela => ({
-  de: new Date(janela.de.getTime() - (janela.ate.getTime() - janela.de.getTime())),
+  de: inicioDoDia(somarDias(diaISO(janela.de), -diasDe(janela))),
   ate: janela.de,
 })
 
 const descrever = (janela: Janela) => ({
   de: diaISO(janela.de),
   // De volta a inclusiva, que é como foi pedida.
-  ate: diaISO(new Date(janela.ate.getTime() - DIA_MS)),
+  ate: somarDias(diaISO(janela.ate), -1),
   dias: diasDe(janela),
 })
 

@@ -2892,6 +2892,55 @@ describe('dashboard de vendas com trava comercial', () => {
     expect(d.receitaPorCategoria.reduce((s, c) => s + c.receitaCents, 0)).toBe(REAL.faturacaoCents)
   })
 
+  /**
+   * O corte do dia é o de Lisboa, não o de UTC.
+   *
+   * Medido antes da correção: uma encomenda de 38,70 € criada às 00:30 de
+   * Lisboa saía no relatório do dia ANTERIOR durante a hora de verão — sete
+   * meses por ano. Num fecho de mês é a última noite a cair no mês errado, e o
+   * relatório deixa de bater com os livros da loja.
+   *
+   * Datas fixas e no passado de propósito: o resultado não pode depender do dia
+   * em que os testes correm, nem apanhar encomendas de outros testes.
+   */
+  it('desbloqueado: a encomenda das 00:30 conta no dia de Lisboa, dentro e fora da hora de verão', async () => {
+    const dono = await criarStaff('fuso', 'owner')
+    const fronteira = await artigo('fronteira', { preco: 3870, custo: 2000, stock: 10 })
+
+    const cliente = await payload.create({
+      collection: 'customers',
+      data: { email: `${P}-fuso@cliente.pt`, password: 'animora123', nome: 'Ana' },
+    })
+    const resposta = await finalizarCompra(
+      await createLocalReq({ user: { ...cliente, collection: 'customers' } as never }, payload),
+      { linhas: [{ variantId: fronteira.id, qty: 1 }], moradaEnvio },
+    )
+    expect(resposta.status).toBe(201)
+    const { id } = (await resposta.json()) as { id: Id }
+
+    await desbloquear(true)
+
+    const criadaEm = async (instante: string) => {
+      await payload.update({ collection: 'orders', id, data: { createdAt: instante } })
+      const lida = await payload.findByID({ collection: 'orders', id, depth: 0 })
+      expect(new Date(lida.createdAt).toISOString()).toBe(instante)
+    }
+    const faturacaoDe = async (dia: string) =>
+      (
+        await lerDashboard(await createLocalReq({ user: dono as never }, payload), { de: dia, ate: dia })
+      ).vendas.faturacaoCents
+
+    // Hora de verão: 00:30 de 16/07 em Lisboa são 23:30 UTC de 15/07.
+    await criadaEm('2026-07-15T23:30:00.000Z')
+    expect(await faturacaoDe('2026-07-16')).toBe(3870)
+    expect(await faturacaoDe('2026-07-15')).toBe(0)
+
+    // Fora da hora de verão Lisboa é UTC, e o corte é à meia-noite UTC.
+    await criadaEm('2026-01-15T00:30:00.000Z')
+    expect(await faturacaoDe('2026-01-15')).toBe(3870)
+    expect(await faturacaoDe('2026-01-14')).toBe(0)
+  })
+
   it('desbloqueado: mais vendidos por unidades não é a mesma lista que por receita', async () => {
     const dono = await criarStaff('dono', 'owner')
     const { racao, snack } = await cenario()
