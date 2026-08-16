@@ -1,4 +1,11 @@
-export { listProducts, getProductBySlug, listAllSlugs, listBrands, listCategories } from './queries'
+export {
+  listProducts,
+  getProductBySlug,
+  listAllSlugs,
+  listBrands,
+  listCategories,
+  getCategoryBySlug,
+} from './queries'
 export { parseFilters, filtersToQuery } from './filters'
 export { sanitizeProduct, INTERNAL_PRODUCT_FIELDS, INTERNAL_VARIANT_FIELDS } from './sanitize'
 export type { PublicProduct, PublicVariant } from './types'
