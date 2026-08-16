@@ -94,7 +94,12 @@ export const Attributes: CollectionConfig = {
       type: 'number',
       defaultValue: 0,
       label: 'Ordem',
-      admin: { description: 'Ordem de apresentação por omissão. Pode ser substituída no ecrã de configuração de filtros.' },
+      admin: {
+        description:
+          'Ordem de apresentação por omissão, para os atributos que não estão no ecrã de ' +
+          'configuração de filtros. Um atributo que esteja lá é apresentado na posição que a ' +
+          'linha tem nesse ecrã, e este número deixa de contar para ele.',
+      },
     },
     {
       name: 'abertoPorOmissao',

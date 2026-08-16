@@ -51,6 +51,14 @@ export function marcasDisponiveis(produtos: PublicProduct[]): { nome: string; sl
  * Um atributo sem nenhum valor real — ou, para `tipo: 'intervalo'`, sem
  * nenhum valor que seja número — não aparece: é a regra central desta
  * tarefa, um filtro que devolveria sempre zero resultados nunca é oferecido.
+ *
+ * **A ordem que entra é a ordem que sai.** Quem chama já a decidiu: é a das
+ * linhas do ecrã de configuração de filtros (`resolveActiveAttributeDefs`).
+ * Reordenar aqui por `attr.ordem` — como esta função fazia — desfazia o
+ * arrastar das linhas no painel e tornava esse ecrã decorativo. O campo
+ * `ordem` do atributo continua a ser a omissão, aplicada uma camada acima
+ * (`listAttributeDefs` pede `sort=ordem` à API): é ele que ordena a lista de
+ * atributos antes de a configuração lhe mexer.
  */
 export function computeAttributeFacets(
   produtos: PublicProduct[],
@@ -71,7 +79,7 @@ export function computeAttributeFacets(
     }
   }
 
-  return facetas.sort((a, b) => a.ordem - b.ordem)
+  return facetas
 }
 
 /**

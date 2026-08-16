@@ -11,13 +11,19 @@ import { soStaff } from '../access/staff'
  * seria a mesma coisa com mais cerimónia (lista com um item, apagar sem
  * sentido).
  *
- * A ORDEM e o CONTROLO por atributo não se repetem aqui: `ordem`, `controlo`
- * e `abertoPorOmissao` já são campos do próprio atributo (`Attributes.ts`).
- * Este ecrã só decide, por cima disso, quais atributos ficam ativos como
- * filtro, por que ordem de apresentação (a posição na lista, que o admin do
- * Payload já deixa arrastar nativamente) e com a possibilidade de os desligar
- * — ou de os substituir por completo numa categoria concreta. Duplicar
- * `controlo`/`abertoPorOmissao` aqui seria dois sítios para a mesma decisão.
+ * O CONTROLO por atributo não se repete aqui: `controlo` e `abertoPorOmissao`
+ * já são campos do próprio atributo (`Attributes.ts`). Este ecrã decide, por
+ * cima disso, quais atributos ficam ativos como filtro, **por que ordem de
+ * apresentação** (a posição na lista, que o admin do Payload já deixa arrastar
+ * nativamente) e com a possibilidade de os desligar — ou de os substituir por
+ * completo numa categoria concreta. Duplicar `controlo`/`abertoPorOmissao`
+ * aqui seria dois sítios para a mesma decisão.
+ *
+ * A posição da linha ganha ao campo `ordem` do atributo, que fica a ser a
+ * omissão de quem não está listado aqui. Não é redundância com `Attributes`:
+ * é a substituição que a descrição desse campo anuncia, e é a loja que a
+ * cumpre — ver `resolveActiveAttributeDefs` e `computeAttributeFacets` em
+ * `apps/web/src/modules/catalog`.
  */
 type LinhaAtributo = { atributo?: unknown }
 
@@ -107,8 +113,9 @@ export const ConfiguracaoFiltros: GlobalConfig = {
       label: 'Filtros por omissão',
       admin: {
         description:
-          'Arraste as linhas para reordenar — é essa ordem que o catálogo usa. Desligar ' +
-          '"Visível" remove o filtro da loja sem apagar a linha.',
+          'Arraste as linhas para reordenar — é essa ordem que o catálogo usa, à frente do ' +
+          'campo "Ordem" de cada atributo. Desligar "Visível" remove o filtro da loja sem ' +
+          'apagar a linha; um atributo que não esteja nesta lista não é oferecido como filtro.',
       },
       fields: camposDeLinha('Atributo'),
     },

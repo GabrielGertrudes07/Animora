@@ -106,6 +106,11 @@ function idDaRelacao(raw: unknown): number | undefined {
  * Os atributos ativos como filtro, na ordem configurada, para a categoria
  * dada (ou os globais, sem categoria).
  *
+ * A ordem das linhas é a ordem final: `computeAttributeFacets` não lhe volta
+ * a mexer. O `ordem` do próprio atributo é só a omissão de quem não está
+ * configurado — é ele que ordena `defs` à chegada (`listAttributeDefs` pede
+ * `sort=ordem` à API), e a configuração escolhe e reordena por cima disso.
+ *
  * Uma linha com `visivel: false`, ou cujo `atributo` já não corresponde a
  * nenhum `AttributeDef` conhecido — incluindo um `interno`, que nunca chega a
  * `defs` porque a API já o tirou de `/api/attributes` sem sessão — desaparece

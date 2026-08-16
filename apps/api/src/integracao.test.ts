@@ -2424,14 +2424,29 @@ describe('configuração de filtros do catálogo', () => {
   const PC = `${P}-cfg`
   type LinhaFiltro = { atributo: Id; visivel?: boolean | null }
 
-  const criarAtributoCfg = (alcance: 'filtro' | 'ficha' | 'interno', sufixo: string) =>
+  const criarAtributoCfg = (alcance: 'filtro' | 'ficha' | 'interno', sufixo: string, ordem = 0) =>
     payload.create({
       collection: 'attributes',
-      data: { nome: `Zteste ${sufixo}`, chave: `${PC}-${sufixo}`, tipo: 'select', alcance, controlo: 'caixas' },
+      data: {
+        nome: `Zteste ${sufixo}`,
+        chave: `${PC}-${sufixo}`,
+        tipo: 'select',
+        alcance,
+        controlo: 'caixas',
+        ordem,
+      },
     })
 
   const criarCategoriaCfg = (sufixo: string) =>
     payload.create({ collection: 'categories', data: { name: `Zteste ${sufixo}`, slug: `${PC}-${sufixo}` } })
+
+  /**
+   * A configuração real da loja é estado de entrega (os filtros que o site
+   * mostra), não sobra de teste: guarda-se à entrada e repõe-se no fim. Sem
+   * isto, uma corrida de testes deixava a loja entregue sem filtro nenhum — que
+   * é exatamente o defeito que a última ronda mandou fechar.
+   */
+  let configEntregue: { padrao?: unknown; porCategoria?: unknown } = {}
 
   const limparConfigFiltros = async () => {
     await payload.updateGlobal({
@@ -2442,12 +2457,23 @@ describe('configuração de filtros do catálogo', () => {
     await payload.delete({ collection: 'categories', where: { slug: { contains: PC } } })
   }
 
-  beforeAll(limparConfigFiltros)
+  beforeAll(async () => {
+    const lido = await payload.findGlobal({ slug: 'configuracao-filtros', depth: 0 })
+    configEntregue = { padrao: lido.padrao ?? [], porCategoria: lido.porCategoria ?? [] }
+    await limparConfigFiltros()
+  })
   afterEach(limparConfigFiltros)
+  afterAll(async () => {
+    await payload.updateGlobal({ slug: 'configuracao-filtros', data: configEntregue as never })
+  })
 
   it('reordenar altera a ordem, e desligar a visibilidade tira o atributo dos visíveis', async () => {
-    const peso = await criarAtributoCfg('filtro', 'peso')
-    const tamanho = await criarAtributoCfg('filtro', 'tamanho')
+    // O `ordem` de cada atributo está de propósito ao contrário da configuração:
+    // qualquer camada que volte a ordenar por `ordem` — como a loja fazia — sai
+    // daqui com a lista trocada. A prova do lado da loja, do URL à barra de
+    // filtros, está em `apps/web/src/modules/catalog/facets.test.ts`.
+    const peso = await criarAtributoCfg('filtro', 'peso', 1)
+    const tamanho = await criarAtributoCfg('filtro', 'tamanho', 2)
 
     await payload.updateGlobal({
       slug: 'configuracao-filtros',
