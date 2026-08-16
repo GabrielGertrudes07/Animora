@@ -20,6 +20,12 @@ export type PublicProduct = {
   categories: { id: number; name: string; slug: string }[]
   gallery: { image: { url: string; alt: string; width?: number; height?: number } }[]
   primaryImage?: { url: string; alt: string; width?: number; height?: number } | null
+  /**
+   * Imagem própria para partilha em redes sociais (tipicamente 1200×630).
+   * Só é usada nos metadados Open Graph — a ficha continua a mostrar a
+   * `primaryImage`, que é a fotografia do catálogo.
+   */
+  shareImage?: { url: string; alt: string; width?: number; height?: number } | null
   metaTitle?: string | null
   metaDescription?: string | null
   variants: PublicVariant[]

@@ -84,6 +84,7 @@ export function sanitizeProduct(raw: unknown): PublicProduct {
       .filter((i): i is NonNullable<typeof i> => i !== null)
       .map((image) => ({ image })),
     primaryImage: pickImage(p.primaryImage),
+    shareImage: pickImage(p.shareImage),
     metaTitle: typeof p.metaTitle === 'string' ? p.metaTitle : null,
     metaDescription: typeof p.metaDescription === 'string' ? p.metaDescription : null,
     variants: variants

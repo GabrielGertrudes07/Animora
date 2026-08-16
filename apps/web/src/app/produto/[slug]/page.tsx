@@ -20,7 +20,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await getProductBySlug(slug)
   if (!p) return { title: 'Produto não encontrado' }
 
-  const img = p.primaryImage ?? p.gallery[0]?.image ?? null
+  // `shareImage` primeiro: é uma imagem carregada de propósito para partilha
+  // (1200×630 e afins). Sem ela, sai a fotografia quadrada do catálogo, que é
+  // o que estava a acontecer — o campo existia no Payload e nunca era lido.
+  // A ficha em si continua a mostrar a `primaryImage`; isto é só o Open Graph.
+  const img = p.shareImage ?? p.primaryImage ?? p.gallery[0]?.image ?? null
 
   return {
     // `metaTitle` já vem com o sufixo "| Animora" preenchido no painel — usar

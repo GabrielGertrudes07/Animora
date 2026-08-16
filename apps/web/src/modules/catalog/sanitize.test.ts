@@ -61,6 +61,26 @@ describe('sanitizeProduct', () => {
     expect(serializado).not.toContain('A-12-3')
   })
 
+  it('copia a imagem de partilha, que a ficha usa no Open Graph', () => {
+    // O campo existia no Payload e a spec prometia-o, mas não estava no
+    // `PublicProduct` nem era copiado aqui — quem carregasse uma imagem 1200×630
+    // própria para partilha via sair na mesma a fotografia quadrada do catálogo.
+    const p = sanitizeProduct({
+      ...cru,
+      shareImage: { url: '/api/media/file/partilha.webp', alt: 'Partilha', width: 1200, height: 630 },
+    })
+    expect(p.shareImage).toEqual({
+      url: '/api/media/file/partilha.webp',
+      alt: 'Partilha',
+      width: 1200,
+      height: 630,
+    })
+  })
+
+  it('sem imagem de partilha devolve null, para o encadeamento cair na seguinte', () => {
+    expect(sanitizeProduct(cru).shareImage).toBeNull()
+  })
+
   it('descarta variantes inativas', () => {
     const comInativa = {
       ...cru,
