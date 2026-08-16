@@ -19,6 +19,11 @@ export type ResumoVendas = {
    * `lucroCents`/`custoCents` cobrem só as linhas conhecidas, e uma margem calculada
    * sobre dados incompletos fingiria uma precisão que não existe. Ver
    * `unidadesSemCustoConhecido` para saber quantas unidades ficam de fora.
+   *
+   * `null` também **sem faturação nenhuma**: a margem é lucro a dividir por
+   * faturação, e sem faturação não há divisão que dê zero — dá indefinido. Uma
+   * loja no primeiro mês não tem margem de 0,00 %; não tem margem nenhuma, que
+   * é coisa diferente e é o que o painel tem de escrever.
    */
   margemPercent: number | null
   unidades: number
@@ -42,7 +47,10 @@ export class RelatorioError extends Error {
  * e inflaria o lucro. Em vez disso essas unidades são excluídas do cálculo
  * de custo/lucro e contadas à parte em `unidadesSemCustoConhecido`, e a
  * margem agregada recusa-se a ser calculada (`null`) sempre que faltar
- * custo nalguma linha.
+ * custo nalguma linha — ou quando não houve faturação nenhuma para dividir.
+ *
+ * A doutrina é uma só e vale para os dois casos: uma margem que não se sabe
+ * aparece como não se sabendo.
  */
 export function agregarVendas(linhas: LinhaVendida[]): ResumoVendas {
   for (const l of linhas) {
@@ -86,11 +94,9 @@ export function agregarVendas(linhas: LinhaVendida[]): ResumoVendas {
   }
 
   const margemPercent =
-    unidadesSemCustoConhecido > 0
+    unidadesSemCustoConhecido > 0 || faturacaoCents === 0
       ? null
-      : faturacaoCents === 0
-        ? 0
-        : Math.round((lucroCents / faturacaoCents) * 10000) || 0 // `|| 0` normaliza -0
+      : Math.round((lucroCents / faturacaoCents) * 10000) || 0 // `|| 0` normaliza -0
 
   return { faturacaoCents, custoCents, lucroCents, margemPercent, unidades, unidadesSemCustoConhecido }
 }

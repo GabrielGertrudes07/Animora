@@ -224,6 +224,9 @@ const PainelVendas = async (props: AdminViewServerProps): Promise<React.ReactEle
     vendas.unidadesSemCustoConhecido > 0
       ? `${vendas.unidadesSemCustoConhecido} unidade(s) sem custo registado`
       : undefined
+  // Sem faturação não há margem para calcular. Dizer porquê, em vez de deixar
+  // "desconhecida" sozinha a parecer avaria do ecrã.
+  const semVendas = vendas.faturacaoCents === 0 ? 'Sem vendas neste período' : undefined
 
   return (
     <div style={{ color: cor.texto, margin: '0 auto', maxWidth: '68rem', padding: '2rem 1.5rem' }}>
@@ -252,12 +255,13 @@ const PainelVendas = async (props: AdminViewServerProps): Promise<React.ReactEle
           nota={semCusto ?? `Custo das mercadorias: ${formatEuros(vendas.custoCents)}`}
         />
         {/* Uma margem que não se sabe aparece como não se sabendo. Zero por
-            cento e cem por cento são ambas respostas erradas — e a segunda é a
-            que sai sozinha de tratar custo desconhecido como custo nulo. */}
+            cento e cem por cento são ambas respostas erradas — a segunda é a
+            que sai sozinha de tratar custo desconhecido como custo nulo, e a
+            primeira era o que um período sem vendas nenhumas escrevia aqui. */}
         <Numero
           titulo="Margem"
           valor={percentagem(vendas.margemPercent)}
-          nota={vendas.margemPercent === null ? semCusto : undefined}
+          nota={vendas.margemPercent === null ? (semCusto ?? semVendas) : undefined}
         />
         <Numero
           titulo="Encomendas"

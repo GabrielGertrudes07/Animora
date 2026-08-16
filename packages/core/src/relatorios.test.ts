@@ -9,15 +9,28 @@ const linha = (
 ): LinhaVendida => ({ quantidade, precoUnitarioCents, custoUnitarioCents })
 
 describe('agregarVendas', () => {
-  it('sem linhas dá tudo a zero e margem neutra', () => {
+  /**
+   * Antes daqui saía `margemPercent: 0`, e o painel escrevia "0,00 %" — uma
+   * loja no primeiro mês lia "a tua margem é zero". Não é: não há margem
+   * nenhuma, que é a mesma distinção que o custo desconhecido já fazia.
+   */
+  it('sem linhas dá tudo a zero e margem desconhecida — nunca 0,00 %', () => {
     expect(agregarVendas([])).toEqual({
       faturacaoCents: 0,
       custoCents: 0,
       lucroCents: 0,
-      margemPercent: 0,
+      margemPercent: null,
       unidades: 0,
       unidadesSemCustoConhecido: 0,
     })
+  })
+
+  it('faturação zero com custo conhecido também não tem margem — não há por que dividir', () => {
+    // Uma oferta: preço 0, custo 5,00 €. O prejuízo está no lucro; a margem
+    // seria uma divisão por zero, e -∞ não se escreve num painel.
+    const r = agregarVendas([linha(0, 500)])
+    expect(r.lucroCents).toBe(-500)
+    expect(r.margemPercent).toBeNull()
   })
 
   it('uma linha com custo conhecido calcula lucro e margem', () => {

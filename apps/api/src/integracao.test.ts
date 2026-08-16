@@ -2967,6 +2967,22 @@ describe('dashboard de vendas com trava comercial', () => {
     expect(d.vendas.lucroCents).toBe(6600)
   })
 
+  it('desbloqueado: um período sem vendas nenhumas não tem margem — não é 0,00 %', async () => {
+    const dono = await criarStaff('vazio', 'owner')
+    await cenario()
+    await desbloquear(true)
+
+    // Fevereiro de 2020: a loja não existia. Zero faturação não é margem zero —
+    // é uma divisão que não se faz, e o painel escreve "desconhecida".
+    const d = await lerDashboard(await createLocalReq({ user: dono as never }, payload), {
+      de: '2020-02-01',
+      ate: '2020-02-29',
+    })
+    expect(d.vendas.faturacaoCents).toBe(0)
+    expect(d.vendas.unidades).toBe(0)
+    expect(d.vendas.margemPercent).toBeNull()
+  })
+
   it('desbloqueado: ruturas e stock baixo saem do catálogo publicado', async () => {
     const dono = await criarStaff('dono', 'owner')
     const { racao, snack } = await cenario()
