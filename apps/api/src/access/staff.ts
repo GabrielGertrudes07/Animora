@@ -46,3 +46,15 @@ export const soDono: Access = ({ req }) => ehDono(req.user)
 
 /** Para `access` de campo (custo de compra, fornecedor, margem das encomendas). */
 export const soStaffCampo: FieldAccess = ({ req }) => ehStaff(req.user)
+
+/**
+ * Para `access` de campo que só o proprietário vê — hoje só a trava comercial
+ * do dashboard (`globals/Definicoes.ts`).
+ *
+ * Negar `read` a um campo não é cosmético no painel: o `RenderFields` do
+ * `@payloadcms/ui` devolve `null` para qualquer campo nomeado sem permissão de
+ * leitura (`forms/RenderFields/index.js`), portanto quem não é dono não vê o
+ * interruptor. Quem o vê é decidido aqui, no servidor, e não por `admin.hidden`
+ * — esse esconde da vista e deixa a escrita aberta.
+ */
+export const soDonoCampo: FieldAccess = ({ req }) => ehDono(req.user)
