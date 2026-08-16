@@ -13,11 +13,13 @@ export const Products: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [uniqueSlug],
-    // A ordem é o próprio mecanismo: o `validatePublish` lê a tabela de variantes
-    // que o `syncVariants` reescreve, por isso tem de correr a seguir a ele, e não
-    // antes (era `beforeChange`, e validava um conjunto de variantes que o pedido
-    // ainda ia substituir). Não trocar a ordem nem separar os dois.
-    afterChange: [syncVariants, validatePublish],
+    // O `validatePublish` corre ANTES de qualquer escrita e valida o conjunto de
+    // variantes que o `syncVariants` vai deixar na tabela, calculando-o com o
+    // mesmo `mergeVariants`. Não é a versão antiga do hook (essa lia o conjunto
+    // velho e deixava publicar a 0 €), nem a de `afterChange` (essa dependia do
+    // rollback, que a atualização em massa não faz). Ver o cabeçalho do ficheiro.
+    beforeChange: [validatePublish],
+    afterChange: [syncVariants],
     // Sem isto nenhum produto se consegue apagar: o adaptador gera ON DELETE SET
     // NULL sobre `variants.product_id`, que é NOT NULL.
     beforeDelete: [deleteVariantsOfProduct],

@@ -65,6 +65,24 @@ const criarRascunho = async (sufixo: string, options: ReturnType<typeof opcao>[]
 const publicar = (id: Id) =>
   payload.update({ collection: 'products', id, data: { _status: 'published' } })
 
+/**
+ * O caminho do botão "Publicar" da lista do painel: `PATCH ?where=...&draft=true`.
+ *
+ * Não é o mesmo código do documento único e não se comporta como ele: o
+ * adaptador Postgres não define `bulkOperationsSingleTransaction`, por isso não
+ * há transação por documento e um erro de hook não desfaz nada — vai para
+ * `errors[]` e a transação exterior confirma à mesma. Daí este helper devolver
+ * o resultado em vez de rebentar, e daí os testes que o usam confirmarem sempre
+ * o estado real na base de dados.
+ */
+const publicarEmMassa = (data: Record<string, unknown> = {}) =>
+  payload.update({
+    collection: 'products',
+    where: { slug: { contains: P } },
+    draft: true,
+    data: { _status: 'published', ...data },
+  })
+
 const variantesDe = async (produto: Id): Promise<Linha[]> => {
   const { docs } = await payload.find({
     collection: 'variants',
@@ -256,6 +274,55 @@ describe('sincronização de variantes', () => {
 
     const depois = await payload.findByID({ collection: 'products', id: produto.id, depth: 0 })
     expect(depois._status).not.toBe('published')
+  })
+
+  it('em massa: publicar sem preços é recusado e não grava nada', async () => {
+    const produto = await criarRascunho('massa-sem-precos', [opcao('Tamanho', 'S', 'M')])
+
+    const { docs, errors } = await publicarEmMassa()
+
+    expect(docs).toHaveLength(0)
+    expect(errors[0]?.message).toMatch(/variante ativa com preço/)
+    const depois = await payload.findByID({ collection: 'products', id: produto.id, depth: 0 })
+    expect(depois._status).not.toBe('published')
+  })
+
+  it('em massa: publicar e mudar opções no mesmo pedido não apaga os preços', async () => {
+    const produto = await criarRascunho('massa-mudar', [opcao('Tamanho', 'S')])
+    const [s] = await variantesDe(produto.id)
+    await payload.update({
+      collection: 'variants',
+      id: s!.id,
+      data: { priceCents: 4990, stock: 5 },
+    })
+    await publicar(produto.id)
+
+    const { errors } = await publicarEmMassa({ options: [opcao('Tamanho', 'XL')] })
+
+    expect(errors).toHaveLength(1)
+    // O sintoma que motivou este teste: o pedido era recusado com 400 e mesmo
+    // assim a variante S desaparecia com os 4990, substituída por uma XL a zero.
+    const linhas = await variantesDe(produto.id)
+    expect(linhas).toHaveLength(1)
+    expect(porTamanho(linhas, 'S')!.id).toBe(s!.id)
+    expect(porTamanho(linhas, 'S')!.priceCents).toBe(4990)
+  })
+
+  it('em massa: um produto já precificado continua a poder ser publicado', async () => {
+    const bom = await criarRascunho('massa-bom', [opcao('Tamanho', 'S')])
+    const mau = await criarRascunho('massa-mau', [opcao('Tamanho', 'S')])
+    const [s] = await variantesDe(bom.id)
+    await payload.update({ collection: 'variants', id: s!.id, data: { priceCents: 1990 } })
+
+    // Lote misto: cada produto é independente — o válido publica, o inválido não.
+    const { docs, errors } = await publicarEmMassa()
+
+    expect(docs).toHaveLength(1)
+    expect(errors).toHaveLength(1)
+    const publicado = await payload.findByID({ collection: 'products', id: bom.id, depth: 0 })
+    const recusado = await payload.findByID({ collection: 'products', id: mau.id, depth: 0 })
+    expect(publicado._status).toBe('published')
+    expect(recusado._status).not.toBe('published')
   })
 
   it('criações concorrentes da mesma marca geram SKUs distintos', async () => {

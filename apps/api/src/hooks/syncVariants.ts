@@ -70,6 +70,54 @@ async function freeSku(base: string, req: PayloadRequest): Promise<string> {
   throw new Error(`Não foi possível gerar um SKU livre a partir de "${base}". Defina-o à mão.`)
 }
 
+/** Uma linha do array `options` do produto, como o painel a grava. */
+export type OpcaoDoPainel = { name: string; values?: { value: string }[] | null }
+
+/**
+ * O Payload devolve `values` como [{ id, value }]; o core espera string[].
+ * Sem este mapeamento, `mergeVariants` gera combinações erradas em silêncio.
+ * Exportado para o `validatePublish` derivar as combinações exatamente da
+ * mesma maneira que este hook — se as duas leituras divergirem, a validação
+ * volta a aprovar um conjunto de variantes diferente do que fica gravado.
+ */
+export const opcoesDoCore = (options?: OpcaoDoPainel[] | null): VariantOption[] =>
+  (options ?? []).map((o) => ({
+    name: o.name,
+    values: (o.values ?? []).map((v) => v.value),
+  }))
+
+/**
+ * Todas as variantes do produto, sem paginação.
+ *
+ * `limit: 0` é mesmo "sem limite" (`@payloadcms/drizzle/dist/find/findMany.js`:
+ * `if (limit === 0) { limit = undefined }`). Com o limite por defeito de 10, as
+ * variantes acima da décima seriam tratadas como inexistentes e recriadas a
+ * zero — perda de preços silenciosa em qualquer produto com duas opções
+ * (4 tamanhos × 3 cores já são 12). Não tirar.
+ */
+export const variantesDoProduto = async (
+  produto: number | string,
+  req: PayloadRequest,
+): Promise<Record<string, unknown>[]> => {
+  const { docs } = await req.payload.find({
+    collection: 'variants',
+    where: { product: { equals: produto } },
+    limit: 0,
+    depth: 0,
+    req,
+  })
+  return docs as unknown as Record<string, unknown>[]
+}
+
+/** A linha da base de dados na forma que o core conhece. */
+export const linhaDoCore = (d: Record<string, unknown>): VariantRow => ({
+  combination: d.combination as Combination,
+  sku: d.sku as string,
+  priceCents: d.priceCents as number,
+  stock: d.stock as number,
+  active: d.active as boolean,
+})
+
 /**
  * Mantém a tabela de variantes alinhada com as opções do produto.
  *
@@ -90,30 +138,10 @@ async function freeSku(base: string, req: PayloadRequest): Promise<string> {
  * exatamente igual às opções publicadas.
  */
 export const syncVariants: CollectionAfterChangeHook = async ({ doc, req }) => {
-  // O Payload devolve `values` como [{ id, value }]; o core espera string[].
-  // Sem este mapeamento, mergeVariants gera combinações erradas em silêncio.
-  const options: VariantOption[] = (doc.options ?? []).map(
-    (o: { name: string; values?: { value: string }[] | null }) => ({
-      name: o.name,
-      values: (o.values ?? []).map((v) => v.value),
-    }),
-  )
+  const options = opcoesDoCore(doc.options)
 
-  const { docs: existingDocs } = await req.payload.find({
-    collection: 'variants',
-    where: { product: { equals: doc.id } },
-    limit: 0,
-    depth: 0,
-    req,
-  })
-
-  const existing: VariantRow[] = existingDocs.map((d) => ({
-    combination: d.combination as Combination,
-    sku: d.sku as string,
-    priceCents: d.priceCents as number,
-    stock: d.stock as number,
-    active: d.active as boolean,
-  }))
+  const existingDocs = await variantesDoProduto(doc.id, req)
+  const existing: VariantRow[] = existingDocs.map(linhaDoCore)
 
   const merged = mergeVariants(existing, options)
   const mergedKeys = new Set(merged.map((r) => combinationKey(r.combination)))
@@ -123,7 +151,7 @@ export const syncVariants: CollectionAfterChangeHook = async ({ doc, req }) => {
   if (doc._status !== 'draft') {
     for (const d of existingDocs) {
       if (!mergedKeys.has(combinationKey(d.combination as Combination))) {
-        await req.payload.delete({ collection: 'variants', id: d.id, req })
+        await req.payload.delete({ collection: 'variants', id: d.id as number, req })
       }
     }
   }
