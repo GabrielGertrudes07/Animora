@@ -1,6 +1,7 @@
 import type { CollectionConfig, JSONFieldValidation, NumberFieldSingleValidation } from 'payload'
 import { validations } from 'payload'
 
+import { blockOffMatrix } from '../hooks/blockOffMatrix'
 import { blockUnsellableChange, blockUnsellableDelete } from '../hooks/blockUnsellable'
 
 // Dinheiro é sempre em cêntimos inteiros; stock é sempre um número inteiro de unidades.
@@ -104,7 +105,9 @@ export const Variants: CollectionConfig = {
   hooks: {
     // A invariante "publicado ⇒ tem o que vender" era imposta só do lado do
     // produto. Estes dois fecham-na do lado da variante — ver o ficheiro.
-    beforeChange: [blockUnsellableChange],
+    // O `blockOffMatrix` fecha a outra maneira de encravar o produto pelo lado
+    // da variante: mudar a combinação para fora das opções do produto.
+    beforeChange: [blockOffMatrix, blockUnsellableChange],
     beforeDelete: [blockUnsellableDelete],
   },
   admin: {
