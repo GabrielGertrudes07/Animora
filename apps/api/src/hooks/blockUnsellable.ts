@@ -1,6 +1,11 @@
 import type { CollectionBeforeChangeHook, CollectionBeforeDeleteHook, PayloadRequest } from 'payload'
 import { APIError } from 'payload'
 
+import { reservar, serializarGuarda } from './serializar'
+
+/** Variantes que ESTE pedido já decidiu deixar de vender. Ver `serializar.ts`. */
+const SEM_VENDA = 'variantesSemVenda'
+
 /**
  * Marca, no pedido, que é o produto inteiro que está a ser apagado.
  *
@@ -10,7 +15,7 @@ import { APIError } from 'payload'
 export const A_APAGAR_PRODUTO = 'aApagarProduto'
 
 /** O campo `product` da variante vem populado ou como id, conforme o `depth`. */
-const idDoProduto = (valor: unknown): number | string | undefined =>
+export const idDoProduto = (valor: unknown): number | string | undefined =>
   typeof valor === 'object' && valor !== null
     ? (valor as { id?: number | string }).id
     : (valor as number | string | undefined)
@@ -35,6 +40,18 @@ const idDoProduto = (valor: unknown): number | string | undefined =>
  *
  * Só se aplica a produtos publicados. Num rascunho mexe-se à vontade — é para
  * isso que serve, e a publicação valida o resultado.
+ *
+ * ## Contar não chega
+ *
+ * Contar as irmãs e decidir a seguir é atravessado pelos dois lados: por dois
+ * pedidos em paralelo, e pelos documentos de uma mesma operação em massa, que o
+ * Payload corre intercalados sobre a mesma transação. Nos dois casos cada
+ * verificação via as outras variantes ainda vendáveis, todas passavam, e o
+ * produto ficava publicado com zero — com 200 e sem erro nenhum. Medido em 6 de
+ * 6 corridas nos dois caminhos. Ver `serializar.ts` para o mecanismo; aqui
+ * ficam as duas linhas que o usam: a reserva antes do primeiro `await`, e a
+ * contagem que exclui tudo o que este pedido já reservou em vez de excluir só
+ * esta variante.
  */
 const assegurarQueSobraVenda = async (
   produto: number | string | undefined,
@@ -43,6 +60,15 @@ const assegurarQueSobraVenda = async (
 ): Promise<void> => {
   if (produto === undefined || produto === null) return
   if (req.context[A_APAGAR_PRODUTO]) return
+
+  // Antes de qualquer `await`: as guardas dos documentos irmãos do lote correm
+  // intercaladas com esta, e só veem esta decisão se ela já cá estiver.
+  const reservadas = reservar(req, SEM_VENDA, variante)
+
+  // Antes de ler o estado do produto, e não só antes de contar as variantes: um
+  // pedido que publique ao mesmo tempo que este tira o preço tem de ficar de um
+  // dos lados da linha. Ver `validatePublish`, que pega no mesmo lock.
+  await serializarGuarda(req)
 
   const publicado = await req.payload.count({
     collection: 'products',
@@ -58,7 +84,7 @@ const assegurarQueSobraVenda = async (
         { product: { equals: produto } },
         { active: { equals: true } },
         { priceCents: { greater_than: 0 } },
-        { id: { not_equals: variante } },
+        { id: { not_in: [...reservadas] } },
       ],
     },
     req,
@@ -69,8 +95,9 @@ const assegurarQueSobraVenda = async (
     'Esta é a última variante ativa com preço de um produto publicado. Sem ela o produto ' +
       'ficava publicado na loja sem nada para vender, e nem sequer se conseguia voltar a ' +
       'gravar — a publicação exige exatamente a variante que este pedido tira. Preencha o ' +
-      'preço de outra variante primeiro, ou despublique o produto (grave-o como rascunho) ' +
-      'antes de mexer nesta.',
+      'preço de outra variante primeiro, ou despublique o produto — a ação "Despublicar"; ' +
+      'gravar como rascunho não despublica nada, a versão publicada continua no ar e esta ' +
+      'recusa mantém-se.',
     400,
   )
 }

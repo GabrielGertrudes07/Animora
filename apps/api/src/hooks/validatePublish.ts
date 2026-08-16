@@ -1,9 +1,17 @@
 import type { CollectionBeforeChangeHook } from 'payload'
 import { APIError } from 'payload'
-import { mergeVariants } from '@animora/core'
+import { combinationKey, mergeVariants } from '@animora/core'
+import type { Combination } from '@animora/core'
 
+import { serializarGuarda } from './serializar'
 import { linhaDoCore, opcoesDoCore, variantesDoProduto } from './syncVariants'
 import type { OpcaoDoPainel } from './syncVariants'
+
+/** `{ Tamanho: 'S', Cor: 'Preto' }` → `Tamanho: S, Cor: Preto`. */
+const legivel = (c: Combination): string =>
+  Object.entries(c)
+    .map(([nome, valor]) => `${nome}: ${valor}`)
+    .join(', ') || '(sem opções)'
 
 /**
  * Recusa publicar produtos incompletos.
@@ -71,6 +79,14 @@ export const validatePublish: CollectionBeforeChangeHook = async ({ data, origin
   const estadoFinal = data._status ?? originalDoc?._status
   if (estadoFinal !== 'published') return data
 
+  // Calcular o conjunto futuro fecha a corrida entre os documentos deste
+  // pedido, mas não a que existe com OUTROS pedidos: publicar em paralelo com
+  // um `PATCH` que zera o preço da única variante deixava o produto publicado
+  // sem nada vendável em 6 de 6 corridas — este lia o preço antigo, o outro via
+  // o produto ainda em rascunho, e ambos passavam. O mesmo lock que a guarda da
+  // variante usa põe os dois de lados diferentes da linha. Ver `serializar.ts`.
+  await serializarGuarda(req)
+
   // `data` é só o que o pedido traz (na operação em massa é literalmente
   // `{_status:'published'}`); o resto do documento vem do `originalDoc`.
   const campo = <T,>(nome: string): T | undefined =>
@@ -98,12 +114,31 @@ export const validatePublish: CollectionBeforeChangeHook = async ({ data, origin
   const finais = mergeVariants(existentes, opcoesDoCore(campo<OpcaoDoPainel[]>('options')))
 
   if (!finais.some((v) => v.active && v.priceCents > 0)) {
+    // Há preços, mas em combinações que nenhuma opção do produto gera. Sem isto
+    // a mensagem falava de preços em falta a quem tem os preços preenchidos —
+    // e não dizia qual era o problema real nem onde. Acontece por edição manual
+    // da combinação de uma variante, e também quando o mesmo pedido muda as
+    // opções: nos dois casos a variante com preço fica fora da matriz e
+    // desaparece na gravação seguinte.
+    const chavesFinais = new Set(finais.map((v) => combinationKey(v.combination)))
+    const orfas = existentes.filter(
+      (v) => v.active && v.priceCents > 0 && !chavesFinais.has(combinationKey(v.combination)),
+    )
+
     problems.push(
-      'É preciso pelo menos uma variante ativa com preço acima de zero. As variantes só ' +
-        'existem depois de o produto estar gravado: grave-o como rascunho, preencha o preço ' +
-        'de pelo menos uma variante em /admin/collections/variants, e publique depois. Se ' +
-        'este pedido também muda as opções, as variantes que deixam de existir levam o preço ' +
-        'com elas — mude as opções primeiro, preencha os preços, e só depois publique.',
+      orfas.length > 0
+        ? `As variantes com preço não correspondem a nenhuma combinação das opções deste ` +
+            `produto: ${orfas.map((v) => `${v.sku} (${legivel(v.combination)})`).join('; ')}. ` +
+            `As opções atuais dão ${finais.map((v) => legivel(v.combination)).join(' / ')}. ` +
+            `Uma variante fora desta matriz não conta para a publicação e é apagada na ` +
+            `gravação seguinte do produto, com preço e stock. Reponha a combinação da ` +
+            `variante, ou acrescente essa opção ao produto, ou preencha o preço de uma das ` +
+            `combinações que existem.`
+        : 'É preciso pelo menos uma variante ativa com preço acima de zero. As variantes só ' +
+            'existem depois de o produto estar gravado: grave-o como rascunho, preencha o preço ' +
+            'de pelo menos uma variante em /admin/collections/variants, e publique depois. Se ' +
+            'este pedido também muda as opções, as variantes que deixam de existir levam o preço ' +
+            'com elas — mude as opções primeiro, preencha os preços, e só depois publique.',
     )
   }
 

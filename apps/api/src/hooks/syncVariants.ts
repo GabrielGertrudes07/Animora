@@ -3,9 +3,7 @@ import { mergeVariants, buildSku, combinationKey } from '@animora/core'
 import type { Combination, VariantOption, VariantRow } from '@animora/core'
 
 import { A_APAGAR_PRODUTO } from './blockUnsellable'
-
-/** Chave do lock consultivo. Arbitrária — só tem de ser sempre a mesma. */
-const SKU_LOCK_KEY = 918273
+import { serializarGuarda } from './serializar'
 
 /**
  * Fecha a janela entre escolher o SKU e gravá-lo.
@@ -20,38 +18,11 @@ const SKU_LOCK_KEY = 918273
  * escrever fora de qualquer transação, onde o produto ainda não existe, e o 400
  * virava um 500 por chave estrangeira. Confirmado a correr — ver o relatório.
  *
- * Logo: em vez de recuperar da colisão, serializa-se quem pode atribuir SKU.
- * `pg_advisory_xact_lock` larga sozinho no commit ou no rollback, sem limpeza nem
- * esperas. Com `read committed`, quem espera vê as linhas de quem confirmou antes.
+ * Logo: em vez de recuperar da colisão, serializa-se quem pode atribuir SKU. O lock
+ * consultivo está em `serializar.ts`, partilhado com as outras guardas que contam
+ * antes de decidir — uma chave só para o projeto inteiro, para não haver ordem de
+ * aquisição e portanto não haver deadlock possível.
  *
- * ponytail: um lock único para toda a atribuição de SKU. Serializa gravações de
- * produtos diferentes durante os milissegundos da transação — para uma loja com um
- * punhado de gravações por minuto chega. Se um dia incomodar, passa a lock por
- * marca (`hashtext` do prefixo), mas aí é preciso ordenar as chaves para não haver
- * deadlock entre pedidos que tocam nas mesmas marcas.
- */
-async function lockSkuAllocation(req: PayloadRequest): Promise<void> {
-  const transactionID = await req.transactionID
-  const session = transactionID ? req.payload.db.sessions?.[String(transactionID)] : undefined
-
-  // Sem transação não há nada onde prender o lock. Falha alto de propósito: retornar
-  // em silêncio perdia a proteção e reabria a corrida sem nada no log a explicar
-  // porquê. Assim, desativar transações passa a ser uma decisão consciente.
-  if (!session) {
-    throw new Error(
-      'Sem transação não é possível serializar a atribuição de SKU das variantes: ' +
-        'dois produtos gravados ao mesmo tempo escolhem o mesmo SKU e um deles falha ' +
-        'com "Valor deve ser único". Desativar transações (`disableTransaction` na ' +
-        'gravação, ou `transactionOptions: false` no adaptador) reabre essa corrida — ' +
-        'ou se grava o produto dentro da transação do pedido, ou se preenche o SKU à mão.',
-    )
-  }
-
-  const db = session.db as { execute: (query: string) => Promise<unknown> }
-  await db.execute(`select pg_advisory_xact_lock(${SKU_LOCK_KEY})`)
-}
-
-/**
  * Primeiro SKU livre a partir do sugerido: `HAP-COL`, `HAP-COL-2`, `HAP-COL-3`, ...
  *
  * `buildSku` é só uma sugestão — a unicidade é da base de dados. Dois produtos da
@@ -161,7 +132,7 @@ export const syncVariants: CollectionAfterChangeHook = async ({ doc, req }) => {
   const missing = merged.filter((r) => !existingKeys.has(combinationKey(r.combination)))
   if (missing.length === 0) return doc
 
-  await lockSkuAllocation(req)
+  await serializarGuarda(req)
 
   // A marca vem populada, como id, ou pode nem existir ainda — é obrigatória para publicar
   // (ver validatePublish) mas não para gravar rascunho, e "título escrito, marca por
