@@ -11,6 +11,7 @@ import {
 } from '../../modules/catalog'
 import { ProductCard } from '../ui/ProductCard'
 import { EstadoVazio } from '../ui/EstadoVazio'
+import { CascataProdutos } from '../motion/CascataProdutos'
 import { FiltrosCatalogo } from './FiltrosCatalogo'
 import { OrdenarPor } from './OrdenarPor'
 
@@ -101,11 +102,11 @@ export async function Catalogo({ titulo, descricao, categoriaId, searchParams, v
               <EstadoVazio ilustracao="tigela" titulo={vazio.titulo} texto={vazio.texto} />
             )
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            <CascataProdutos className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {produtos.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}
-            </div>
+            </CascataProdutos>
           )}
         </div>
       </div>

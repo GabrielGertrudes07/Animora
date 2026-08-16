@@ -9,6 +9,8 @@ import { Price } from '../../../components/ui/Price'
 import { AdicionarAoCarrinho } from '../../../components/ui/AdicionarAoCarrinho'
 import { BotaoFavorito } from '../../../components/ui/BotaoFavorito'
 import { Icon } from '../../../components/icons/sprite'
+import { Entrada } from '../../../components/motion/Entrada'
+import { Reveal } from '../../../components/motion/Reveal'
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -54,7 +56,7 @@ export default async function ProdutoPage({ params }: Props) {
 
   return (
     <main id="conteudo" className="mx-auto max-w-6xl px-6 py-10">
-      <div className="grid gap-10 md:grid-cols-2">
+      <Entrada className="grid gap-10 md:grid-cols-2">
         <div className="overflow-hidden rounded-card bg-white shadow-sm">
           {img ? (
             <Image
@@ -125,10 +127,10 @@ export default async function ProdutoPage({ params }: Props) {
             Envio grátis acima de 50 €
           </p>
         </div>
-      </div>
+      </Entrada>
 
       {descricaoHtml ? (
-        <section className="mt-12 max-w-3xl border-t border-line pt-8">
+        <Reveal className="mt-12 max-w-3xl border-t border-line pt-8">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
             Descrição
           </h2>
@@ -136,7 +138,7 @@ export default async function ProdutoPage({ params }: Props) {
             className="mt-3 space-y-4 text-ink [&_a]:text-terracota [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_strong]:font-semibold [&_ul]:list-disc"
             dangerouslySetInnerHTML={{ __html: descricaoHtml }}
           />
-        </section>
+        </Reveal>
       ) : null}
     </main>
   )

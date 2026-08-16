@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { listCategories, listProducts } from '../modules/catalog'
 import { ProductCard } from '../components/ui/ProductCard'
 import { Icon } from '../components/icons/sprite'
+import { Entrada } from '../components/motion/Entrada'
+import { Reveal } from '../components/motion/Reveal'
+import { CascataProdutos } from '../components/motion/CascataProdutos'
 
 export default async function Home() {
   const [destaques, categorias] = await Promise.all([
@@ -12,7 +15,7 @@ export default async function Home() {
   return (
     <main id="conteudo">
       <section className="textura-patas bg-ink px-6 py-20 text-cream sm:py-28">
-        <div className="mx-auto max-w-6xl">
+        <Entrada className="mx-auto max-w-6xl">
           <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-terracota">
             <Icon name="paw" className="h-4 w-4" />
             Cuidados e bem-estar para cada animal
@@ -47,15 +50,17 @@ export default async function Home() {
             <Icon name="shield" className="h-4 w-4" />
             Envio grátis acima de 50 €
           </p>
-        </div>
+        </Entrada>
       </section>
 
       {categorias.length > 0 ? (
         <section id="categorias" className="mx-auto max-w-7xl px-6 py-16 sm:py-24">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-terracota">
-            Por onde começar
-          </p>
-          <h2 className="mt-3 text-3xl sm:text-4xl">Cada animal tem a sua prateleira</h2>
+          <Reveal>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-terracota">
+              Por onde começar
+            </p>
+            <h2 className="mt-3 text-3xl sm:text-4xl">Cada animal tem a sua prateleira</h2>
+          </Reveal>
           <ul className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {categorias.map((c) => (
               <li key={c.slug}>
@@ -81,7 +86,7 @@ export default async function Home() {
       {destaques.length > 0 ? (
         <section className="border-t border-line bg-white/60">
           <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <Reveal className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-terracota">
                   Em destaque
@@ -94,13 +99,13 @@ export default async function Home() {
               >
                 Ver todos os produtos
               </Link>
-            </div>
+            </Reveal>
 
-            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <CascataProdutos className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {destaques.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}
-            </div>
+            </CascataProdutos>
           </div>
         </section>
       ) : null}
