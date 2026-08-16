@@ -2,6 +2,8 @@ import type { Access, CollectionBeforeChangeHook, CollectionConfig } from 'paylo
 import { APIError } from 'payload'
 
 import { ehStaff, soStaff, soStaffCampo } from '../access/staff'
+import { idDaRelacao } from '../hooks/blockUnsellable'
+import { serializarGuarda } from '../hooks/serializar'
 import { validarCodigoPostal, validarInteiro } from '../validacoes'
 
 /**
@@ -77,9 +79,85 @@ const totaisCoerentes: CollectionBeforeChangeHook = ({ data, originalDoc }) => {
   return data
 }
 
+/**
+ * Cancelar devolve ao catálogo o stock que a encomenda tinha reservado.
+ *
+ * O stock desce quando a encomenda nasce, e a encomenda nasce por pagar. Sem
+ * este caminho, cancelar deixava as unidades presas para sempre: medido, uma
+ * encomenda de 2 unidades cancelada deixava o stock 2 abaixo do real, e nenhum
+ * gesto no painel o repunha. Qualquer pessoa registada esvaziava o catálogo em
+ * segundos, e ele não voltava.
+ *
+ * Escreve pelo mesmo canal do checkout (`ajusteStock`, ver
+ * `hooks/ajustarStock.ts`): dentro da transação deste pedido e com o mesmo lock
+ * consultivo, portanto uma reposição e uma venda simultâneas ficam em fila em
+ * vez de se sobreporem.
+ *
+ * Duas decisões:
+ *
+ * - **A releitura debaixo do lock** é o que impede a dupla reposição. Dois
+ *   pedidos a cancelar a mesma encomenda ao mesmo tempo liam ambos
+ *   `a-aguardar-pagamento` no `originalDoc` (que o Payload lê antes dos hooks e
+ *   sem lock) e repunham o stock os dois.
+ * - **Sair de `cancelado` é recusado.** O stock já foi devolvido e pode ter sido
+ *   vendido a outra pessoa; "descancelar" voltaria a prometer unidades que já
+ *   não existem. Uma encomenda cancelada fica cancelada — quem quer vender
+ *   outra vez faz uma encomenda nova.
+ */
+const reporStockAoCancelar: CollectionBeforeChangeHook = async ({
+  data,
+  operation,
+  originalDoc,
+  req,
+}) => {
+  if (operation !== 'update' || !originalDoc) return data
+
+  const seguinte = (data.estado ?? originalDoc.estado) as string
+
+  if (originalDoc.estado === 'cancelado' && seguinte !== 'cancelado') {
+    throw new APIError(
+      'Uma encomenda cancelada não volta atrás: o stock já foi devolvido ao catálogo e pode ' +
+        'entretanto ter sido vendido a outra pessoa. Para vender outra vez, faça uma encomenda ' +
+        'nova.',
+      400,
+    )
+  }
+
+  if (seguinte !== 'cancelado' || originalDoc.estado === 'cancelado') return data
+
+  await serializarGuarda(req)
+
+  const atual = await req.payload.findByID({
+    collection: 'orders',
+    id: originalDoc.id as number | string,
+    depth: 0,
+    overrideAccess: true,
+    req,
+  })
+  // Outro pedido cancelou primeiro e já repôs o stock.
+  if (atual.estado === 'cancelado') return data
+
+  for (const linha of atual.linhas ?? []) {
+    // A variante pode já não existir: `orders_linhas.variante_id` é ON DELETE
+    // SET NULL. A encomenda cancela-se à mesma; não há a que repor stock.
+    const variante = idDaRelacao(linha.variante)
+    if (variante === undefined || variante === null) continue
+
+    await req.payload.update({
+      collection: 'variants',
+      id: variante,
+      data: { ajusteStock: linha.quantidade },
+      overrideAccess: true,
+      req,
+    })
+  }
+
+  return data
+}
+
 export const Orders: CollectionConfig = {
   slug: 'orders',
-  hooks: { beforeChange: [totaisCoerentes] },
+  hooks: { beforeChange: [totaisCoerentes, reporStockAoCancelar] },
   admin: {
     useAsTitle: 'numero',
     defaultColumns: ['numero', 'cliente', 'estado', 'totalCents', 'createdAt'],

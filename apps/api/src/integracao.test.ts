@@ -18,7 +18,7 @@ import { createLocalReq, getPayload, type Payload } from 'payload'
 import { combinationKey } from '@animora/core'
 
 import config from '../payload.config'
-import { finalizarCompra } from './endpoints/checkout'
+import { dentroDoLimite, finalizarCompra } from './endpoints/checkout'
 
 const P = 'zteste'
 
@@ -2150,6 +2150,36 @@ describe('checkout', () => {
     expect(await stockDe(variante.id)).toBe(0)
   })
 
+  it('cancelar repõe o stock, e uma encomenda cancelada não volta atrás', async () => {
+    const cliente = await criarCliente('a')
+    const variante = await criarArtigo('cancelar', { stock: 5 })
+
+    expect((await comprar(cliente, [{ variantId: variante.id, qty: 2 }])).status).toBe(201)
+    expect(await stockDe(variante.id)).toBe(3)
+
+    const encomenda = (await naBase())[0]!
+    await payload.update({ collection: 'orders', id: encomenda.id, data: { estado: 'cancelado' } })
+    expect(await stockDe(variante.id)).toBe(5)
+
+    // Cancelar outra vez não repõe duas vezes.
+    await payload.update({ collection: 'orders', id: encomenda.id, data: { estado: 'cancelado' } })
+    expect(await stockDe(variante.id)).toBe(5)
+
+    // E não se descancela: o stock já foi devolvido e pode ter sido vendido.
+    await expect(
+      payload.update({ collection: 'orders', id: encomenda.id, data: { estado: 'pago' } }),
+    ).rejects.toThrow(/cancelada/i)
+    expect(await stockDe(variante.id)).toBe(5)
+
+    // Os outros estados continuam a mudar à vontade.
+    const outra = await comprar(cliente, [{ variantId: variante.id, qty: 1 }])
+    expect(outra.status).toBe(201)
+    const segunda = (await naBase()).find((e) => e.id !== encomenda.id)!
+    await payload.update({ collection: 'orders', id: segunda.id, data: { estado: 'pago' } })
+    await payload.update({ collection: 'orders', id: segunda.id, data: { estado: 'enviado' } })
+    expect(await stockDe(variante.id)).toBe(4)
+  })
+
   it('apagar um cliente com encomendas anonimiza o histórico em vez de rebentar', async () => {
     const cliente = await criarCliente('a')
     const variante = await criarArtigo('rgpd', { stock: 5 })
@@ -2184,4 +2214,31 @@ describe('checkout', () => {
     await expect(payload.findByID({ collection: 'customers', id: semCompras.id })).rejects.toThrow()
   })
 
+  it('a palavra-passe do registo tem um mínimo', async () => {
+    await expect(
+      payload.create({
+        collection: 'customers',
+        data: { email: `${P}-curta@cliente.pt`, password: 'abc', nome: 'Curta' },
+      }),
+    ).rejects.toThrow(/palavra-passe/i)
+
+    expect(
+      await payload.count({ collection: 'customers', where: { email: { contains: 'curta' } } }),
+    ).toMatchObject({ totalDocs: 0 })
+
+    // Controlo positivo: com oito caracteres regista.
+    await criarCliente('a')
+  })
+
+  it('o limite de ritmo do endpoint fecha ao fim de dez pedidos por minuto', () => {
+    const agora = Date.now()
+    const chave = `${P}-limite`
+
+    for (let i = 0; i < 10; i++) expect(dentroDoLimite(chave, agora + i)).toBe(true)
+    expect(dentroDoLimite(chave, agora + 10)).toBe(false)
+
+    // Chaves diferentes não se estorvam, e a janela deslizante volta a abrir.
+    expect(dentroDoLimite(`${chave}-outro`, agora)).toBe(true)
+    expect(dentroDoLimite(chave, agora + 60_001)).toBe(true)
+  })
 })

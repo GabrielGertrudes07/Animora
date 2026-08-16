@@ -1,8 +1,34 @@
-import type { Access, CollectionConfig } from 'payload'
+import type { Access, CollectionBeforeValidateHook, CollectionConfig } from 'payload'
+import { APIError } from 'payload'
 
 import { ehStaff } from '../access/staff'
 import { anonimizarEncomendas } from '../hooks/anonimizarEncomendas'
 import { validarCodigoPostal } from '../validacoes'
+
+/**
+ * Oito caracteres. O Payload aceita três (`minLength = 3` fixo em
+ * `fields/validations.js`, com as opções construídas à mão em
+ * `generatePasswordSaltHash` — a configuração da coleção nem é lida), e o
+ * registo aqui é aberto a qualquer pessoa.
+ *
+ * Corre em `beforeValidate`, que é onde a palavra-passe em claro ainda está no
+ * `data` — o `registerLocalStrategy` só a transforma em hash depois
+ * (`collections/operations/create.js`). Vale para o registo, para a mudança de
+ * palavra-passe e para o `reset-password`, que corre os mesmos hooks antes de
+ * gravar.
+ */
+const MINIMO_PALAVRA_PASSE = 8
+
+const palavraPasseDecente: CollectionBeforeValidateHook = ({ data }) => {
+  const p: unknown = data?.password
+  if (typeof p === 'string' && p.length < MINIMO_PALAVRA_PASSE) {
+    throw new APIError(
+      `A palavra-passe tem de ter pelo menos ${MINIMO_PALAVRA_PASSE} caracteres.`,
+      400,
+    )
+  }
+  return data
+}
 
 /**
  * Um cliente só se vê a si próprio. O staff vê todos. Ninguém mais vê nada.
@@ -31,6 +57,7 @@ export const Customers: CollectionConfig = {
   auth: true,
   admin: { useAsTitle: 'email', defaultColumns: ['email', 'nome', 'createdAt'] },
   hooks: {
+    beforeValidate: [palavraPasseDecente],
     // Sem isto, apagar uma conta com encomendas dava 500 e o pedido de RGPD não
     // tinha caminho nenhum. Ver o ficheiro.
     beforeDelete: [anonimizarEncomendas],

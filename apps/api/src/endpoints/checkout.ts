@@ -379,10 +379,54 @@ export const finalizarCompra = async (req: PayloadRequest, corpo: unknown): Prom
   }
 }
 
+/**
+ * Limite de ritmo, janela deslizante em memória.
+ *
+ * Sem ele, uma pessoa registada dispara centenas de checkouts em rajada e prende
+ * o stock de todo o catálogo em encomendas por pagar — medido: mais de cem
+ * pedidos seguidos sem um único 429. Cancelar já repõe o stock, mas isso é a
+ * limpeza; isto é o travão.
+ *
+ * Vive no `handler` HTTP e não no `finalizarCompra`: é uma defesa da fronteira,
+ * não uma regra do negócio, e a Local API dos testes (que dispara cinco compras
+ * simultâneas de propósito) tem de continuar a poder fazê-lo.
+ *
+ * ponytail: um `Map` por processo. Não sobrevive a reiniciar nem se soma entre
+ * instâncias, e as chaves não são podadas (uma entrada por cliente que compre).
+ * Chega para o que isto protege — uma pet shop com um processo. Se um dia
+ * houver mais do que um, o sítio disto é o proxy à frente, não este ficheiro.
+ */
+const JANELA_MS = 60_000
+const MAX_POR_JANELA = 10
+const historico = new Map<string, number[]>()
+
+export const dentroDoLimite = (chave: string, agora: number = Date.now()): boolean => {
+  const recentes = (historico.get(chave) ?? []).filter((t) => agora - t < JANELA_MS)
+  historico.set(chave, recentes)
+
+  if (recentes.length >= MAX_POR_JANELA) return false
+
+  recentes.push(agora)
+  return true
+}
+
 export const checkout: Endpoint = {
   path: '/checkout',
   method: 'post',
   handler: async (req) => {
+    // Por conta, que é o que o endpoint exige de qualquer maneira; sem sessão,
+    // por origem, para uma rajada anónima também não chegar ao resto.
+    const chave = req.user
+      ? `${String(req.user.collection)}:${String(req.user.id)}`
+      : `anon:${req.headers?.get('x-forwarded-for') ?? 'desconhecida'}`
+
+    if (!dentroDoLimite(chave)) {
+      return Response.json(
+        { erro: 'Demasiadas compras seguidas. Tente daqui a um minuto.' },
+        { status: 429, headers: { 'Retry-After': String(JANELA_MS / 1000) } },
+      )
+    }
+
     let corpo: unknown
     try {
       corpo = await req.json?.()
