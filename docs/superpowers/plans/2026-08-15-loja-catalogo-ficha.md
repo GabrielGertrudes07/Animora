@@ -255,7 +255,6 @@ const cru = {
   gallery: [],
   // campos internos que a API devolve e que NUNCA podem chegar ao browser
   supplier: 'Fornecedor Secreto Lda',
-  costCents: 1200,
   variants: [
     {
       id: 1,
@@ -267,6 +266,7 @@ const cru = {
       ean: '5601234567890',
       warehouseLocation: 'A-12-3',
       shippingWeightG: 150,
+      costCents: 1200,
     },
   ],
 }
@@ -281,17 +281,20 @@ describe('sanitizeProduct', () => {
     expect(p.variants[0]?.stock).toBe(12)
   })
 
-  it('remove o fornecedor e o custo de compra do produto', () => {
+  it('remove o fornecedor do produto', () => {
     const p = sanitizeProduct(cru) as unknown as Record<string, unknown>
     expect(p.supplier).toBeUndefined()
-    expect(p.costCents).toBeUndefined()
   })
 
-  it('remove EAN, localização em armazém e peso de portes das variantes', () => {
+  it('remove EAN, armazém, peso de portes e CUSTO DE COMPRA das variantes', () => {
     const v = sanitizeProduct(cru).variants[0] as unknown as Record<string, unknown>
     expect(v.ean).toBeUndefined()
     expect(v.warehouseLocation).toBeUndefined()
     expect(v.shippingWeightG).toBeUndefined()
+    // O custo vive na variante desde a fase 1. Se este teste passar por o campo
+    // não existir no produto, em vez de por ser removido da variante, o custo
+    // de compra vaza para a loja.
+    expect(v.costCents).toBeUndefined()
   })
 
   it('nao deixa passar nenhum campo interno, mesmo que a API acrescente outros', () => {
@@ -362,8 +365,16 @@ import type { PublicProduct, PublicVariant } from './types'
  * isso é só organização visual — a resposta REST do Payload é plana e
  * devolve-os ao lado dos públicos. Esta lista é a única barreira real.
  */
-export const INTERNAL_PRODUCT_FIELDS = ['supplier', 'costCents'] as const
-export const INTERNAL_VARIANT_FIELDS = ['ean', 'warehouseLocation', 'shippingWeightG'] as const
+export const INTERNAL_PRODUCT_FIELDS = ['supplier'] as const
+export const INTERNAL_VARIANT_FIELDS = [
+  'ean',
+  'warehouseLocation',
+  'shippingWeightG',
+  // O custo de compra vive na VARIANTE, não no produto: um saco de ração de
+  // 2 kg e outro de 10 kg são variantes do mesmo produto com custos diferentes.
+  // Foi movido durante a fase 1 — se procurares por ele no produto, não está lá.
+  'costCents',
+] as const
 
 type Raw = Record<string, unknown>
 
@@ -1291,6 +1302,6 @@ COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm typecheck   # sem erros
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3001/                          # 200
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3001/coleiras                   # 200
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3001/produto/nao-existe         # 404
-curl -s http://localhost:3001/coleiras | grep -ciE "supplier|costCents|warehouseLocation" # 0
+curl -s http://localhost:3001/coleiras | grep -ciE "supplier|costCents|warehouseLocation|ean" # 0
 git log --oneline | head -8
 ```
