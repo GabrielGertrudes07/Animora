@@ -19,6 +19,7 @@ import { combinationKey } from '@animora/core'
 
 import config from '../payload.config'
 import { dentroDoLimite, finalizarCompra } from './endpoints/checkout'
+import { AVISO_DEMONSTRACAO, dashboard, lerDashboard } from './endpoints/dashboard'
 
 const P = 'zteste'
 
@@ -2549,5 +2550,308 @@ describe('configuração de filtros do catálogo', () => {
     expect(overrides.get(coleiras.id)).toEqual([tamanho.id])
     // O conjunto por omissão continua distinto das substituições.
     expect((lido.padrao ?? []).map((l: LinhaFiltro) => l.atributo)).toEqual([peso.id])
+  })
+})
+
+/**
+ * A trava comercial do dashboard.
+ *
+ * O que estes testes fixam não é o formato do relatório — é a garantia que se
+ * vende: com a trava ligada, **nenhum número real sai da base**. A asserção
+ * central não compara com literais escritas à mão; compara a resposta bloqueada
+ * com a resposta desbloqueada da mesma base, no mesmo instante, e exige que não
+ * coincidam em número nenhum. Uma literal envelhecida passaria à mesma; isto
+ * não.
+ *
+ * A trava fica **ligada** no fim, que é o estado de entrega.
+ */
+describe('dashboard de vendas com trava comercial', () => {
+  type Utilizador = { id: Id; role: string; collection: 'users' }
+
+  const como = (utilizador: Utilizador) => ({ user: utilizador, overrideAccess: false })
+
+  /**
+   * O `role` viaja no utilizador de propósito: é o que `ehDono` lê. Um objeto
+   * só com `id` passaria por `admin` sem que o teste desse por isso, e o teste
+   * do owner falharia por motivo errado.
+   */
+  const criarStaff = async (sufixo: string, role: 'admin' | 'owner'): Promise<Utilizador> => {
+    const u = await payload.create({
+      collection: 'users',
+      data: { email: `${P}-dash-${sufixo}@animora.pt`, password: 'animora123', role },
+    })
+    expect(u.role).toBe(role)
+    return { id: u.id, role: String(u.role), collection: 'users' }
+  }
+
+  /** O interruptor, pelo caminho legítimo (Local API com `overrideAccess`). */
+  const desbloquear = (ligado: boolean) =>
+    payload.updateGlobal({ slug: 'definicoes', data: { dashboardDesbloqueado: ligado } })
+
+  const naBase = async (): Promise<unknown> =>
+    (await payload.findGlobal({ slug: 'definicoes', depth: 0 })).dashboardDesbloqueado
+
+  const ver = async (utilizador: Utilizador) =>
+    lerDashboard(await createLocalReq({ user: utilizador as never }, payload), {})
+
+  /** Uma variante publicada com preço, custo e stock à medida. `custo: null` deixa-o por registar. */
+  const artigo = async (
+    sufixo: string,
+    { preco, custo, stock }: { preco: number; custo: number | null; stock: number },
+  ): Promise<Linha> => {
+    const produto = await criarRascunho(`dash-${sufixo}`)
+    const [variante] = await variantesDe(produto.id)
+    await payload.update({
+      collection: 'variants',
+      id: variante!.id,
+      data: { priceCents: preco, ajusteStock: stock, ...(custo === null ? {} : { costCents: custo }) },
+    })
+    await publicar(produto.id)
+    return (await payload.findByID({
+      collection: 'variants',
+      id: variante!.id,
+      depth: 0,
+    })) as unknown as Linha
+  }
+
+  const moradaEnvio = {
+    nomeDestinatario: 'Ana Silva',
+    linha1: 'Rua das Flores 12',
+    codigoPostal: '1234-567',
+    localidade: 'Lisboa',
+  }
+
+  /**
+   * O cenário conhecido, calculado à mão:
+   *
+   * ```
+   * E1  racao 1 x 9000 (custo 6000)  +  snack 10 x 500 (custo 200)   = 14000
+   * E2  snack 2 x  500 (custo  200)  +  coleira 1 x 2000 (SEM custo) =  3000
+   * E3  racao 2 x 9000                                CANCELADA      = 18000
+   *
+   * faturação 17000   custo 8400   lucro 6600   margem null (falta um custo)
+   * unidades 14       sem custo 1  encomendas 2  ticket médio 8500
+   * ```
+   */
+  const REAL = {
+    faturacaoCents: 17000,
+    custoCents: 8400,
+    lucroCents: 6600,
+    margemPercent: null,
+    unidades: 14,
+    unidadesSemCustoConhecido: 1,
+    encomendas: 2,
+    ticketMedioCents: 8500,
+  }
+
+  const cenario = async () => {
+    const racao = await artigo('racao', { preco: 9000, custo: 6000, stock: 100 })
+    const snack = await artigo('snack', { preco: 500, custo: 200, stock: 100 })
+    const coleira = await artigo('coleira', { preco: 2000, custo: null, stock: 100 })
+
+    const cliente = await payload.create({
+      collection: 'customers',
+      data: { email: `${P}-dash@cliente.pt`, password: 'animora123', nome: 'Ana' },
+    })
+
+    const comprar = async (linhas: { variantId: Id; qty: number }[]) => {
+      const req = await createLocalReq({ user: { ...cliente, collection: 'customers' } as never }, payload)
+      const resposta = await finalizarCompra(req, { linhas, moradaEnvio })
+      expect(resposta.status).toBe(201)
+      return (await resposta.json()) as { id: Id }
+    }
+
+    await comprar([
+      { variantId: racao.id, qty: 1 },
+      { variantId: snack.id, qty: 10 },
+    ])
+    await comprar([
+      { variantId: snack.id, qty: 2 },
+      { variantId: coleira.id, qty: 1 },
+    ])
+    const cancelada = await comprar([{ variantId: racao.id, qty: 2 }])
+    await payload.update({
+      collection: 'orders',
+      id: cancelada.id,
+      data: { estado: 'cancelado' },
+    })
+
+    return { racao, snack, coleira }
+  }
+
+  // Entregue com a trava ligada, aconteça o que acontecer aos testes.
+  afterAll(async () => {
+    await desbloquear(false)
+  })
+
+  it('bloqueado: o admin recebe demonstração e nenhum número real da base', async () => {
+    const admin = await criarStaff('admin', 'admin')
+    const { racao, snack, coleira } = await cenario()
+
+    await desbloquear(true)
+    const reais = await ver(admin)
+    expect(reais.locked).toBe(false)
+    expect(reais.vendas).toMatchObject(REAL)
+
+    await desbloquear(false)
+    const demo = await ver(admin)
+
+    expect(demo.locked).toBe(true)
+    // Número a número, contra os reais lidos da mesma base há um instante.
+    for (const chave of Object.keys(REAL) as (keyof typeof REAL)[]) {
+      expect(demo.vendas[chave]).not.toBe(reais.vendas[chave])
+    }
+
+    // E não é só nos totais: nenhum valor real aparece em sítio nenhum da
+    // resposta — nem SKU, nem título, nem cêntimos.
+    const texto = JSON.stringify(demo)
+    for (const v of [racao, snack, coleira]) {
+      expect(texto).not.toContain(v.sku)
+    }
+    for (const cents of [17000, 8400, 6600, 8500, 14000, 9000]) {
+      expect(texto).not.toContain(String(cents))
+    }
+    expect(demo.maisVendidosPorUnidades.every((a) => a.sku.startsWith('DEMO-'))).toBe(true)
+  })
+
+  it('bloqueado: o admin não vê o interruptor e não o consegue ligar', async () => {
+    const admin = await criarStaff('admin', 'admin')
+    await desbloquear(false)
+
+    // O campo nem sai na resposta de quem não é dono.
+    const comoAdmin = await payload.findGlobal({ slug: 'definicoes', depth: 0, ...como(admin) })
+    expect(comoAdmin).not.toHaveProperty('dashboardDesbloqueado')
+
+    await expect(
+      payload.updateGlobal({
+        slug: 'definicoes',
+        data: { dashboardDesbloqueado: true },
+        ...como(admin),
+      }),
+    ).rejects.toThrow()
+
+    // O código de erro não é o sinal: o sinal é a base.
+    expect(await naBase()).toBe(false)
+    expect((await ver(admin)).locked).toBe(true)
+  })
+
+  it('o owner liga e desliga, e o estado persiste', async () => {
+    const dono = await criarStaff('dono', 'owner')
+
+    await payload.updateGlobal({
+      slug: 'definicoes',
+      data: { dashboardDesbloqueado: true },
+      ...como(dono),
+    })
+    expect(await naBase()).toBe(true)
+    expect((await ver(dono)).locked).toBe(false)
+
+    await payload.updateGlobal({
+      slug: 'definicoes',
+      data: { dashboardDesbloqueado: false },
+      ...como(dono),
+    })
+    expect(await naBase()).toBe(false)
+    expect((await ver(dono)).locked).toBe(true)
+  })
+
+  it('a faixa de demonstração aparece sempre que locked, e nunca quando não está', async () => {
+    const admin = await criarStaff('admin', 'admin')
+
+    await desbloquear(false)
+    const bloqueado = await ver(admin)
+    expect(bloqueado.aviso).toEqual(AVISO_DEMONSTRACAO)
+    expect(bloqueado.aviso?.titulo).toContain('não são as suas vendas')
+    expect(bloqueado.aviso?.texto).toContain('98252-1727')
+    expect(bloqueado.aviso?.url).toBe('https://wa.me/5519982521727')
+
+    await desbloquear(true)
+    expect((await ver(admin)).aviso).toBeNull()
+  })
+
+  it('sem sessão o endpoint não responde de todo, e um cliente também não', async () => {
+    await desbloquear(false)
+
+    const anonimo = await dashboard.handler(await createLocalReq({}, payload))
+    expect(anonimo.status).toBe(401)
+    expect(await anonimo.text()).not.toContain('faturacaoCents')
+
+    const cliente = await payload.create({
+      collection: 'customers',
+      data: { email: `${P}-dash-anon@cliente.pt`, password: 'animora123', nome: 'Ana' },
+    })
+    const comoCliente = await dashboard.handler(
+      await createLocalReq({ user: { ...cliente, collection: 'customers' } as never }, payload),
+    )
+    expect(comoCliente.status).toBe(403)
+    expect(await comoCliente.text()).not.toContain('faturacaoCents')
+  })
+
+  it('desbloqueado: os números batem certo, e a encomenda cancelada não conta', async () => {
+    const dono = await criarStaff('dono', 'owner')
+    await cenario()
+    await desbloquear(true)
+
+    const d = await ver(dono)
+    expect(d.locked).toBe(false)
+    expect(d.vendas).toMatchObject(REAL)
+
+    // Com a cancelada a contar seriam mais 2 × 9000 e mais uma encomenda.
+    expect(d.vendas.faturacaoCents).not.toBe(REAL.faturacaoCents + 18000)
+    expect(d.vendas.encomendas).toBe(2)
+    const naBaseTotal = await payload.find({
+      collection: 'orders',
+      where: { email: { contains: P } },
+      limit: 0,
+      depth: 0,
+    })
+    // As três estão lá: a cancelada é excluída do relatório, não da base.
+    expect(naBaseTotal.totalDocs).toBe(3)
+
+    // A receita por categoria soma exatamente a faturação — nenhuma linha se
+    // perde nem é contada duas vezes ao passar pelo produto.
+    expect(d.receitaPorCategoria.reduce((s, c) => s + c.receitaCents, 0)).toBe(REAL.faturacaoCents)
+  })
+
+  it('desbloqueado: mais vendidos por unidades não é a mesma lista que por receita', async () => {
+    const dono = await criarStaff('dono', 'owner')
+    const { racao, snack } = await cenario()
+    await desbloquear(true)
+
+    const d = await ver(dono)
+    expect(d.maisVendidosPorUnidades[0]).toMatchObject({ sku: snack.sku, unidades: 12, receitaCents: 6000 })
+    expect(d.maisVendidosPorReceita[0]).toMatchObject({ sku: racao.sku, unidades: 1, receitaCents: 9000 })
+    expect(d.maisVendidosPorUnidades).not.toEqual(d.maisVendidosPorReceita)
+  })
+
+  it('desbloqueado: uma margem desconhecida não vira 0% nem 100%', async () => {
+    const dono = await criarStaff('dono', 'owner')
+    await cenario()
+    await desbloquear(true)
+
+    const d = await ver(dono)
+    // Uma linha sem custo registado (a coleira) chega para a margem agregada se
+    // recusar. Tratar custo desconhecido como zero daria 100%; ignorá-lo daria
+    // um número bonito e errado.
+    expect(d.vendas.margemPercent).toBeNull()
+    expect(d.vendas.unidadesSemCustoConhecido).toBe(1)
+    // O lucro continua a ser o das linhas conhecidas, não zero.
+    expect(d.vendas.lucroCents).toBe(6600)
+  })
+
+  it('desbloqueado: ruturas e stock baixo saem do catálogo publicado', async () => {
+    const dono = await criarStaff('dono', 'owner')
+    const { racao, snack } = await cenario()
+    await desbloquear(true)
+
+    await payload.update({ collection: 'variants', id: snack.id, data: { ajusteStock: -88 } })
+    await payload.update({ collection: 'variants', id: racao.id, data: { ajusteStock: -96 } })
+
+    const d = await ver(dono)
+    // 100 − 10 − 2 = 88 vendidos, e o ajuste leva a zero.
+    expect(d.stock.ruturas.find((a) => a.sku === snack.sku)).toMatchObject({ stock: 0 })
+    // 100 − 1 da E1 − 2 da E3, que voltaram ao cancelar = 99; menos 96 = 3.
+    expect(d.stock.baixo.find((a) => a.sku === racao.sku)).toMatchObject({ stock: 3 })
+    expect(d.stock.ruturas.some((a) => a.sku === racao.sku)).toBe(false)
   })
 })
