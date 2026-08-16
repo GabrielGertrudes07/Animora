@@ -1,4 +1,5 @@
-import type { Access, CollectionConfig } from 'payload'
+import type { Access, CollectionBeforeChangeHook, CollectionConfig } from 'payload'
+import { APIError } from 'payload'
 
 import { ehStaff, soStaff, soStaffCampo } from '../access/staff'
 import { validarCodigoPostal, validarInteiro } from '../validacoes'
@@ -18,8 +19,67 @@ const proprioOuStaff: Access = ({ req }) => {
   return { cliente: { equals: u.id } }
 }
 
+/**
+ * O total gravado tem de ser a soma das linhas mais os portes.
+ *
+ * O checkout calcula os três números com o `calcularTotais` e nunca grava um
+ * conjunto incoerente. Isto é a rede por baixo: uma encomenda corrigida à mão no
+ * painel, ou um segundo caminho de escrita amanhã, não podem gravar um total que
+ * não corresponde ao que lá está — é o número que o cliente paga.
+ *
+ * **Não impõe a regra de portes** (grátis a partir de 5000, senão 499): essa é
+ * do `calcularTotais` e do checkout. Fixá-la aqui também impediria o staff de
+ * oferecer portes numa encomenda concreta, que é um gesto comercial legítimo, e
+ * duplicaria a regra em dois sítios que podem divergir. O que aqui se protege é
+ * a aritmética, não a política de preços.
+ *
+ * Corre em `beforeChange`, que é **antes** da validação dos campos
+ * (`collections/operations/create.js`: hooks de coleção, depois campos). Daí o
+ * teto do `Number.isInteger`: com um decimal ou um `null` no meio, quem tem a
+ * mensagem certa é o `validarInteiro`, e esta guarda cala-se para não a tapar —
+ * o valor é recusado à mesma, logo a seguir.
+ *
+ * Numa atualização, `data` traz só o que mudou: os campos ausentes vêm do
+ * documento atual, senão mudar o estado de uma encomenda recalculava-a a zero.
+ */
+const totaisCoerentes: CollectionBeforeChangeHook = ({ data, originalDoc }) => {
+  const linhas = (data.linhas ?? originalDoc?.linhas ?? []) as {
+    quantidade?: unknown
+    precoUnitarioCents?: unknown
+  }[]
+  const subtotal = data.subtotalCents ?? originalDoc?.subtotalCents
+  const portes = data.portesCents ?? originalDoc?.portesCents
+  const total = data.totalCents ?? originalDoc?.totalCents
+
+  const numeros = [
+    subtotal,
+    portes,
+    total,
+    ...linhas.flatMap((l) => [l.quantidade, l.precoUnitarioCents]),
+  ]
+  if (!numeros.every((n) => Number.isInteger(n))) return data
+
+  const somaDasLinhas = linhas.reduce(
+    (soma, l) => soma + (l.quantidade as number) * (l.precoUnitarioCents as number),
+    0,
+  )
+
+  if (subtotal !== somaDasLinhas || total !== (subtotal as number) + (portes as number)) {
+    throw new APIError(
+      `Totais incoerentes: as linhas somam ${somaDasLinhas} cêntimos e a encomenda declara um ` +
+        `subtotal de ${String(subtotal)} com portes de ${String(portes)} e um total de ` +
+        `${String(total)}. O total tem de ser a soma das linhas mais os portes — é o valor que o ` +
+        `cliente paga.`,
+      400,
+    )
+  }
+
+  return data
+}
+
 export const Orders: CollectionConfig = {
   slug: 'orders',
+  hooks: { beforeChange: [totaisCoerentes] },
   admin: {
     useAsTitle: 'numero',
     defaultColumns: ['numero', 'cliente', 'estado', 'totalCents', 'createdAt'],

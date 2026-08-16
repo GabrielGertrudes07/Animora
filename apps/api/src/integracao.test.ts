@@ -14,10 +14,11 @@
  * o que criam leva o prefixo `zteste`.
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { getPayload, type Payload } from 'payload'
+import { createLocalReq, getPayload, type Payload } from 'payload'
 import { combinationKey } from '@animora/core'
 
 import config from '../payload.config'
+import { finalizarCompra } from './endpoints/checkout'
 
 const P = 'zteste'
 
@@ -99,8 +100,12 @@ const porTamanho = (linhas: Linha[], tamanho: string): Linha | undefined =>
 
 const limparCatalogo = async () => {
   // Encomendas primeiro: apontam para clientes e para variantes, que os passos
-  // seguintes apagam.
-  await payload.delete({ collection: 'orders', where: { numero: { contains: P } } })
+  // seguintes apagam. Pelo email e não só pelo número: as do checkout são
+  // numeradas pelo servidor (`AN-2026-0001`) e não levam o prefixo de teste.
+  await payload.delete({
+    collection: 'orders',
+    where: { or: [{ numero: { contains: P } }, { email: { contains: P } }] },
+  })
   // Produtos a seguir: apagá-los apaga as variantes, e um produto publicado
   // impede a eliminação da marca, da categoria e da imagem que usa.
   await payload.delete({ collection: 'products', where: { slug: { contains: P } } })
@@ -1595,5 +1600,441 @@ describe('encomendas', () => {
       }),
     ).rejects.toThrow()
     expect(await quantasNaBase()).toBe(0)
+  })
+
+  it('não se grava uma encomenda cujo total não bate certo com as linhas', async () => {
+    const cliente = (await criarCliente('a')) as unknown as { id: Id; email: string }
+    const variante = await criarVariante('totais')
+
+    // 2 × 2990 = 5980. Cada um destes é um total que o cliente pagaria a mais ou
+    // a menos do que aquilo que a encomenda diz conter.
+    for (const adulterado of [
+      { subtotalCents: 1, totalCents: 1 },
+      { totalCents: 5000 },
+      { portesCents: 499 },
+      { linhas: [{ ...dados('x', cliente, variante.id).linhas[0], quantidade: 1 }] },
+    ]) {
+      await expect(
+        payload.create({
+          collection: 'orders',
+          data: { ...dados('0001', cliente, variante.id), ...adulterado },
+        }),
+      ).rejects.toThrow(/[Tt]otais incoerentes/)
+      expect(await quantasNaBase()).toBe(0)
+    }
+
+    // Controlo positivo: coerente grava, e portes por cima do subtotal também.
+    await payload.create({
+      collection: 'orders',
+      data: {
+        ...dados('0002', cliente, variante.id),
+        portesCents: 499,
+        totalCents: 6479,
+      },
+    })
+    expect(await quantasNaBase()).toBe(1)
+  })
+})
+
+/**
+ * Checkout — o caminho onde o stock desce e o dinheiro fica registado.
+ *
+ * Estes testes chamam a função do endpoint pela Local API, e não por HTTP, por
+ * uma razão só: a corrida da última unidade tem de ser um teste automático. Uma
+ * medição manual com cinco `curl` prova o dia em que foi feita; o que impede a
+ * regressão é isto correr a cada `pnpm test`.
+ *
+ * Nenhuma asserção se contenta com o código HTTP. O que interessa é o que ficou
+ * na base: o stock da variante, o número de encomendas, e os cêntimos gravados
+ * nas linhas.
+ */
+describe('checkout', () => {
+  const moradaEnvio = {
+    nomeDestinatario: 'Ana Silva',
+    linha1: 'Rua das Flores 12',
+    codigoPostal: '1234-567',
+    localidade: 'Lisboa',
+  }
+
+  type Cliente = { id: Id; email: string; collection: 'customers' }
+
+  const criarCliente = async (sufixo: string): Promise<Cliente> => {
+    const c = await payload.create({
+      collection: 'customers',
+      data: {
+        email: `${P}-${sufixo}@cliente.pt`,
+        password: 'animora123',
+        nome: `Cliente ${sufixo}`,
+      },
+    })
+    return { id: c.id, email: String(c.email), collection: 'customers' }
+  }
+
+  /** Produto publicado com uma variante só, com preço, custo e stock à medida. */
+  const criarArtigo = async (
+    sufixo: string,
+    { preco = 2990, custo = 1200, stock = 5 } = {},
+  ): Promise<Linha> => {
+    const produto = await criarRascunho(`ck-${sufixo}`)
+    const [variante] = await variantesDe(produto.id)
+    await payload.update({
+      collection: 'variants',
+      id: variante!.id,
+      data: { priceCents: preco, costCents: custo, stock },
+    })
+    await publicar(produto.id)
+    return variante!
+  }
+
+  const pedir = async (utilizador: unknown, corpo: unknown): Promise<Response> =>
+    finalizarCompra(await createLocalReq({ user: utilizador as never }, payload), corpo)
+
+  const comprar = (cliente: Cliente, linhas: unknown[]) =>
+    pedir(cliente, { linhas, moradaEnvio })
+
+  const stockDe = async (variante: Id): Promise<unknown> =>
+    (await payload.findByID({ collection: 'variants', id: variante, depth: 0 })).stock
+
+  /** As encomendas dos clientes de teste, como estão mesmo na base. */
+  const naBase = async () =>
+    (
+      await payload.find({
+        collection: 'orders',
+        where: { email: { contains: P } },
+        limit: 0,
+        depth: 0,
+        sort: 'id',
+      })
+    ).docs
+
+  it('compra normal: 201, encomenda criada e stock desce pela quantidade comprada', async () => {
+    const cliente = await criarCliente('a')
+    const variante = await criarArtigo('normal', { preco: 2990, custo: 1200, stock: 5 })
+
+    const resposta = await comprar(cliente, [{ variantId: variante.id, qty: 2 }])
+    expect(resposta.status).toBe(201)
+
+    const corpo = (await resposta.json()) as Record<string, unknown>
+    const encomendas = await naBase()
+    expect(encomendas).toHaveLength(1)
+
+    const encomenda = encomendas[0]!
+    expect(encomenda.numero).toBe(corpo.numero)
+    expect(encomenda.estado).toBe('a-aguardar-pagamento')
+    expect(encomenda.cliente).toBe(cliente.id)
+    expect(encomenda.email).toBe(cliente.email)
+    expect(encomenda.linhas).toHaveLength(1)
+    expect(encomenda.linhas![0]).toMatchObject({
+      variante: variante.id,
+      quantidade: 2,
+      precoUnitarioCents: 2990,
+      custoUnitarioCents: 1200,
+    })
+    expect(encomenda.subtotalCents).toBe(5980)
+    expect(encomenda.portesCents).toBe(0)
+    expect(encomenda.totalCents).toBe(5980)
+
+    // 5 − 2. O que interessa não é o 201, é esta linha.
+    expect(await stockDe(variante.id)).toBe(3)
+
+    // A resposta ao cliente não leva a margem — a encomenda criada traz o custo
+    // e o corpo é escolhido campo a campo.
+    expect(JSON.stringify(corpo)).not.toContain('1200')
+  })
+
+  it('um preço enviado no corpo é ignorado: fica o preço real da variante', async () => {
+    const cliente = await criarCliente('a')
+    const variante = await criarArtigo('forjado', { preco: 2990, custo: 1200, stock: 5 })
+
+    const resposta = await comprar(cliente, [
+      { variantId: variante.id, qty: 1, unitPriceCents: 1, precoUnitarioCents: 1, totalCents: 1 },
+    ])
+    expect(resposta.status).toBe(201)
+
+    const encomenda = (await naBase())[0]!
+    expect(encomenda.linhas![0]!.precoUnitarioCents).toBe(2990)
+    expect(encomenda.subtotalCents).toBe(2990)
+    // 2990 < 5000: os portes são os de uma compra pequena, não os de 1 cêntimo.
+    expect(encomenda.portesCents).toBe(499)
+    expect(encomenda.totalCents).toBe(3489)
+  })
+
+  it('stock insuficiente: 409, nada gravado e stock inalterado', async () => {
+    const cliente = await criarCliente('a')
+    const variante = await criarArtigo('sem-stock', { stock: 2 })
+
+    const resposta = await comprar(cliente, [{ variantId: variante.id, qty: 5 }])
+    expect(resposta.status).toBe(409)
+    expect(await naBase()).toHaveLength(0)
+    expect(await stockDe(variante.id)).toBe(2)
+
+    // Duas linhas da mesma variante são uma só de 2 — verificadas uma a uma
+    // contra a mesma leitura, passavam ambas com uma unidade em armazém.
+    await payload.update({ collection: 'variants', id: variante.id, data: { stock: 1 } })
+    const duplicada = await comprar(cliente, [
+      { variantId: variante.id, qty: 1 },
+      { variantId: variante.id, qty: 1 },
+    ])
+    expect(duplicada.status).toBe(409)
+    expect(await naBase()).toHaveLength(0)
+    expect(await stockDe(variante.id)).toBe(1)
+  })
+
+  /**
+   * O critério de falha desta tarefa.
+   *
+   * Cinco pedidos simultâneos à última unidade: um leva, quatro recebem uma
+   * recusa clara, e o stock acaba em 0 — nunca em -4, nunca com duas encomendas.
+   * Seis corridas porque uma corrida que passa por acaso passa uma vez.
+   */
+  it('a última unidade em concorrência: cinco pedidos, uma encomenda, seis corridas', async () => {
+    const cliente = await criarCliente('a')
+    const variante = await criarArtigo('corrida', { stock: 1 })
+
+    for (let corrida = 1; corrida <= 6; corrida++) {
+      await payload.update({ collection: 'variants', id: variante.id, data: { stock: 1 } })
+
+      const respostas = await Promise.all(
+        Array.from({ length: 5 }, () => comprar(cliente, [{ variantId: variante.id, qty: 1 }])),
+      )
+
+      const criadas = respostas.filter((r) => r.status === 201)
+      const recusadas = respostas.filter((r) => r.status === 409)
+      const stock = await stockDe(variante.id)
+      const encomendas = await naBase()
+
+      // eslint-disable-next-line no-console
+      console.log(
+        `[última unidade] corrida ${corrida}: ${criadas.length} encomenda(s), ` +
+          `${recusadas.length} recusa(s), ${respostas.length - criadas.length - recusadas.length} ` +
+          `outro(s), stock final ${String(stock)}`,
+      )
+
+      expect(criadas).toHaveLength(1)
+      expect(recusadas).toHaveLength(4)
+      expect(stock).toBe(0)
+      expect(encomendas).toHaveLength(1)
+
+      await payload.delete({ collection: 'orders', where: { email: { contains: P } } })
+    }
+  })
+
+  it('falha a meio: uma linha sem stock recusa o carrinho inteiro', async () => {
+    const cliente = await criarCliente('a')
+    const boa = await criarArtigo('meio-boa', { stock: 10 })
+    const ma = await criarArtigo('meio-ma', { stock: 1 })
+
+    const resposta = await comprar(cliente, [
+      { variantId: boa.id, qty: 2 },
+      { variantId: ma.id, qty: 3 },
+    ])
+
+    expect(resposta.status).toBe(409)
+    // Zero encomendas, e o stock das DUAS variantes intacto: nem meia encomenda,
+    // nem stock descido na linha que tinha.
+    expect(await naBase()).toHaveLength(0)
+    expect(await stockDe(boa.id)).toBe(10)
+    expect(await stockDe(ma.id)).toBe(1)
+
+    // Controlo positivo: com stock nas duas, o mesmo carrinho passa.
+    await payload.update({ collection: 'variants', id: ma.id, data: { stock: 3 } })
+    const segunda = await comprar(cliente, [
+      { variantId: boa.id, qty: 2 },
+      { variantId: ma.id, qty: 3 },
+    ])
+    expect(segunda.status).toBe(201)
+    expect(await stockDe(boa.id)).toBe(8)
+    expect(await stockDe(ma.id)).toBe(0)
+  })
+
+  it('a encomenda congela preço e custo: mudar o catálogo não reescreve o passado', async () => {
+    const cliente = await criarCliente('a')
+    const variante = await criarArtigo('congelado', { preco: 2990, custo: 1200, stock: 5 })
+
+    expect((await comprar(cliente, [{ variantId: variante.id, qty: 1 }])).status).toBe(201)
+
+    await payload.update({
+      collection: 'variants',
+      id: variante.id,
+      data: { priceCents: 4990, costCents: 3000 },
+    })
+
+    const encomenda = (await naBase())[0]!
+    expect(encomenda.linhas![0]!.precoUnitarioCents).toBe(2990)
+    expect(encomenda.linhas![0]!.custoUnitarioCents).toBe(1200)
+    expect(encomenda.subtotalCents).toBe(2990)
+    expect(encomenda.totalCents).toBe(3489)
+  })
+
+  it('portes: 499 abaixo de 50 €, grátis a partir de 50 € exatos', async () => {
+    const cliente = await criarCliente('a')
+    const barato = await criarArtigo('portes-1990', { preco: 1990, stock: 10 })
+    const meio = await criarArtigo('portes-2500', { preco: 2500, stock: 10 })
+    const caro = await criarArtigo('portes-6000', { preco: 6000, stock: 10 })
+
+    const casos = [
+      { linhas: [{ variantId: barato.id, qty: 1 }], subtotal: 1990, portes: 499 },
+      // 50,00 € exatos: a fronteira é "a partir de", não "acima de".
+      { linhas: [{ variantId: meio.id, qty: 2 }], subtotal: 5000, portes: 0 },
+      { linhas: [{ variantId: caro.id, qty: 1 }], subtotal: 6000, portes: 0 },
+    ]
+
+    for (const caso of casos) {
+      const resposta = await comprar(cliente, caso.linhas)
+      expect(resposta.status).toBe(201)
+      const corpo = (await resposta.json()) as Record<string, number>
+      expect(corpo.subtotalCents).toBe(caso.subtotal)
+      expect(corpo.portesCents).toBe(caso.portes)
+      expect(corpo.totalCents).toBe(caso.subtotal + caso.portes)
+    }
+
+    const encomendas = await naBase()
+    expect(encomendas.map((e) => e.totalCents)).toEqual([2489, 5000, 6000])
+  })
+
+  it('sem sessão é 401; com sessão de staff é 403 — e nenhuma das duas grava nada', async () => {
+    await criarCliente('a')
+    const variante = await criarArtigo('sessao', { stock: 5 })
+    const linhas = [{ variantId: variante.id, qty: 1 }]
+
+    const semSessao = await pedir(null, { linhas, moradaEnvio })
+    expect(semSessao.status).toBe(401)
+
+    // O staff está autenticado — não tem nada para repetir no login — mas a
+    // encomenda pertence a um `customers`, e ele não é um. Ver o endpoint.
+    const staff = await pedir({ id: 1, collection: 'users' }, { linhas, moradaEnvio })
+    expect(staff.status).toBe(403)
+
+    expect(await naBase()).toHaveLength(0)
+    expect(
+      (await payload.count({ collection: 'orders', where: { numero: { like: 'AN-' } } })).totalDocs,
+    ).toBe(0)
+    expect(await stockDe(variante.id)).toBe(5)
+  })
+
+  it('variante inexistente, desativada ou de produto por publicar: 400 e nada gravado', async () => {
+    const cliente = await criarCliente('a')
+    const publicada = await criarArtigo('publicada', { stock: 5 })
+
+    // Duas variantes com preço: desativar uma delas é legítimo (a guarda da fase
+    // 1 só recusa a última vendável de um produto publicado).
+    const comDuas = await criarRascunho('ck-inativa', [opcao('Tamanho', 'S', 'M')])
+    const irmas = await variantesDe(comDuas.id)
+    for (const irma of irmas) {
+      await payload.update({
+        collection: 'variants',
+        id: irma.id,
+        data: { priceCents: 1990, stock: 4 },
+      })
+    }
+    await publicar(comDuas.id)
+    const desativada = irmas[0]!
+    await payload.update({ collection: 'variants', id: desativada.id, data: { active: false } })
+
+    // Um rascunho não está à venda — e as suas variantes também não, mesmo com
+    // preço e stock. É o mesmo critério com que a loja as esconde.
+    const rascunho = await criarRascunho('ck-rascunho')
+    const [porPublicar] = await variantesDe(rascunho.id)
+    await payload.update({
+      collection: 'variants',
+      id: porPublicar!.id,
+      data: { priceCents: 1990, stock: 9 },
+    })
+
+    for (const variantId of [999999, porPublicar!.id, desativada.id]) {
+      const resposta = await comprar(cliente, [{ variantId }])
+      expect(resposta.status).toBe(400)
+      expect(await naBase()).toHaveLength(0)
+    }
+
+    expect(await stockDe(porPublicar!.id)).toBe(9)
+    expect(await stockDe(desativada.id)).toBe(4)
+
+    // Controlo positivo: a variante publicada e ativa passa pelo mesmo caminho.
+    expect((await comprar(cliente, [{ variantId: publicada.id, qty: 1 }])).status).toBe(201)
+  })
+
+  it('quantidades: zero, negativa, decimal, ausente e carrinho vazio são 400', async () => {
+    const cliente = await criarCliente('a')
+    const variante = await criarArtigo('quantidades', { stock: 5 })
+
+    const corpos = [
+      { linhas: [{ variantId: variante.id, qty: 0 }] },
+      { linhas: [{ variantId: variante.id, qty: -1 }] },
+      { linhas: [{ variantId: variante.id, qty: 1.5 }] },
+      { linhas: [{ variantId: variante.id, qty: '2' }] },
+      { linhas: [{ variantId: variante.id }] },
+      { linhas: [{ qty: 1 }] },
+      { linhas: [] },
+      {},
+      undefined,
+    ]
+
+    for (const corpo of corpos) {
+      const resposta = await pedir(cliente, corpo ? { ...corpo, moradaEnvio } : undefined)
+      expect(resposta.status).toBe(400)
+    }
+
+    // Uma morada sem código postal português também não passa, e também não
+    // grava nem desce stock — a validação da coleção corre dentro da transação.
+    const morada = await pedir(cliente, {
+      linhas: [{ variantId: variante.id, qty: 1 }],
+      moradaEnvio: { ...moradaEnvio, codigoPostal: '1234567' },
+    })
+    expect(morada.status).toBe(400)
+
+    expect(await naBase()).toHaveLength(0)
+    expect(await stockDe(variante.id)).toBe(5)
+  })
+
+  it('o total gravado é a soma das linhas mais os portes', async () => {
+    const cliente = await criarCliente('a')
+    const a = await criarArtigo('coerente-a', { preco: 1990, stock: 10 })
+    const b = await criarArtigo('coerente-b', { preco: 750, stock: 10 })
+
+    expect(
+      (
+        await comprar(cliente, [
+          { variantId: a.id, qty: 2 },
+          { variantId: b.id, qty: 3 },
+        ])
+      ).status,
+    ).toBe(201)
+
+    const encomenda = (await naBase())[0]!
+    const soma = (
+      encomenda.linhas as { quantidade: number; precoUnitarioCents: number }[]
+    ).reduce((s, l) => s + l.quantidade * l.precoUnitarioCents, 0)
+    expect(soma).toBe(1990 * 2 + 750 * 3)
+    expect(encomenda.subtotalCents).toBe(soma)
+    expect(encomenda.totalCents).toBe(soma + encomenda.portesCents)
+  })
+
+  it('o número é gerado, legível e único, e a encomenda é só de quem a fez', async () => {
+    const a = await criarCliente('a')
+    const b = await criarCliente('b')
+    const variante = await criarArtigo('numero', { stock: 10 })
+
+    const numeros: string[] = []
+    for (const cliente of [a, a, b]) {
+      const resposta = await comprar(cliente, [{ variantId: variante.id, qty: 1 }])
+      expect(resposta.status).toBe(201)
+      numeros.push(String(((await resposta.json()) as { numero: string }).numero))
+    }
+
+    // `AN-2026-0001`: ditável ao telefone e ordenável na lista do painel.
+    for (const numero of numeros) expect(numero).toMatch(/^AN-\d{4}-\d{4}$/)
+    expect(new Set(numeros).size).toBe(3)
+    expect(Number(numeros[1]!.slice(-4))).toBe(Number(numeros[0]!.slice(-4)) + 1)
+
+    // O cliente A vê as suas duas e não vê a de B — nem pela lista, nem pelo id.
+    const comoA = { user: { ...a }, overrideAccess: false } as const
+    const { docs } = await payload.find({ collection: 'orders', limit: 0, depth: 0, ...comoA })
+    expect(docs.map((d) => d.numero).sort()).toEqual([numeros[0], numeros[1]].sort())
+
+    const deB = (await naBase()).find((e) => e.numero === numeros[2])!
+    await expect(
+      payload.findByID({ collection: 'orders', id: deB.id, ...comoA }),
+    ).rejects.toThrow()
   })
 })
