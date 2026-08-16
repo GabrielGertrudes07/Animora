@@ -1,6 +1,7 @@
 import type { Access, CollectionConfig } from 'payload'
 
 import { ehStaff } from '../access/staff'
+import { anonimizarEncomendas } from '../hooks/anonimizarEncomendas'
 import { validarCodigoPostal } from '../validacoes'
 
 /**
@@ -29,6 +30,11 @@ export const Customers: CollectionConfig = {
   slug: 'customers',
   auth: true,
   admin: { useAsTitle: 'email', defaultColumns: ['email', 'nome', 'createdAt'] },
+  hooks: {
+    // Sem isto, apagar uma conta com encomendas dava 500 e o pedido de RGPD não
+    // tinha caminho nenhum. Ver o ficheiro.
+    beforeDelete: [anonimizarEncomendas],
+  },
   access: {
     read: proprioOuStaff,
     update: proprioOuStaff,

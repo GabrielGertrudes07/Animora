@@ -101,8 +101,13 @@ export const Orders: CollectionConfig = {
       name: 'cliente',
       type: 'relationship',
       relationTo: 'customers',
-      required: true,
+      // Não é `required`, e é a única razão: apagar a conta (RGPD) deixa a
+      // encomenda sem dono, para o histórico de vendas sobreviver ao
+      // apagamento. Nenhum caminho de escrita cria encomendas sem cliente — o
+      // checkout é o único que cria, e põe-no sempre. Ver
+      // `hooks/anonimizarEncomendas.ts`.
       label: 'Cliente',
+      admin: { description: 'Vazio quando a conta do cliente foi apagada a pedido dele.' },
     },
     { name: 'email', type: 'email', required: true, label: 'Email' },
     {

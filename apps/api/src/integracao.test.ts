@@ -122,7 +122,15 @@ const limparCatalogo = async () => {
   // numeradas pelo servidor (`AN-2026-0001`) e não levam o prefixo de teste.
   await payload.delete({
     collection: 'orders',
-    where: { or: [{ numero: { contains: P } }, { email: { contains: P } }] },
+    where: {
+      or: [
+        { numero: { contains: P } },
+        { email: { contains: P } },
+        // As encomendas de um cliente apagado perdem o email de teste: passam a
+        // `apagado-an-2026-0001@rgpd.invalido`. Só as anonimizadas batem aqui.
+        { email: { contains: 'rgpd.invalido' } },
+      ],
+    },
   })
   // Produtos a seguir: apagá-los apaga as variantes, e um produto publicado
   // impede a eliminação da marca, da categoria e da imagem que usa.
@@ -2140,6 +2148,40 @@ describe('checkout', () => {
     expect(respostas.filter((r) => r.status === 409)).toHaveLength(7)
     expect(await naBase()).toHaveLength(3)
     expect(await stockDe(variante.id)).toBe(0)
+  })
+
+  it('apagar um cliente com encomendas anonimiza o histórico em vez de rebentar', async () => {
+    const cliente = await criarCliente('a')
+    const variante = await criarArtigo('rgpd', { stock: 5 })
+
+    expect((await comprar(cliente, [{ variantId: variante.id, qty: 2 }])).status).toBe(201)
+    const antes = (await naBase())[0]!
+
+    await payload.delete({ collection: 'customers', id: cliente.id })
+
+    // A conta desapareceu…
+    await expect(
+      payload.findByID({ collection: 'customers', id: cliente.id }),
+    ).rejects.toThrow()
+
+    // …e a venda sobreviveu, sem nada que identifique a pessoa.
+    const depois = await payload.findByID({
+      collection: 'orders',
+      id: antes.id,
+      depth: 0,
+    })
+    expect(depois.numero).toBe(antes.numero)
+    expect(depois.totalCents).toBe(antes.totalCents)
+    expect(depois.linhas![0]).toMatchObject({ quantidade: 2, precoUnitarioCents: 2990 })
+    expect(depois.cliente).toBeNull()
+    expect(depois.email).not.toContain(String(cliente.email))
+    expect(JSON.stringify(depois.moradaEnvio)).not.toContain('Ana Silva')
+    expect(JSON.stringify(depois.moradaEnvio)).not.toContain('Rua das Flores')
+
+    // Sem encomendas continua a apagar como antes.
+    const semCompras = await criarCliente('b')
+    await payload.delete({ collection: 'customers', id: semCompras.id })
+    await expect(payload.findByID({ collection: 'customers', id: semCompras.id })).rejects.toThrow()
   })
 
 })

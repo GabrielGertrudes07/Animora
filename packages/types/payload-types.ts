@@ -413,7 +413,10 @@ export interface Customer {
 export interface Order {
   id: number;
   numero: string;
-  cliente: number | Customer;
+  /**
+   * Vazio quando a conta do cliente foi apagada a pedido dele.
+   */
+  cliente?: (number | null) | Customer;
   email: string;
   estado: 'a-aguardar-pagamento' | 'pago' | 'enviado' | 'entregue' | 'cancelado';
   /**
