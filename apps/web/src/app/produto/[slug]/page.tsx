@@ -7,6 +7,7 @@ import { mediaUrl } from '../../../lib/api'
 import { descriptionToHtml } from '../../../lib/richtext'
 import { Price } from '../../../components/ui/Price'
 import { AdicionarAoCarrinho } from '../../../components/ui/AdicionarAoCarrinho'
+import { BotaoFavorito } from '../../../components/ui/BotaoFavorito'
 import { Icon } from '../../../components/icons/sprite'
 
 type Props = { params: Promise<{ slug: string }> }
@@ -118,7 +119,11 @@ export default async function ProdutoPage({ params }: Props) {
             })}
           </ul>
 
-          <p className="mt-8 flex items-center gap-2 text-sm text-ink-muted">
+          <div className="mt-8">
+            <BotaoFavorito productId={p.id} />
+          </div>
+
+          <p className="mt-6 flex items-center gap-2 text-sm text-ink-muted">
             <Icon name="shield" className="h-4 w-4" />
             Envio grátis acima de 50 €
           </p>
