@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { getProductBySlug, listAllSlugs } from '../../../modules/catalog'
+import { getProductBySlug, listAllSlugs, precoDeMostra } from '../../../modules/catalog'
+import { formatEuros } from '@animora/core'
 import { mediaUrl } from '../../../lib/api'
 import { descriptionToHtml } from '../../../lib/richtext'
 import { Price } from '../../../components/ui/Price'
@@ -41,7 +42,7 @@ export default async function ProdutoPage({ params }: Props) {
   const p = await getProductBySlug(slug)
   if (!p) notFound()
 
-  const barata = p.variants.reduce((a, b) => (b.priceCents < a.priceCents ? b : a))
+  const preco = precoDeMostra(p.variants)
   const img = p.primaryImage ?? p.gallery[0]?.image ?? null
   const descricaoHtml = descriptionToHtml(p.description)
 
@@ -64,11 +65,22 @@ export default async function ProdutoPage({ params }: Props) {
         <div>
           <p className="text-sm uppercase tracking-wide text-ink-muted">{p.brand.name}</p>
           <h1 className="mt-1 text-3xl font-bold text-ink">{p.title}</h1>
-          <Price cents={barata.priceCents} old={barata.oldPriceCents} className="mt-4 block" />
+          <Price
+            cents={preco.cents}
+            old={preco.old}
+            desde={preco.desde}
+            className="mt-4 block"
+          />
 
           <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-muted">
             Opções disponíveis
           </h2>
+          {/*
+            Quando os preços divergem, cada opção mostra o seu. É aqui que o
+            engano acontecia: o preço mais baixo em cima e a lista logo por
+            baixo, a começar por uma opção que custa outra coisa. Não é um
+            seletor — é a lista que já existia, a dizer o preço de cada linha.
+          */}
           <ul className="mt-3 flex flex-wrap gap-2">
             {p.variants.map((v) => (
               <li
@@ -77,6 +89,9 @@ export default async function ProdutoPage({ params }: Props) {
               >
                 {Object.entries(v.combination).map(([k, val]) => `${k}: ${val}`).join(' · ') ||
                   'Padrão'}
+                {preco.desde ? (
+                  <span className="ml-2 font-semibold">{formatEuros(v.priceCents)}</span>
+                ) : null}
                 <span className="ml-2 text-ink-muted">
                   {v.stock > 0 ? `${v.stock} em stock` : 'esgotado'}
                 </span>
