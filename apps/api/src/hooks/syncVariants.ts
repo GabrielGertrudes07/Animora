@@ -77,6 +77,17 @@ async function freeSku(base: string, req: PayloadRequest): Promise<string> {
  * reescrever com os valores certos, mas por nunca lhes tocar: só cria as que
  * faltam e apaga as que deixaram de ser possíveis. É a Task 4 do core aplicada
  * à base de dados.
+ *
+ * Num rascunho, cria mas nunca apaga. Uma gravação de rascunho não escreve na
+ * tabela `products` — o Payload só grava a versão (`if (!isSavingDraft)` em
+ * `payload/dist/collections/operations/utilities/update.js`), logo as opções
+ * publicadas ficam intactas. Apagar variantes aí destruía preço e stock de
+ * combinações que a versão publicada continua a anunciar, sem recuperação
+ * possível: `variants` não tem versões. Criar é inofensivo e necessário — é o
+ * que permite preencher os preços das combinações novas ANTES de publicar,
+ * agora que publicar exige pelo menos uma variante ativa com preço acima de
+ * zero. Ao publicar, o hook corre por inteiro e a matriz volta a ficar
+ * exatamente igual às opções publicadas.
  */
 export const syncVariants: CollectionAfterChangeHook = async ({ doc, req }) => {
   // O Payload devolve `values` como [{ id, value }]; o core espera string[].
@@ -108,10 +119,12 @@ export const syncVariants: CollectionAfterChangeHook = async ({ doc, req }) => {
   const mergedKeys = new Set(merged.map((r) => combinationKey(r.combination)))
   const existingKeys = new Set(existing.map((r) => combinationKey(r.combination)))
 
-  // Apagar as que deixaram de ser possíveis
-  for (const d of existingDocs) {
-    if (!mergedKeys.has(combinationKey(d.combination as Combination))) {
-      await req.payload.delete({ collection: 'variants', id: d.id, req })
+  // Apagar as que deixaram de ser possíveis — nunca em rascunho (ver acima)
+  if (doc._status !== 'draft') {
+    for (const d of existingDocs) {
+      if (!mergedKeys.has(combinationKey(d.combination as Combination))) {
+        await req.payload.delete({ collection: 'variants', id: d.id, req })
+      }
     }
   }
 
