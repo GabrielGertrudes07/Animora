@@ -17,6 +17,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { getPayload, type Payload } from 'payload'
 
 import config from '../payload.config'
+import { protectLastOwner } from './collections/Users'
 
 const P = 'zteste'
 
@@ -42,7 +43,6 @@ let payload: Payload
 let marca: Id
 let categoria: Id
 let imagem: Id
-let dono: { id: Id; email: string }
 
 const opcao = (nome: string, ...valores: string[]) => ({
   name: nome,
@@ -128,14 +128,6 @@ beforeAll(async () => {
       file: { data: PNG, mimetype: 'image/png', name: `${P}.png`, size: PNG.length },
     })
   ).id
-
-  const { docs } = await payload.find({
-    collection: 'users',
-    where: { role: { equals: 'owner' } },
-    limit: 1,
-    depth: 0,
-  })
-  dono = docs[0] as unknown as { id: Id; email: string }
 })
 
 afterEach(limparCatalogo)
@@ -417,11 +409,24 @@ describe('invariante do produto publicado, pelo lado da variante', () => {
   })
 })
 
+/**
+ * Estes testes nunca tocam na conta de desenvolvimento.
+ *
+ * A versão anterior atacava o `owner` verdadeiro: fazia login com a password
+ * errada contra ele — três corridas e a conta bloqueia (`loginAttempts` e
+ * `lockUntil`), ninguém entra no painel com as credenciais certas — e, se uma
+ * mutação desfizesse a guarda, mudava-lhe a password e não a repunha. Um teste
+ * que estraga o ambiente quando o código está errado é pior do que não existir:
+ * é precisamente quando se está a corrigir que se precisa de entrar no painel.
+ *
+ * Cada corrida cria o seu `owner` e o seu `admin`, ambos com o prefixo `zteste`,
+ * e apaga-os no fim como o resto do catálogo.
+ */
 describe('escalada de privilégios', () => {
-  const criarAdmin = async (sufixo: string) =>
+  const criarConta = async (sufixo: string, role: 'admin' | 'owner') =>
     payload.create({
       collection: 'users',
-      data: { email: `${P}-${sufixo}@animora.pt`, password: 'animora123', role: 'admin' },
+      data: { email: `${P}-${sufixo}@animora.pt`, password: 'animora123', role },
     })
 
   const como = (utilizador: { id: Id }) => ({
@@ -430,8 +435,17 @@ describe('escalada de privilégios', () => {
   })
 
   it('um admin não se consegue tornar owner por nenhum dos cinco caminhos', async () => {
-    const admin = await criarAdmin('admin')
+    const admin = await criarConta('admin', 'admin')
+    const alvo = (await criarConta('dono', 'owner')) as unknown as {
+      id: Id
+      email: string
+      role: string
+    }
     expect(admin.role).toBe('admin')
+    expect(alvo.role).toBe('owner')
+    // O alvo do ataque é sempre descartável. Se alguém voltar a apontá-lo à
+    // conta de desenvolvimento, falha aqui em vez de a bloquear.
+    expect(alvo.email).toContain(P)
 
     // 1) criar uma conta nova já com o papel owner e entrar nela
     const criada = await payload.create({
@@ -454,7 +468,7 @@ describe('escalada de privilégios', () => {
     await expect(
       payload.update({
         collection: 'users',
-        id: dono.id,
+        id: alvo.id,
         data: { password: 'apanhado123' },
         ...como(admin),
       }),
@@ -462,30 +476,50 @@ describe('escalada de privilégios', () => {
     await expect(
       payload.login({
         collection: 'users',
-        data: { email: dono.email, password: 'apanhado123' },
+        data: { email: alvo.email, password: 'apanhado123' },
       }),
     ).rejects.toThrow()
 
     // 4) apagar o owner
     await expect(
-      payload.delete({ collection: 'users', id: dono.id, ...como(admin) }),
+      payload.delete({ collection: 'users', id: alvo.id, ...como(admin) }),
     ).rejects.toThrow()
 
     // 5) esvaziar a tabela para reabrir o `first-register`, que corre com
     //    overrideAccess e honra o papel submetido. O admin não consegue apagar
-    //    ninguém — nem a si próprio — e nem sequer o owner consegue apagar o
-    //    último owner, por isso a precondição do ataque é inalcançável.
+    //    ninguém — nem a si próprio.
     await expect(
       payload.delete({ collection: 'users', id: admin.id, ...como(admin) }),
     ).rejects.toThrow()
-    await expect(
-      payload.delete({ collection: 'users', id: dono.id, ...como(dono) }),
-    ).rejects.toThrow(/último proprietário/)
 
-    const donos = await payload.count({
+    // O owner do teste continua a ser o único owner além do legítimo: nenhum
+    // dos cinco caminhos produziu contas com poderes a mais.
+    const donos = await payload.find({
       collection: 'users',
       where: { role: { equals: 'owner' } },
+      limit: 0,
+      depth: 0,
     })
-    expect(donos.totalDocs).toBe(1)
+    expect(donos.docs.filter((d) => String(d.email).includes(P))).toHaveLength(1)
+  })
+
+  it('o último proprietário não pode ser apagado', async () => {
+    // A outra metade do caminho 5: mesmo o owner não pode esvaziar a tabela.
+    //
+    // Testado com um `req` de fachada, e não contra a base de dados, porque a
+    // guarda só dispara quando existe exatamente UM owner — e a base de
+    // desenvolvimento tem sempre lá o legítimo. Chegar a "um só owner" com uma
+    // conta descartável obrigava a apagar a conta real, que é exatamente o que
+    // estes testes não podem fazer. O que se verifica aqui é a decisão da
+    // guarda; que ela está ligada à coleção vê-se em `Users.ts`.
+    const args = (donos: { id: Id }[], id: Id) =>
+      ({
+        id,
+        req: { payload: { find: async () => ({ docs: donos }) } },
+      }) as unknown as Parameters<typeof protectLastOwner>[0]
+
+    await expect(protectLastOwner(args([{ id: 1 }], 1))).rejects.toThrow(/último proprietário/)
+    // Controlo: com outro owner na tabela, apagar é legítimo e passa.
+    await expect(protectLastOwner(args([{ id: 1 }, { id: 2 }], 1))).resolves.toBeUndefined()
   })
 })

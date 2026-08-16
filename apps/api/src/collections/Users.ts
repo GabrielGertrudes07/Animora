@@ -11,7 +11,7 @@ import { APIError } from 'payload'
  * submetido, contornando o `access` do campo `role`. Quem quer que consiga
  * esvaziar a tabela consegue nomear-se owner.
  */
-const protectLastOwner: CollectionBeforeDeleteHook = async ({ id, req }) => {
+export const protectLastOwner: CollectionBeforeDeleteHook = async ({ id, req }) => {
   const { docs } = await req.payload.find({
     collection: 'users',
     where: { role: { equals: 'owner' } },
