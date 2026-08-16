@@ -280,10 +280,6 @@ export interface Product {
    */
   primaryImage?: (number | null) | Media;
   supplier?: string | null;
-  /**
-   * Usado no cálculo de lucro. Nunca sai para o site.
-   */
-  costCents?: number | null;
   metaTitle?: string | null;
   metaDescription?: string | null;
   shareImage?: (number | null) | Media;
@@ -299,7 +295,7 @@ export interface Variant {
   id: number;
   product: number | Product;
   /**
-   * Ex.: { "Tamanho": "S", "Cor": "Preto" }
+   * Ex.: { "Tamanho": "S", "Cor": "Preto" } — os valores são sempre texto entre aspas, mesmo os numéricos ("38").
    */
   combination:
     | {
@@ -325,6 +321,10 @@ export interface Variant {
   widthCm?: number | null;
   heightCm?: number | null;
   weightG?: number | null;
+  /**
+   * Usado no cálculo de lucro. Nunca sai para o site.
+   */
+  costCents?: number | null;
   ean?: string | null;
   warehouseLocation?: string | null;
   shippingWeightG?: number | null;
@@ -547,7 +547,6 @@ export interface ProductsSelect<T extends boolean = true> {
       };
   primaryImage?: T;
   supplier?: T;
-  costCents?: T;
   metaTitle?: T;
   metaDescription?: T;
   shareImage?: T;
@@ -571,6 +570,7 @@ export interface VariantsSelect<T extends boolean = true> {
   widthCm?: T;
   heightCm?: T;
   weightG?: T;
+  costCents?: T;
   ean?: T;
   warehouseLocation?: T;
   shippingWeightG?: T;

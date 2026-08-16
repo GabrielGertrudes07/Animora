@@ -1,22 +1,8 @@
-import type { CollectionConfig, NumberFieldSingleValidation } from 'payload'
-import { validations } from 'payload'
+import type { CollectionConfig } from 'payload'
 
 import { deleteVariantsOfProduct, syncVariants } from '../hooks/syncVariants'
 import { validatePublish } from '../hooks/validatePublish'
 import { uniqueSlug } from '../hooks/uniqueSlug'
-
-// Dinheiro é sempre em cêntimos inteiros — sem isto o Postgres aceita 29.9
-// e o cálculo de lucro do dashboard corrompe-se silenciosamente.
-// Corre primeiro a validação nativa do Payload (required/min/max) — um `validate`
-// custom substitui a nativa por inteiro, por isso reaproveita-se `validations.number`
-// em vez de reimplementar min/max/required aqui.
-const validateInteger: NumberFieldSingleValidation = (value, options) => {
-  const defaultResult = validations.number(value, options)
-  if (defaultResult !== true) return defaultResult
-  return value === null || value === undefined || Number.isInteger(value)
-    ? true
-    : 'Tem de ser um número inteiro'
-}
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -118,15 +104,11 @@ export const Products: CollectionConfig = {
         {
           label: 'Interno',
           fields: [
+            // O custo de compra vive na variante, não aqui: a ração de 2 kg e a
+            // de 10 kg são variantes do mesmo produto e custam valores
+            // diferentes. O fornecedor fica no produto porque é o mesmo para
+            // todas as variantes.
             { name: 'supplier', type: 'text', label: 'Fornecedor' },
-            {
-              name: 'costCents',
-              type: 'number',
-              min: 0,
-              label: 'Custo de compra (cêntimos)',
-              admin: { description: 'Usado no cálculo de lucro. Nunca sai para o site.' },
-              validate: validateInteger,
-            },
           ],
         },
         {

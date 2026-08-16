@@ -138,7 +138,7 @@ Cada linha grava, congelados no momento da compra:
 - `custo_unitario` (cêntimos)
 - `quantidade`
 
-Se a linha referenciasse o produto vivo, mudar um preço amanhã reescrevia o histórico de encomendas e as faturas deixavam de bater certo. O `custo_unitario` é igualmente congelado — sem isso, uma subida de preço do fornecedor reescreve a margem de todas as vendas passadas e o histórico deixa de fechar com a contabilidade.
+Se a linha referenciasse o produto vivo, mudar um preço amanhã reescrevia o histórico de encomendas e as faturas deixavam de bater certo. O `custo_unitario` é igualmente congelado — sem isso, uma subida de preço do fornecedor reescreve a margem de todas as vendas passadas e o histórico deixa de fechar com a contabilidade. Tanto o `preco_unitario` como o `custo_unitario` são copiados **da variante** vendida, não do produto (ver §5).
 
 **3. Dinheiro em cêntimos inteiros.**
 
@@ -179,10 +179,13 @@ Todo o atributo declara onde aparece:
 | Peso do objeto (g) | variante | ficha |
 | Peso/volume do conteúdo (ração 2kg, 10kg) | variante | filtro |
 | Cor | variante (opção) | filtro |
-| Fornecedor, custo de compra, margem | produto | **interno** |
+| Fornecedor | produto | **interno** |
+| Custo de compra e margem | variante | **interno** |
 | Código interno / EAN | variante | **interno** |
 | Localização em armazém | variante | **interno** |
 | Peso para portes | variante | **interno** |
+
+**O custo de compra é da variante, como o preço.** Um saco de ração de 2 kg e um de 10 kg são variantes do mesmo produto e custam ao lojista valores diferentes; com um custo único no produto, o lucro do §9 sairia errado no tipo de artigo mais comum de uma pet shop. O fornecedor fica no produto, que é onde não varia.
 
 **Animal de destino** e **porte** são os dois filtros mais importantes numa loja de animais. O site atual não tem nenhum dos dois — trata "Cães/Gatos" como categoria, o que obriga a duplicar a árvore inteira. Passam a atributos; a categoria fica para o tipo de produto (Camas, Coleiras, Ração).
 
@@ -350,7 +353,7 @@ Ilustrações próprias nos estados vazios (carrinho vazio, sem resultados) e í
 | | |
 |---|---|
 | Faturamento | período + comparação com o anterior |
-| Lucro e margem | receita − custo das mercadorias vendidas |
+| Lucro e margem | receita − custo das mercadorias vendidas (o `custo_unitario` congelado na linha, copiado da variante vendida — §4.2 e §5) |
 | Encomendas | número e ticket médio |
 | Mais vendidos | por unidades **e** por receita (listas diferentes) |
 | Categorias | receita por categoria |

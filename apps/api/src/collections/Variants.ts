@@ -170,6 +170,19 @@ export const Variants: CollectionConfig = {
       type: 'collapsible',
       label: 'Interno',
       fields: [
+        {
+          // Aqui e não no produto: a ração de 2 kg e a de 10 kg são variantes do
+          // mesmo artigo com custos de compra completamente diferentes. Com um
+          // único custo partilhado, o "receita − custo das mercadorias vendidas"
+          // do dashboard saía errado no tipo de produto mais comum de uma pet
+          // shop. O fornecedor continua no produto, que é onde não varia.
+          name: 'costCents',
+          type: 'number',
+          min: 0,
+          label: 'Custo de compra (cêntimos)',
+          admin: { description: 'Usado no cálculo de lucro. Nunca sai para o site.' },
+          validate: validateInteger,
+        },
         { name: 'ean', type: 'text', label: 'EAN' },
         { name: 'warehouseLocation', type: 'text', label: 'Localização em armazém' },
         { name: 'shippingWeightG', type: 'number', min: 0, label: 'Peso para portes (g)' },
