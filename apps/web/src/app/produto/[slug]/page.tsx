@@ -22,7 +22,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const img = p.primaryImage ?? p.gallery[0]?.image ?? null
 
   return {
-    title: p.metaTitle ?? p.title,
+    // `metaTitle` já vem com o sufixo "| Animora" preenchido no painel — usar
+    // `absolute` sai do `template` do layout, que senão acrescentava "· Animora"
+    // outra vez. Sem `metaTitle`, o título é só o produto e o template aplica-se
+    // normalmente, como nas outras páginas.
+    title: p.metaTitle ? { absolute: p.metaTitle } : p.title,
     description: p.metaDescription ?? `${p.title} da marca ${p.brand.name}, na Animora.`,
     openGraph: {
       title: p.metaTitle ?? p.title,
