@@ -45,22 +45,30 @@ export async function Header() {
         </div>
       </div>
 
-      {categorias.length > 0 ? (
-        <nav aria-label="Categorias" className="border-t border-line">
-          <ul className="mx-auto flex max-w-7xl gap-1 overflow-x-auto whitespace-nowrap px-6 py-2 text-sm">
-            {categorias.map((c) => (
-              <li key={c.slug} className="shrink-0">
-                <Link
-                  href={`/${c.slug}`}
-                  className="block rounded-lg px-3 py-1.5 font-medium text-ink-muted transition-colors hover:bg-white hover:text-ink"
-                >
-                  {c.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      ) : null}
+      <nav aria-label="Categorias" className="border-t border-line">
+        <ul className="mx-auto flex max-w-7xl gap-1 overflow-x-auto whitespace-nowrap px-6 py-2 text-sm">
+          {/* Primeiro item, sempre: a loja inteira. Sem ele só se chegava a
+              produtos escolhendo primeiro uma categoria. */}
+          <li className="shrink-0">
+            <Link
+              href="/produtos"
+              className="block rounded-lg px-3 py-1.5 font-semibold text-ink transition-colors hover:bg-white"
+            >
+              Todos os produtos
+            </Link>
+          </li>
+          {categorias.map((c) => (
+            <li key={c.slug} className="shrink-0">
+              <Link
+                href={`/${c.slug}`}
+                className="block rounded-lg px-3 py-1.5 font-medium text-ink-muted transition-colors hover:bg-white hover:text-ink"
+              >
+                {c.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </header>
   )
 }
