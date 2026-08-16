@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getProductBySlug, listAllSlugs } from '../../../modules/catalog'
 import { mediaUrl } from '../../../lib/api'
+import { descriptionToHtml } from '../../../lib/richtext'
 import { Price } from '../../../components/ui/Price'
 import { Icon } from '../../../components/icons/sprite'
 
@@ -38,6 +39,7 @@ export default async function ProdutoPage({ params }: Props) {
 
   const barata = p.variants.reduce((a, b) => (b.priceCents < a.priceCents ? b : a))
   const img = p.primaryImage ?? p.gallery[0]?.image ?? null
+  const descricaoHtml = descriptionToHtml(p.description)
 
   return (
     <main id="conteudo" className="mx-auto max-w-6xl px-6 py-10">
@@ -84,6 +86,18 @@ export default async function ProdutoPage({ params }: Props) {
           </p>
         </div>
       </div>
+
+      {descricaoHtml ? (
+        <section className="mt-12 max-w-3xl border-t border-line pt-8">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
+            Descrição
+          </h2>
+          <div
+            className="mt-3 space-y-4 text-ink [&_a]:text-terracota [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_strong]:font-semibold [&_ul]:list-disc"
+            dangerouslySetInnerHTML={{ __html: descricaoHtml }}
+          />
+        </section>
+      ) : null}
     </main>
   )
 }
