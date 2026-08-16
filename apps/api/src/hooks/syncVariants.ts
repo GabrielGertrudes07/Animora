@@ -20,8 +20,11 @@ import { reservar, serializarGuarda } from './serializar'
  *
  * Logo: em vez de recuperar da colisão, serializa-se quem pode atribuir SKU. O lock
  * consultivo está em `serializar.ts`, partilhado com as outras guardas que contam
- * antes de decidir — uma chave só para o projeto inteiro, para não haver ordem de
- * aquisição e portanto não haver deadlock possível.
+ * antes de decidir — uma chave só para o projeto inteiro, portanto sem ordem de
+ * aquisição entre locks consultivos. Isso não é o mesmo que "sem deadlock
+ * possível": este hook corre em `afterChange`, ou seja pede o lock DEPOIS de a
+ * linha do produto estar escrita, e cruza-se com quem faz o contrário. Ver o
+ * cabeçalho de `serializar.ts`, onde essa ordem está medida.
  *
  * Primeiro SKU livre a partir do sugerido: `HAP-COL`, `HAP-COL-2`, `HAP-COL-3`, ...
  *
