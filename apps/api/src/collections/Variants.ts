@@ -45,6 +45,12 @@ const EXEMPLO = 'Ex.: { "Tamanho": "S", "Cor": "Preto" }'
  *
  * `validations.json` corre primeiro porque um `validate` custom SUBSTITUI o
  * nativo — sem ele perdia-se o `required` e o aviso de JSON mal formado.
+ *
+ * Lê as opções do produto e decide sem serialização, como o `blockOffMatrix` —
+ * analisado, e não bloqueia pelo mesmo motivo: o produto que se lê pode estar a
+ * mudar noutro pedido, mas a combinação vazia que isso deixa passar é a mesma
+ * que a gravação do produto já aceita, e o `syncVariants` alinha a tabela a
+ * seguir. Nenhum produto publicado fica partido por aqui.
  */
 const validateCombination: JSONFieldValidation = async (value, options) => {
   const nativo = await validations.json(value, options)

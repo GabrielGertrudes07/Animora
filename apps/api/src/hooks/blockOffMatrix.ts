@@ -48,6 +48,14 @@ const tentarLer = (texto: string): unknown => {
  *
  * A matriz é lida com `draft: true`, como o `validateCombination` da coleção:
  * conta a versão mais recente do produto, que é a que o utilizador tem à frente.
+ *
+ * Lê o produto e decide sem serialização, que é a forma das guardas que furaram
+ * — analisado, e aqui não bloqueia: o pior que uma gravação de produto em
+ * paralelo produz é uma combinação aceite contra a matriz de um instante antes,
+ * e essa é exatamente a decisão que a gravação do produto já toma sozinha (o
+ * `syncVariants` repõe a matriz na gravação seguinte). Não há invariante de
+ * produto publicado a proteger deste lado — a que existe é a do `blockUnsellable`,
+ * que serializa.
  */
 export const blockOffMatrix: CollectionBeforeChangeHook = async ({
   data,
