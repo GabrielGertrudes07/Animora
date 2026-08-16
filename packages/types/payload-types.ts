@@ -104,9 +104,11 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'configuracao-filtros': ConfiguracaoFiltro;
+    definicoes: Definicoe;
   };
   globalsSelect: {
     'configuracao-filtros': ConfiguracaoFiltrosSelect<false> | ConfiguracaoFiltrosSelect<true>;
+    definicoes: DefinicoesSelect<false> | DefinicoesSelect<true>;
   };
   locale: null;
   widgets: {
@@ -933,6 +935,19 @@ export interface ConfiguracaoFiltro {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "definicoes".
+ */
+export interface Definicoe {
+  id: number;
+  /**
+   * Desligado, o dashboard mostra uma série de demonstração com um aviso permanente de que os números não são os da loja. Ligado, mostra as vendas reais. Só o proprietário vê e muda este interruptor.
+   */
+  dashboardDesbloqueado?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "configuracao-filtros_select".
  */
 export interface ConfiguracaoFiltrosSelect<T extends boolean = true> {
@@ -956,6 +971,16 @@ export interface ConfiguracaoFiltrosSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "definicoes_select".
+ */
+export interface DefinicoesSelect<T extends boolean = true> {
+  dashboardDesbloqueado?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

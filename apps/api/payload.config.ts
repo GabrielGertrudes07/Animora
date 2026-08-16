@@ -23,7 +23,16 @@ import { dashboard } from './src/endpoints/dashboard'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default buildConfig({
-  admin: { user: Users.slug },
+  admin: {
+    user: Users.slug,
+    components: {
+      // O ecrã de vendas é um Server Component: chama `lerDashboard` no
+      // servidor, com a trava já decidida, em vez de ir buscar o endpoint por
+      // HTTP. Um número real nunca chega ao browser com a trava ligada.
+      views: { vendas: { Component: '/src/components/PainelVendas.tsx', path: '/vendas' } },
+      beforeNavLinks: ['/src/components/PainelVendas.tsx#LinkVendas'],
+    },
+  },
   collections: [
     Users,
     Categories,
