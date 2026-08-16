@@ -12,6 +12,32 @@ type Paginated<T> = { docs: T[]; totalDocs: number }
  */
 const NO_LIMIT = 0
 
+/**
+ * Slug do URL → valor pronto a pôr na query string da API.
+ *
+ * No App Router do Next 15 os `params` chegam **já percent-encoded**: a
+ * categoria `ração-água` chega como `ra%C3%A7%C3%A3o-%C3%A1gua`. Aplicar-lhes
+ * `encodeURIComponent` diretamente codifica os `%` outra vez
+ * (`ra%25C3%25A7...`) e a consulta não encontra nada — numa loja portuguesa,
+ * onde `ração`, `cão` e `pássaros` são slugs de esperar, isso dava 404 em
+ * links que o próprio cabeçalho emitia.
+ *
+ * Descodificar primeiro trata os dois casos com o mesmo código: o slug vindo
+ * do URL (codificado) e o slug vindo da base de dados (não codificado, e sem
+ * `%` nenhum para descodificar).
+ *
+ * Um `%` solto no endereço faz `decodeURIComponent` rebentar. Nesse caso vale
+ * a pena seguir com o texto cru: não corresponde a slug nenhum, dá o 404 que
+ * se espera, em vez de um 500 na página.
+ */
+function slugParaQuery(slug: string): string {
+  try {
+    return encodeURIComponent(decodeURIComponent(slug))
+  } catch {
+    return encodeURIComponent(slug)
+  }
+}
+
 async function variantsOf(productId: number) {
   const res = await apiGet<Paginated<Record<string, unknown>>>(
     `/api/variants?limit=${NO_LIMIT}&depth=0&where[product][equals]=${productId}`,
@@ -69,7 +95,7 @@ export async function listProducts(
 
 export async function getProductBySlug(slug: string): Promise<PublicProduct | null> {
   const res = await apiGet<Paginated<Record<string, unknown>>>(
-    `/api/products?limit=1&depth=2&where[slug][equals]=${encodeURIComponent(slug)}&where[_status][equals]=published`,
+    `/api/products?limit=1&depth=2&where[slug][equals]=${slugParaQuery(slug)}&where[_status][equals]=published`,
   )
 
   const doc = res.docs[0]
@@ -113,7 +139,7 @@ export async function getCategoryBySlug(
   slug: string,
 ): Promise<{ id: number; name: string; slug: string } | null> {
   const res = await apiGet<Paginated<{ id: number; name: string; slug: string }>>(
-    `/api/categories?limit=1&depth=0&where[slug][equals]=${encodeURIComponent(slug)}`,
+    `/api/categories?limit=1&depth=0&where[slug][equals]=${slugParaQuery(slug)}`,
   )
   const doc = res.docs[0]
   return doc ? { id: doc.id, name: doc.name, slug: doc.slug } : null
