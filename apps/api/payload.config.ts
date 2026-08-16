@@ -20,7 +20,11 @@ export default buildConfig({
   collections: [Users, Categories, Brands, Media, Products, Variants],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',
-  sharp,
+  // O `sharp` instalado e o tipo `SharpDependency` que o Payload 3.88 declara
+  // divergem numa sobrecarga interna, apesar de o objeto ser o que ele espera
+  // em runtime (as três dimensões de imagem são geradas em WebP — verificado).
+  // O cast é só para o compilador; trocá-lo por `any` esconderia mais do que isto.
+  sharp: sharp as unknown as NonNullable<Parameters<typeof buildConfig>[0]['sharp']>,
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
