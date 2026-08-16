@@ -18,6 +18,7 @@ import { Attributes } from './src/collections/Attributes'
 import { ConfiguracaoFiltros } from './src/globals/ConfiguracaoFiltros'
 import { Definicoes } from './src/globals/Definicoes'
 import { checkout } from './src/endpoints/checkout'
+import { dashboard } from './src/endpoints/dashboard'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -35,7 +36,7 @@ export default buildConfig({
     Attributes,
   ],
   globals: [ConfiguracaoFiltros, Definicoes],
-  endpoints: [checkout],
+  endpoints: [checkout, dashboard],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',
   // O `sharp` instalado e o tipo `SharpDependency` que o Payload 3.88 declara
