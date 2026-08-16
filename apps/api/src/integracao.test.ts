@@ -13,7 +13,7 @@
  * Correm contra a base de dados de desenvolvimento e limpam o que criam: tudo
  * o que criam leva o prefixo `zteste`.
  */
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { createLocalReq, getPayload, type Payload } from 'payload'
 import { combinationKey } from '@animora/core'
 
@@ -1927,6 +1927,14 @@ describe('checkout', () => {
     const variante = await criarArtigo('sessao', { stock: 5 })
     const linhas = [{ variantId: variante.id, qty: 1 }]
 
+    // Contagem relativa, não absoluta: uma base de dados de desenvolvimento
+    // com histórico de encomendas real (do seeder do catálogo, por exemplo)
+    // já tem encomendas `AN-` antes deste teste correr. O que se prova é que
+    // NENHUMA NOVA nasceu destas duas tentativas — não que a tabela está vazia.
+    const antesDoTeste = (
+      await payload.count({ collection: 'orders', where: { numero: { like: 'AN-' } } })
+    ).totalDocs
+
     const semSessao = await pedir(null, { linhas, moradaEnvio })
     expect(semSessao.status).toBe(401)
 
@@ -1938,7 +1946,7 @@ describe('checkout', () => {
     expect(await naBase()).toHaveLength(0)
     expect(
       (await payload.count({ collection: 'orders', where: { numero: { like: 'AN-' } } })).totalDocs,
-    ).toBe(0)
+    ).toBe(antesDoTeste)
     expect(await stockDe(variante.id)).toBe(5)
   })
 
@@ -2761,6 +2769,30 @@ describe('dashboard de vendas com trava comercial', () => {
   // Entregue com a trava ligada, aconteça o que acontecer aos testes.
   afterAll(async () => {
     await desbloquear(false)
+  })
+
+  /**
+   * Isolamento total antes de CADA teste deste bloco — não só do que o
+   * `zteste` prefixa.
+   *
+   * Estes testes fazem contas exatas (`toMatchObject(REAL)`, uma faturação de
+   * "3870" num dia certo) sobre `orders` inteira: `lerDashboard` agrega por
+   * janela de datas, sem filtro nenhum de prefixo de teste — é a mesma função
+   * que lê o histórico real da loja. Uma única encomenda alheia a este bloco,
+   * de outra fonte qualquer (histórico de demonstração do seeder do
+   * catálogo, uma compra manual feita a testar o admin), que caia na janela
+   * pedida — os últimos 30 dias por omissão, ou os dias fixos do teste de
+   * fuso-horário — muda o total e o teste falha por um motivo que não é seu.
+   * Verificado: 20 encomendas de demonstração no período bastavam para fazer
+   * 5 destes testes falharem, incluindo o de fuso-horário com datas fixas no
+   * passado.
+   *
+   * Apagar tudo aqui é seguro: só corre dentro deste `describe`, nunca antes
+   * dos outros blocos de testes, e a `afterAll` do topo do ficheiro já limpa o
+   * resto no fim da corrida toda.
+   */
+  beforeEach(async () => {
+    await payload.delete({ collection: 'orders', where: { id: { exists: true } } })
   })
 
   it('bloqueado: o admin recebe demonstração e nenhum número real da base', async () => {
