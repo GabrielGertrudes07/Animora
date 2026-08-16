@@ -64,4 +64,25 @@ describe('formatEuros', () => {
   it('recusa valores nao inteiros', () => {
     expect(() => formatEuros(29.9)).toThrow(MoneyError)
   })
+
+  // Descontos e devoluções são negativos. `Math.trunc(-50/100)` é `-0`, e
+  // `${-0}` é `"0"`: -0,50 € saía como 0,50 €, uma troca de sinal silenciosa
+  // no módulo de dinheiro. Abaixo de -100 o sinal aparecia, o que fazia o
+  // defeito passar despercebido em qualquer verificação com valores redondos.
+  it('mantém o sinal em valores negativos abaixo de um euro', () => {
+    expect(formatEuros(-1)).toBe('-0,01 €')
+    expect(formatEuros(-5)).toBe('-0,05 €')
+    expect(formatEuros(-50)).toBe('-0,50 €')
+    expect(formatEuros(-99)).toBe('-0,99 €')
+  })
+
+  it('mantém o sinal em valores negativos de um euro ou mais', () => {
+    expect(formatEuros(-100)).toBe('-1,00 €')
+    expect(formatEuros(-2990)).toBe('-29,90 €')
+  })
+
+  it('nao poe sinal no zero', () => {
+    expect(formatEuros(0)).toBe('0,00 €')
+    expect(formatEuros(-0)).toBe('0,00 €')
+  })
 })
