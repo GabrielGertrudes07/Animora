@@ -4,6 +4,8 @@ const PATHS = {
   search: 'M11 4a7 7 0 100 14 7 7 0 000-14zm9 16l-4-4',
   shield: 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z',
   paw: 'M5 11a2 2 0 100-4 2 2 0 000 4zm14 0a2 2 0 100-4 2 2 0 000 4zM9 7a2 2 0 100-4 2 2 0 000 4zm6 0a2 2 0 100-4 2 2 0 000 4zm-3 5c-3 0-5 2-5 4s2 3 5 3 5-1 5-3-2-4-5-4z',
+  filter: 'M4 5h16M7 5v0a3 3 0 006 0v0M7 12h10M11 12v0a3 3 0 006 0v0M4 19h16M9 19v0a3 3 0 006 0v0',
+  close: 'M6 6l12 12M18 6L6 18',
 } as const
 
 export type IconName = keyof typeof PATHS
