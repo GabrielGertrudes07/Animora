@@ -8,6 +8,7 @@ export {
   getConfiguracaoFiltros,
   listCategories,
   getCategoryBySlug,
+  lerFiltros,
 } from './queries'
 export {
   parseFilters,

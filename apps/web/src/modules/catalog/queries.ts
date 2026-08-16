@@ -1,6 +1,7 @@
 import { apiGet } from '../../lib/api'
 import { sanitizeProduct } from './sanitize'
 import { filtrarPorAtributos } from './facets'
+import { parseFilters, resolveActiveAttributeDefs, restringirAtributosAtivos } from './filters'
 import type { AttributeDef, PublicProduct } from './types'
 import type { CatalogFilters, ConfiguracaoFiltrosRaw } from './filters'
 
@@ -218,6 +219,32 @@ export async function listAttributeDefs(): Promise<AttributeDef[]> {
  * de leitura pública) — por omissão e por categoria. */
 export async function getConfiguracaoFiltros(): Promise<ConfiguracaoFiltrosRaw> {
   return apiGet<ConfiguracaoFiltrosRaw>('/api/globals/configuracao-filtros?depth=0')
+}
+
+/**
+ * Os filtros de uma página de catálogo, já fechados ao que é público — e o
+ * conjunto de atributos ativos de onde essa allowlist saiu.
+ *
+ * **Chamar isto no componente de página, com os `searchParams` acabados de
+ * esperar, e nunca passar os `searchParams` crus mais para dentro.** O React
+ * serializa as props dos componentes na carga que vai para o browser: um
+ * `searchParams` cru entregue a um componente — ainda que de servidor, ainda
+ * que ele o filtre logo a seguir — deixa a query string inteira escrita no
+ * HTML, com `margem-alvo` e `costCents` incluídos, escritos por quem os
+ * forçou no URL. `restringirAtributosAtivos` só protege o que vier depois
+ * dele; a query crua tem de morrer aqui, na página.
+ */
+export async function lerFiltros(
+  sp: Record<string, string | string[] | undefined>,
+  categoriaId?: number,
+): Promise<{ filtros: CatalogFilters; atributosAtivos: AttributeDef[] }> {
+  const [defs, config] = await Promise.all([listAttributeDefs(), getConfiguracaoFiltros()])
+  const atributosAtivos = resolveActiveAttributeDefs(defs, config, categoriaId)
+
+  return {
+    filtros: restringirAtributosAtivos(parseFilters(sp), atributosAtivos),
+    atributosAtivos,
+  }
 }
 
 /** Para a navegação do cabeçalho — categorias reais, nunca escritas à mão. */

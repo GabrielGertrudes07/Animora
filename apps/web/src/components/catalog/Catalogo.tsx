@@ -1,13 +1,10 @@
 import {
   listProducts,
-  listAttributeDefs,
-  getConfiguracaoFiltros,
-  resolveActiveAttributeDefs,
-  restringirAtributosAtivos,
   computeAttributeFacets,
   precoBounds,
   marcasDisponiveis,
-  parseFilters,
+  type AttributeDef,
+  type CatalogFilters,
 } from '../../modules/catalog'
 import { ProductCard } from '../ui/ProductCard'
 import { EstadoVazio } from '../ui/EstadoVazio'
@@ -20,7 +17,14 @@ type Props = {
   descricao?: string
   /** Ausente em `/produtos`: a loja inteira. Presente em `/[categoria]`. */
   categoriaId?: number
-  searchParams: Record<string, string | string[] | undefined>
+  /**
+   * Já fechados ao que é público, por `lerFiltros` — que a página chama com
+   * os `searchParams` crus. Estes nunca chegam aqui de propósito: as props de
+   * um componente são serializadas na carga que vai para o browser, e a query
+   * crua traria consigo qualquer chave que alguém tivesse forçado no URL.
+   */
+  filtros: CatalogFilters
+  atributosAtivos: AttributeDef[]
   /** Texto do estado vazio quando não há filtros nenhuns aplicados. */
   vazio: { titulo: string; texto: string }
 }
@@ -35,37 +39,32 @@ type Props = {
  * conjunto de filtros por omissão — nenhum caminho novo, só o parâmetro que
  * já era opcional a chegar vazio.
  */
-export async function Catalogo({ titulo, descricao, categoriaId, searchParams, vazio }: Props) {
-  const filtros = parseFilters(searchParams)
-
+export async function Catalogo({
+  titulo,
+  descricao,
+  categoriaId,
+  filtros,
+  atributosAtivos,
+  vazio,
+}: Props) {
   // O universo SEM os filtros do pedido: é dele que saem os limites de preço,
   // as marcas e os valores de atributo REAIS — nunca uma constante e nunca
   // reduzido pelos próprios filtros que se está a montar (senão a barra de
   // preço encolhia sozinha a cada seleção). A lista efetivamente mostrada
   // (`produtos`, abaixo) é uma segunda leitura, já com os filtros aplicados.
-  const [todos, atributoDefs, configuracaoFiltros] = await Promise.all([
+  const [todos, produtos] = await Promise.all([
     listProducts({ ordem: 'relevancia' }, categoriaId),
-    listAttributeDefs(),
-    getConfiguracaoFiltros(),
+    listProducts(filtros, categoriaId, atributosAtivos),
   ])
 
-  const atributosAtivos = resolveActiveAttributeDefs(atributoDefs, configuracaoFiltros, categoriaId)
   const facetas = computeAttributeFacets(todos, atributosAtivos)
   const bounds = precoBounds(todos)
   const marcas = marcasDisponiveis(todos)
 
-  // Só o que corresponde a um atributo ativo continua daqui em diante — nem
-  // para filtrar, nem para o estado da UI. Uma chave forçada no URL para um
-  // atributo interno (que nunca chega a `atributosAtivos`) fica sem efeito
-  // nenhum E sem rasto nenhum: não filtra, e não aparece no HTML nem no
-  // estado serializado das Client Components abaixo.
-  const filtrosVisiveis = restringirAtributosAtivos(filtros, atributosAtivos)
-
-  const produtos = await listProducts(filtrosVisiveis, categoriaId, atributosAtivos)
   const comFiltros = Boolean(
-    filtrosVisiveis.marca?.length ||
-      filtrosVisiveis.precoMin !== undefined ||
-      Object.keys(filtrosVisiveis.atributos ?? {}).length > 0,
+    filtros.marca?.length ||
+      filtros.precoMin !== undefined ||
+      Object.keys(filtros.atributos ?? {}).length > 0,
   )
 
   return (
@@ -79,7 +78,7 @@ export async function Catalogo({ titulo, descricao, categoriaId, searchParams, v
         <p className="text-ink-muted">
           {produtos.length === 1 ? '1 produto' : `${produtos.length} produtos`}
         </p>
-        <OrdenarPor filtrosAtuais={filtrosVisiveis} />
+        <OrdenarPor filtrosAtuais={filtros} />
       </div>
 
       <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
@@ -87,7 +86,7 @@ export async function Catalogo({ titulo, descricao, categoriaId, searchParams, v
           marcas={marcas}
           bounds={bounds}
           atributos={facetas}
-          filtrosAtuais={filtrosVisiveis}
+          filtrosAtuais={filtros}
         />
 
         <div className="min-w-0 flex-1">

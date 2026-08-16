@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { lerFiltros } from '../../modules/catalog'
 import { Catalogo } from '../../components/catalog/Catalogo'
 
 export const metadata: Metadata = {
@@ -23,11 +24,15 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
  * que ninguém dá a uma categoria de loja de animais.
  */
 export default async function ProdutosPage({ searchParams }: Props) {
+  // A query string crua morre aqui — ver `lerFiltros`.
+  const { filtros, atributosAtivos } = await lerFiltros(await searchParams)
+
   return (
     <Catalogo
       titulo="Todos os produtos"
       descricao="Tudo o que está à venda, de uma vez. Filtra por marca, preço ou característica."
-      searchParams={await searchParams}
+      filtros={filtros}
+      atributosAtivos={atributosAtivos}
       vazio={{
         titulo: 'A loja está a ser preparada',
         texto: 'Ainda não há produtos publicados. Volta em breve.',

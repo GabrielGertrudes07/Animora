@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getCategoryBySlug, listCategories } from '../../modules/catalog'
+import { getCategoryBySlug, lerFiltros, listCategories } from '../../modules/catalog'
 import { Catalogo } from '../../components/catalog/Catalogo'
 
 type Props = {
@@ -32,11 +32,16 @@ export default async function CategoriaPage({ params, searchParams }: Props) {
   // estado vazio (dentro de `Catalogo`). São situações diferentes.
   if (!cat) notFound()
 
+  // A query string crua morre aqui: o que segue para dentro já é só o que
+  // corresponde a um filtro ativo desta categoria. Ver `lerFiltros`.
+  const { filtros, atributosAtivos } = await lerFiltros(await searchParams, cat.id)
+
   return (
     <Catalogo
       titulo={cat.name}
       categoriaId={cat.id}
-      searchParams={await searchParams}
+      filtros={filtros}
+      atributosAtivos={atributosAtivos}
       vazio={{
         titulo: 'Ainda sem produtos nesta categoria',
         texto: 'Volta em breve — estamos a preparar novidades.',
