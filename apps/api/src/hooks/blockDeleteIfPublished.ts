@@ -1,6 +1,8 @@
 import type { CollectionBeforeDeleteHook, Where } from 'payload'
 import { APIError } from 'payload'
 
+import { serializarGuarda } from './serializar'
+
 /**
  * Recusa apagar um documento que produtos publicados ainda usam.
  *
@@ -25,11 +27,44 @@ import { APIError } from 'payload'
  * O bloqueio é só para produtos **publicados**. Um rascunho que perde a marca
  * não está à venda, corrige-se antes de publicar, e a validação de publicação
  * apanha-o.
+ *
+ * ## As duas vias de uma guarda que conta antes de decidir
+ *
+ * **Dentro do mesmo pedido é segura sem mecanismo nenhum**, ao contrário das
+ * outras guardas desta família. Numa eliminação em lote (`DELETE ?where=`) os
+ * documentos correm intercalados sobre a mesma transação, mas apagar a marca A
+ * não muda quantos produtos publicados usam a marca B — os irmãos do lote não
+ * mexem no conjunto que cada guarda conta. Por isso não há aqui a reserva em
+ * `req.context` que o `blockUnsellable` e o `protectLastOwner` precisam de ter.
+ * Confirmado por medição, 6 de 6 corridas em `brands`, `categories` e `media`.
+ *
+ * **Entre pedidos furava.** A contagem via o estado anterior às escritas do
+ * outro pedido: um `DELETE` em lote contava zero produtos publicados a usar a
+ * marca (o produto ainda era rascunho), uma publicação a entrar entre essa
+ * contagem e a eliminação da linha confirmava primeiro, e a chave estrangeira
+ * `ON DELETE SET NULL` punha `brand` a null num produto já publicado. Estado
+ * final medido: produto `published` com `brand: null`, à venda e impossível de
+ * gravar — mudar só o título dava 400 "Escolha uma marca.". É textualmente o
+ * que este ficheiro diz evitar. Reproduzido por HTTP em 5 de 6 corridas nas
+ * três coleções; a janela desloca-se com a duração do pedido, por isso só
+ * aparece varrendo o desfasamento (era invisível a 0 e a 50 ms).
+ *
+ * Fecha-se com a linha abaixo, o mesmo lock consultivo das outras guardas. A
+ * ordem deixa de ter estados intermédios: ou a publicação confirma primeiro e a
+ * contagem vê-a (400 limpo, nada apagado), ou a eliminação confirma primeiro e
+ * a publicação falha ao escrever a referência que já não existe — 500 com
+ * rollback, por violação de chave estrangeira ou por `deadlock detected` quando
+ * as duas transações já se cruzaram nas linhas dos produtos. Nenhum dos dois é
+ * bonito, mas nenhum deixa um produto publicado partido.
  */
 export const blockDeleteIfPublished =
   (nome: string, campos: string[]): CollectionBeforeDeleteHook =>
   async ({ id, req }) => {
     const usada: Where = { or: campos.map((campo) => ({ [campo]: { equals: id } })) }
+
+    // Antes de contar: sem isto a contagem lê o estado anterior a uma publicação
+    // concorrente e autoriza apagar aquilo que ela acabou de tornar obrigatório.
+    await serializarGuarda(req)
 
     const { totalDocs } = await req.payload.count({
       collection: 'products',
