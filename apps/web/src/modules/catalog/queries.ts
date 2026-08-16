@@ -38,9 +38,10 @@ function slugParaQuery(slug: string): string {
   }
 }
 
-async function variantsOf(productId: number) {
+async function variantsOf(productId: number, revalidate?: number) {
   const res = await apiGet<Paginated<Record<string, unknown>>>(
     `/api/variants?limit=${NO_LIMIT}&depth=0&where[product][equals]=${productId}`,
+    revalidate,
   )
   return res.docs
 }
@@ -103,6 +104,64 @@ export async function getProductBySlug(slug: string): Promise<PublicProduct | nu
 
   const p = sanitizeProduct({ ...doc, variants: await variantsOf(Number(doc.id)) })
   return p.variants.length > 0 ? p : null
+}
+
+/**
+ * Sem cache: é para o carrinho e para o checkout.
+ *
+ * As páginas de catálogo revalidam a cada 60 segundos porque um preço com um
+ * minuto de atraso numa listagem é aceitável. No carrinho não é: o número que
+ * aparece ali é o que a pessoa vai pagar, e o servidor relê os preços da base
+ * no instante do checkout. Um minuto de cache aqui é um minuto em que o ecrã
+ * pode dizer um valor e a fatura outro.
+ */
+const SEM_CACHE = 0
+
+/**
+ * Produtos publicados por id, com variantes e já sanitizados.
+ *
+ * Serve os favoritos (ids de produto guardados na conta) e, por baixo, o
+ * carrinho. Um id que não exista ou cujo produto tenha sido despublicado
+ * simplesmente não vem na resposta — é o mesmo caminho que a loja já usa para
+ * não mostrar o que não está à venda, e não uma verificação nova.
+ */
+export async function listProductsByIds(ids: number[]): Promise<PublicProduct[]> {
+  if (ids.length === 0) return []
+
+  const res = await apiGet<Paginated<Record<string, unknown>>>(
+    `/api/products?limit=${NO_LIMIT}&depth=2&where[id][in]=${ids.join(',')}` +
+      `&where[_status][equals]=published`,
+    SEM_CACHE,
+  )
+
+  const comVariantes = await Promise.all(
+    res.docs.map(async (d) => ({ ...d, variants: await variantsOf(Number(d.id), SEM_CACHE) })),
+  )
+
+  return comVariantes.map(sanitizeProduct).filter((p) => p.variants.length > 0)
+}
+
+/**
+ * Os produtos a que pertencem estas variantes — o caminho do carrinho.
+ *
+ * O carrinho no browser guarda ids de variante e mais nada, por isso é preciso
+ * ir da variante ao produto para saber título, imagem e preço. Duas leituras e
+ * não uma: `/api/variants` só devolve as variantes de produtos publicados
+ * (`soDeProdutosPublicados`), e daí sai o conjunto de ids de produto a pedir.
+ *
+ * Uma variante apagada, desativada ou de um produto despublicado não vem — e é
+ * assim que a página do carrinho descobre que tem de a tirar de lá.
+ */
+export async function listProductsByVariantIds(variantIds: number[]): Promise<PublicProduct[]> {
+  if (variantIds.length === 0) return []
+
+  const res = await apiGet<Paginated<{ product?: unknown }>>(
+    `/api/variants?limit=${NO_LIMIT}&depth=0&where[id][in]=${variantIds.join(',')}`,
+    SEM_CACHE,
+  )
+
+  const ids = [...new Set(res.docs.map((v) => Number(v.product)).filter(Number.isInteger))]
+  return listProductsByIds(ids)
 }
 
 /** Para `generateStaticParams` da ficha de produto. */

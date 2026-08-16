@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import '../styles/globals.css'
 import { Header } from '../components/layout/Header'
 import { Footer } from '../components/layout/Footer'
+import { CarrinhoProvider } from '../modules/cart/CarrinhoProvider'
 
 export const metadata: Metadata = {
   title: {
@@ -22,9 +23,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Saltar para o conteúdo
         </a>
-        <Header />
-        {children}
-        <Footer />
+        {/*
+          O carrinho envolve a aplicação inteira porque o cabeçalho mostra o
+          número de artigos em todas as páginas. Não lê cookies nem sessão do
+          lado do servidor de propósito: `cookies()` aqui tornava TODAS as
+          páginas dinâmicas, incluindo as fichas de produto, que são geradas
+          estaticamente. A sessão é perguntada do cliente, depois de montar.
+        */}
+        <CarrinhoProvider>
+          <Header />
+          {children}
+          <Footer />
+        </CarrinhoProvider>
       </body>
     </html>
   )

@@ -6,6 +6,7 @@ import { formatEuros } from '@animora/core'
 import { mediaUrl } from '../../../lib/api'
 import { descriptionToHtml } from '../../../lib/richtext'
 import { Price } from '../../../components/ui/Price'
+import { AdicionarAoCarrinho } from '../../../components/ui/AdicionarAoCarrinho'
 import { Icon } from '../../../components/icons/sprite'
 
 type Props = { params: Promise<{ slug: string }> }
@@ -85,22 +86,36 @@ export default async function ProdutoPage({ params }: Props) {
             baixo, a começar por uma opção que custa outra coisa. Não é um
             seletor — é a lista que já existia, a dizer o preço de cada linha.
           */}
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {p.variants.map((v) => (
-              <li
-                key={v.id}
-                className="rounded-lg border border-line px-3 py-2 text-sm text-ink"
-              >
-                {Object.entries(v.combination).map(([k, val]) => `${k}: ${val}`).join(' · ') ||
-                  'Padrão'}
-                {preco.desde ? (
-                  <span className="ml-2 font-semibold">{formatEuros(v.priceCents)}</span>
-                ) : null}
-                <span className="ml-2 text-ink-muted">
-                  {v.stock > 0 ? `${v.stock} em stock` : 'esgotado'}
-                </span>
-              </li>
-            ))}
+          <ul className="mt-3 flex flex-col gap-2">
+            {p.variants.map((v) => {
+              const opcoes =
+                Object.entries(v.combination)
+                  .map(([k, val]) => `${k}: ${val}`)
+                  .join(' · ') || 'Padrão'
+
+              return (
+                <li
+                  key={v.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line px-3 py-2 text-sm text-ink"
+                >
+                  <span>
+                    {opcoes}
+                    {preco.desde ? (
+                      <span className="ml-2 font-semibold">{formatEuros(v.priceCents)}</span>
+                    ) : null}
+                    <span className="ml-2 text-ink-muted">
+                      {v.stock > 0 ? `${v.stock} em stock` : 'esgotado'}
+                    </span>
+                  </span>
+                  {/* Só o id e dois valores simples atravessam para o cliente. */}
+                  <AdicionarAoCarrinho
+                    variantId={v.id}
+                    esgotado={v.stock < 1}
+                    etiqueta={`${p.title} — ${opcoes}`}
+                  />
+                </li>
+              )
+            })}
           </ul>
 
           <p className="mt-8 flex items-center gap-2 text-sm text-ink-muted">

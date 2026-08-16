@@ -2,6 +2,8 @@ export {
   listProducts,
   getProductBySlug,
   listAllSlugs,
+  listProductsByIds,
+  listProductsByVariantIds,
   listBrands,
   listCategories,
   getCategoryBySlug,
