@@ -1,8 +1,10 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
 import { listCategories } from '../../modules/catalog'
+import { Link } from '../../i18n/navigation'
 import { CarrinhoBotao } from './CarrinhoBotao'
+import { SeletorIdioma } from './SeletorIdioma'
 import { Icon } from '../icons/sprite'
 
 /**
@@ -24,15 +26,15 @@ import { Icon } from '../icons/sprite'
  * um Client Component — o resto continua a ser lido no servidor.
  */
 export async function Header() {
-  const categorias = await listCategories()
+  const [categorias, t] = await Promise.all([listCategories(), getTranslations('Header')])
 
   return (
     <header className="border-b border-line bg-white">
       <p className="bg-ink px-6 py-2 text-center text-xs font-semibold text-cream sm:text-sm">
-        Envio grátis acima de {formatEuros(ENVIO_GRATIS_ACIMA_DE)}. Sempre, não só em promoção.
+        {t('envioGratis', { valor: formatEuros(ENVIO_GRATIS_ACIMA_DE) })}
       </p>
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-6 py-4">
-        <Link href="/" className="flex shrink-0 flex-col" aria-label="Animora — página inicial">
+        <Link href="/" className="flex shrink-0 flex-col" aria-label={t('logoAria')}>
           <Image
             src="/logo-cabecalho.png"
             alt="Animora"
@@ -42,7 +44,7 @@ export async function Header() {
             priority
           />
           <span className="mt-0.5 hidden pl-1 text-xs font-medium text-ink-muted lg:block">
-            cuidados a sério, sem ser sério demais
+            {t('slogan')}
           </span>
         </Link>
 
@@ -55,25 +57,26 @@ export async function Header() {
           <input
             type="search"
             name="q"
-            placeholder="O que o teu animal precisa hoje?"
-            aria-label="Pesquisar produtos"
+            placeholder={t('pesquisarPlaceholder')}
+            aria-label={t('pesquisarAria')}
             className="w-full min-w-0 bg-transparent text-sm text-ink placeholder:text-ink-muted focus:outline-none"
           />
         </form>
 
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0">
+          <SeletorIdioma />
           <Link
             href="/conta"
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
           >
             <Icon name="paw" className="h-5 w-5" />
-            <span className="hidden sm:inline">Conta</span>
+            <span className="hidden sm:inline">{t('conta')}</span>
           </Link>
           <CarrinhoBotao />
         </div>
       </div>
 
-      <nav aria-label="Categorias" className="border-t border-line">
+      <nav aria-label={t('categoriasAria')} className="border-t border-line">
         <ul className="mx-auto flex max-w-7xl gap-1 overflow-x-auto whitespace-nowrap px-6 py-2 text-sm">
           {/* Primeiro item, sempre: a loja inteira. Sem ele só se chegava a
               produtos escolhendo primeiro uma categoria. */}
@@ -82,7 +85,7 @@ export async function Header() {
               href="/produtos"
               className="block rounded-lg px-3 py-1.5 font-medium text-ink transition-colors hover:bg-cream"
             >
-              Todos os produtos
+              {t('todosOsProdutos')}
             </Link>
           </li>
           {categorias.map((c) => (
