@@ -36,18 +36,32 @@ export type Encomenda = {
   moradaEnvio: Morada
 }
 
-const ESTADOS: Record<string, string> = {
-  'a-aguardar-pagamento': 'A aguardar pagamento',
-  pago: 'Pago',
-  enviado: 'Enviado',
-  entregue: 'Entregue',
-  cancelado: 'Cancelado',
+const CHAVES_ESTADO: Record<string, string> = {
+  'a-aguardar-pagamento': 'estadoAAguardarPagamento',
+  pago: 'estadoPago',
+  enviado: 'estadoEnviado',
+  entregue: 'estadoEntregue',
+  cancelado: 'estadoCancelado',
 }
 
-export const estadoLegivel = (estado: string): string => ESTADOS[estado] ?? estado
+/**
+ * `t` é o `getTranslations('Encomendas')` de quem chama — mantém as etiquetas
+ * de estado no mesmo sistema de mensagens do resto da loja, em vez de duplicar
+ * a tradução aqui dentro de um módulo de dados.
+ */
+export const estadoLegivel = (estado: string, t: (chave: string) => string): string => {
+  const chave = CHAVES_ESTADO[estado]
+  return chave ? t(chave) : estado
+}
 
-export const dataLegivel = (iso: string): string =>
-  new Date(iso).toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' })
+const LOCALE_DATA: Record<string, string> = { pt: 'pt-PT', de: 'de-DE' }
+
+export const dataLegivel = (iso: string, locale: string): string =>
+  new Date(iso).toLocaleDateString(LOCALE_DATA[locale] ?? locale, {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
 
 type Bruto = Record<string, unknown>
 

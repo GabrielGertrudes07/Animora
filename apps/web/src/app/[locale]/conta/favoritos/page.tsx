@@ -1,41 +1,49 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
+import { Link, redirect } from '../../../../i18n/navigation'
 import { clienteAtual } from '../../../../modules/account/sessao'
 import { listProductsByIds } from '../../../../modules/catalog'
 import { EstadoVazio } from '../../../../components/ui/EstadoVazio'
 import { ProductCard } from '../../../../components/ui/ProductCard'
 
-export const metadata: Metadata = { title: 'Favoritos' }
+type Props = { params: Promise<{ locale: string }> }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'FavoritosPage' })
+  return { title: t('metaTitulo') }
+}
 
 /**
  * Os favoritos são ids de produto guardados na conta. Os produtos em si vêm do
  * catálogo, pelo mesmo caminho sanitizado de sempre — um favorito de um produto
  * entretanto despublicado simplesmente não aparece.
  */
-export default async function FavoritosPage() {
+export default async function FavoritosPage({ params }: Props) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('FavoritosPage')
+
   const cliente = await clienteAtual()
-  if (!cliente) redirect('/conta/entrar?voltar=/conta/favoritos')
+  if (!cliente) {
+    return redirect({ href: { pathname: '/conta/entrar', query: { voltar: '/conta/favoritos' } }, locale })
+  }
 
   const produtos = await listProductsByIds(cliente.favoritos)
 
   return (
     <main id="conteudo" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <Link href="/conta" className="text-sm text-ink-muted underline hover:text-ink">
-        A minha conta
+        {t('minhaConta')}
       </Link>
-      <h1 className="mt-2 text-3xl font-bold text-ink">Favoritos</h1>
+      <h1 className="mt-2 text-3xl font-bold text-ink">{t('titulo')}</h1>
 
       {produtos.length === 0 ? (
         <div className="mt-8">
-          <EstadoVazio
-            ilustracao="coracao"
-            titulo="Ainda não guardou nenhum favorito"
-            texto="Na ficha de cada produto há um coração para o guardar aqui."
-          >
+          <EstadoVazio ilustracao="coracao" titulo={t('vazioTitulo')} texto={t('vazioTexto')}>
             <Link href="/produtos" className="botao-principal">
-              Ver produtos
+              {t('verProdutos')}
             </Link>
           </EstadoVazio>
         </div>

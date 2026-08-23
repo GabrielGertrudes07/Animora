@@ -1,7 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { Link } from '../../i18n/navigation'
 
 import { alternarFavorito, ehFavorito } from '../../modules/account/acoes'
 import { Icon } from '../icons/sprite'
@@ -21,6 +22,7 @@ export function BotaoFavorito({ productId }: { productId: number }) {
   const [favorito, setFavorito] = useState<boolean | null>(null)
   const [carregado, setCarregado] = useState(false)
   const [erro, setErro] = useState('')
+  const t = useTranslations('BotaoFavorito')
 
   useEffect(() => {
     void ehFavorito(productId).then((estado) => {
@@ -38,7 +40,7 @@ export function BotaoFavorito({ productId }: { productId: number }) {
         className="inline-flex items-center gap-2 text-sm font-medium text-ink-muted underline transition-colors hover:text-ink"
       >
         <Icon name="heart" className="h-4 w-4" />
-        Entre na conta para guardar nos favoritos
+        {t('entrarParaGuardar')}
       </Link>
     )
   }
@@ -65,7 +67,7 @@ export function BotaoFavorito({ productId }: { productId: number }) {
         }`}
       >
         <Icon name="heart" className="h-4 w-4" />
-        {favorito ? 'Nos favoritos' : 'Guardar nos favoritos'}
+        {favorito ? t('nosFavoritos') : t('guardarNosFavoritos')}
       </button>
       {erro ? <p className="mt-2 text-sm text-terracota-dark">{erro}</p> : null}
     </div>

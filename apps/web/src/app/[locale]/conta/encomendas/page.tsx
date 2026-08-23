@@ -1,35 +1,46 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { formatEuros } from '@animora/core'
 
+import { Link, redirect } from '../../../../i18n/navigation'
 import { clienteAtual } from '../../../../modules/account/sessao'
 import { dataLegivel, estadoLegivel, listarEncomendas } from '../../../../modules/account/encomendas'
 import { EstadoVazio } from '../../../../components/ui/EstadoVazio'
 
-export const metadata: Metadata = { title: 'As minhas encomendas' }
+type Props = { params: Promise<{ locale: string }> }
 
-export default async function EncomendasPage() {
-  if (!(await clienteAtual())) redirect('/conta/entrar?voltar=/conta/encomendas')
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'EncomendasPage' })
+  return { title: t('metaTitulo') }
+}
 
-  const encomendas = await listarEncomendas()
+export default async function EncomendasPage({ params }: Props) {
+  const { locale } = await params
+  setRequestLocale(locale)
+
+  if (!(await clienteAtual())) {
+    redirect({ href: { pathname: '/conta/entrar', query: { voltar: '/conta/encomendas' } }, locale })
+  }
+
+  const [t, tEstados, encomendas] = await Promise.all([
+    getTranslations('EncomendasPage'),
+    getTranslations('Encomendas'),
+    listarEncomendas(),
+  ])
 
   return (
     <main id="conteudo" className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <Link href="/conta" className="text-sm text-ink-muted underline hover:text-ink">
-        A minha conta
+        {t('minhaConta')}
       </Link>
-      <h1 className="mt-2 text-3xl font-bold text-ink">Encomendas</h1>
+      <h1 className="mt-2 text-3xl font-bold text-ink">{t('titulo')}</h1>
 
       {encomendas.length === 0 ? (
         <div className="mt-8">
-          <EstadoVazio
-            ilustracao="caixa"
-            titulo="Ainda não fez nenhuma encomenda"
-            texto="Quando fizer a primeira, fica aqui com o estado e o detalhe de cada linha."
-          >
+          <EstadoVazio ilustracao="caixa" titulo={t('vazioTitulo')} texto={t('vazioTexto')}>
             <Link href="/produtos" className="botao-principal">
-              Ver produtos
+              {t('verProdutos')}
             </Link>
           </EstadoVazio>
         </div>
@@ -44,11 +55,11 @@ export default async function EncomendasPage() {
                 >
                   {e.numero}
                 </Link>
-                <span className="text-sm text-ink-muted">{dataLegivel(e.criadaEm)}</span>
+                <span className="text-sm text-ink-muted">{dataLegivel(e.criadaEm, locale)}</span>
               </div>
-              <p className="mt-1 text-sm text-ink-muted">{estadoLegivel(e.estado)}</p>
+              <p className="mt-1 text-sm text-ink-muted">{estadoLegivel(e.estado, tEstados)}</p>
               <p className="mt-2 text-sm text-ink">
-                {e.linhas.length} {e.linhas.length === 1 ? 'artigo' : 'artigos'} ·{' '}
+                {t('artigos', { count: e.linhas.length })} ·{' '}
                 <strong>{formatEuros(e.totalCents)}</strong>
               </p>
             </li>
