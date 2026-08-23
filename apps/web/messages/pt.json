@@ -49,7 +49,7 @@
   },
   "Catalogo": {
     "contagemProdutos": "{count, plural, one {1 produto} other {# produtos}}",
-    "semResultadosTitulo": "Sem resultados para \"{q}\"",
+    "semResultadosTitulo": "Sem resultados para “{q}”",
     "semResultadosTexto": "Experimenta uma palavra mais curta — o nome do produto, a marca ou o animal.",
     "limparPesquisa": "Limpar a pesquisa",
     "semFiltrosTitulo": "Nenhum produto corresponde aos filtros",
@@ -58,7 +58,7 @@
   "ProdutosPage": {
     "metaTitulo": "Todos os produtos",
     "metaDescricao": "A loja inteira da Animora: alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.",
-    "resultadosPara": "Resultados para \"{q}\"",
+    "resultadosPara": "Resultados para “{q}”",
     "todosOsProdutos": "Todos os produtos",
     "descricaoComPesquisa": "Procurámos no título, na marca e na categoria de tudo o que está publicado.",
     "descricaoSemPesquisa": "Tudo o que está à venda, de uma vez. Filtra por marca, preço ou característica.",

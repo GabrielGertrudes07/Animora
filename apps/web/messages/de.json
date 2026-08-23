@@ -49,7 +49,7 @@
   },
   "Catalogo": {
     "contagemProdutos": "{count, plural, one {1 Produkt} other {# Produkte}}",
-    "semResultadosTitulo": "Keine Ergebnisse für „{q}\"",
+    "semResultadosTitulo": "Keine Ergebnisse für „{q}“",
     "semResultadosTexto": "Versuch es mit einem kürzeren Wort — dem Produktnamen, der Marke oder dem Tier.",
     "limparPesquisa": "Suche löschen",
     "semFiltrosTitulo": "Kein Produkt entspricht den Filtern",
@@ -58,7 +58,7 @@
   "ProdutosPage": {
     "metaTitulo": "Alle Produkte",
     "metaDescricao": "Der ganze Animora-Shop: Futter, Zubehör, Pflege und Training für Hunde, Katzen, Vögel und Kleintiere.",
-    "resultadosPara": "Ergebnisse für „{q}\"",
+    "resultadosPara": "Ergebnisse für „{q}“",
     "todosOsProdutos": "Alle Produkte",
     "descricaoComPesquisa": "Wir haben im Titel, in der Marke und in der Kategorie von allem gesucht, was veröffentlicht ist.",
     "descricaoSemPesquisa": "Alles, was es zu kaufen gibt, auf einen Blick. Filtere nach Marke, Preis oder Eigenschaft.",
@@ -270,16 +270,16 @@
   "AprovadoPorQuemManda": {
     "titulo": "Von den Chefs persönlich abgesegnet",
     "texto": "Das haben nicht wir gesagt. Das haben sie gesagt.",
-    "testemunho1Fala": "„Der Pullover ist lächerlich. Zieh ihn mir nicht aus.\"",
+    "testemunho1Fala": "„Der Pullover ist lächerlich. Zieh ihn mir nicht aus.“",
     "testemunho1Assinatura": "— Óscar, 2 Jahre, Französische Bulldogge",
     "testemunho1Alt": "Französische Bulldogge mit gelbem Pullover vor blauem Hintergrund",
-    "testemunho2Fala": "„Ich verstecke das Verbrechen im neuen Streu. Geräuschlos. 5 Sterne.\"",
+    "testemunho2Fala": "„Ich verstecke das Verbrechen im neuen Streu. Geräuschlos. 5 Sterne.“",
     "testemunho2Assinatura": "— Mimi, 1 Jahr, Katze",
     "testemunho2Alt": "Kätzchen streckt die Pfote nach oben, vor türkisfarbenem Hintergrund",
-    "testemunho3Fala": "„Ich habe das Halsband getestet. Bin noch da. Freigegeben.\"",
+    "testemunho3Fala": "„Ich habe das Halsband getestet. Bin noch da. Freigegeben.“",
     "testemunho3Assinatura": "— Bóris, 3 Monate, Golden Retriever",
     "testemunho3Alt": "Golden-Retriever-Welpe mit Halsband, sitzt an einem sonnigen Tag im Garten",
-    "testemunho4Fala": "„Ich habe 14 Stunden im neuen Bett geschlafen. Keine Reue.\"",
+    "testemunho4Fala": "„Ich habe 14 Stunden im neuen Bett geschlafen. Keine Reue.“",
     "testemunho4Assinatura": "— Simba, 4 Jahre, Katze",
     "testemunho4Alt": "Orangefarbene getigerte Katze liegt auf einem Holztisch"
   },
