@@ -1,6 +1,7 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { useRouter } from '../../../i18n/navigation'
 
 import { sair } from '../../../modules/account/acoes'
 import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
@@ -15,6 +16,7 @@ import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
 export function BotaoSair() {
   const router = useRouter()
   const { sairDaConta } = useCarrinho()
+  const t = useTranslations('ContaPage')
 
   return (
     <button
@@ -28,7 +30,7 @@ export function BotaoSair() {
       }}
       className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
     >
-      Sair
+      {t('sair')}
     </button>
   )
 }

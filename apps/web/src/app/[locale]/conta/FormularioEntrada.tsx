@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { Link, useRouter } from '../../../i18n/navigation'
 
 import { entrar, registar } from '../../../modules/account/acoes'
 import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
@@ -15,13 +15,14 @@ import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
  * por variante (nunca a soma). Quem tinha 2 no browser e 2 na conta continua a
  * ter 2.
  *
- * `voltar` é para não perder a compra a meio: quem chegou aqui empurrado pelo
- * `/checkout` volta ao `/checkout`, com o carrinho intacto — ele nunca saiu do
- * `localStorage`.
+ * `voltar` chega sempre sem prefixo de idioma (ver Task 9/10) — `router.push`
+ * é o `useRouter` locale-aware de `i18n/navigation`, que acrescenta o prefixo
+ * certo sozinho.
  */
 export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar'; voltar: string }) {
   const router = useRouter()
   const { entrarNaConta } = useCarrinho()
+  const t = useTranslations('FormularioEntrada')
 
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
@@ -55,7 +56,7 @@ export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar
       {ehRegisto ? (
         <div>
           <label htmlFor="nome" className="block text-sm font-medium text-ink">
-            Nome
+            {t('nome')}
           </label>
           <input
             id="nome"
@@ -71,7 +72,7 @@ export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar
 
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-ink">
-          Email
+          {t('email')}
         </label>
         <input
           id="email"
@@ -87,7 +88,7 @@ export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar
 
       <div>
         <label htmlFor="password" className="block text-sm font-medium text-ink">
-          Palavra-passe
+          {t('palavraPasse')}
         </label>
         <input
           id="password"
@@ -116,16 +117,16 @@ export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar
         disabled={aEnviar}
         className="rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark disabled:opacity-60"
       >
-        {aEnviar ? 'Um momento…' : ehRegisto ? 'Criar conta' : 'Entrar'}
+        {aEnviar ? t('umMomento') : ehRegisto ? t('criarConta') : t('entrar')}
       </button>
 
       <p className="text-sm text-ink-muted">
-        {ehRegisto ? 'Já tem conta? ' : 'Ainda não tem conta? '}
+        {ehRegisto ? t('jaTemConta') : t('aindaNaoTemConta')}
         <Link
           href={`/conta/${ehRegisto ? 'entrar' : 'registar'}?voltar=${encodeURIComponent(voltar)}`}
           className="underline hover:text-ink"
         >
-          {ehRegisto ? 'Entrar' : 'Criar conta'}
+          {ehRegisto ? t('entrar') : t('criarConta')}
         </Link>
       </p>
     </form>

@@ -1,18 +1,30 @@
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { redirect } from '../../../../i18n/navigation'
 
 import { clienteAtual, COOKIE_SESSAO } from '../../../../modules/account/sessao'
 import { FormularioEntrada } from '../FormularioEntrada'
 import { destinoSeguro } from '../destino'
 
-export const metadata: Metadata = { title: 'Entrar' }
+type Props = {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ voltar?: string }>
+}
 
-type Props = { searchParams: Promise<{ voltar?: string }> }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'EntrarPage' })
+  return { title: t('metaTitulo') }
+}
 
-export default async function EntrarPage({ searchParams }: Props) {
+export default async function EntrarPage({ params, searchParams }: Props) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('EntrarPage')
+
   const voltar = destinoSeguro((await searchParams).voltar)
-  if (await clienteAtual()) redirect(voltar)
+  if (await clienteAtual()) redirect({ href: voltar, locale })
 
   /**
    * Há cookie mas não há cliente: ou a sessão é da administração (o painel e a
@@ -25,17 +37,14 @@ export default async function EntrarPage({ searchParams }: Props) {
 
   return (
     <main id="conteudo" className="mx-auto max-w-md px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold text-ink">Entrar</h1>
+      <h1 className="text-3xl font-bold text-ink">{t('titulo')}</h1>
       {sessaoQueNaoServe ? (
         <p className="mt-2 rounded-lg border border-terracota bg-terracota/10 px-3 py-2 text-sm text-ink">
-          A sessão que tem aberta não é de cliente (ou já terminou). Quem trabalha na loja compra
-          com a sua conta de cliente, como toda a gente.
+          {t('sessaoQueNaoServe')}
         </p>
       ) : null}
       {voltar === '/checkout' ? (
-        <p className="mt-2 text-ink-muted">
-          O carrinho fica onde está — entre e continue a compra.
-        </p>
+        <p className="mt-2 text-ink-muted">{t('carrinhoFicaOndeEsta')}</p>
       ) : null}
       <FormularioEntrada modo="entrar" voltar={voltar} />
     </main>

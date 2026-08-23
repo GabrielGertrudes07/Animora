@@ -1,22 +1,34 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { Link, redirect } from '../../../i18n/navigation'
 
 import { clienteAtual } from '../../../modules/account/sessao'
 import { BotaoSair } from './BotaoSair'
 import { Moradas } from './Moradas'
 
-export const metadata: Metadata = { title: 'A minha conta' }
+type Props = { params: Promise<{ locale: string }> }
 
-export default async function ContaPage() {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'ContaPage' })
+  return { title: t('metaTitulo') }
+}
+
+export default async function ContaPage({ params }: Props) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('ContaPage')
+
   const cliente = await clienteAtual()
-  if (!cliente) redirect('/conta/entrar')
+  if (!cliente) {
+    return redirect({ href: '/conta/entrar', locale })
+  }
 
   return (
     <main id="conteudo" className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-ink">Olá, {cliente.nome}</h1>
+          <h1 className="text-3xl font-bold text-ink">{t('ola', { nome: cliente.nome })}</h1>
           <p className="mt-1 text-ink-muted">{cliente.email}</p>
         </div>
         <BotaoSair />
@@ -27,13 +39,13 @@ export default async function ContaPage() {
           href="/conta/encomendas"
           className="rounded-xl border border-line bg-white px-5 py-3 font-medium text-ink transition-colors hover:border-terracota"
         >
-          Encomendas
+          {t('encomendas')}
         </Link>
         <Link
           href="/conta/favoritos"
           className="rounded-xl border border-line bg-white px-5 py-3 font-medium text-ink transition-colors hover:border-terracota"
         >
-          Favoritos ({cliente.favoritos.length})
+          {t('favoritos', { count: cliente.favoritos.length })}
         </Link>
       </nav>
 

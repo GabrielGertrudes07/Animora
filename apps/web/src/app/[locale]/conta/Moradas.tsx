@@ -1,7 +1,8 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useRouter } from '../../../i18n/navigation'
 
 import { apagarMorada, guardarMorada } from '../../../modules/account/acoes'
 import type { Morada } from '../../../modules/account/sessao'
@@ -22,10 +23,12 @@ const VAZIA: Morada = {
  * O formato do código postal é verificado pelo browser (`pattern` nativo) e
  * pela coleção do Payload, que é quem decide o que fica gravado. Não há aqui
  * uma terceira cópia da expressão regular: duas versões da mesma regra acabam
- * sempre por discordar, e a que ganha é a que grava.
+ * sempre por discordar, e a que ganha é a que grava. Fica português em pt e em
+ * de nesta fase — internacionalizar o formato por país é o sub-projeto 3.
  */
 export function Moradas({ moradas }: { moradas: Morada[] }) {
   const router = useRouter()
+  const t = useTranslations('Moradas')
   const [nova, setNova] = useState<Morada>(VAZIA)
   const [aberto, setAberto] = useState(moradas.length === 0)
   const [erro, setErro] = useState('')
@@ -51,7 +54,7 @@ export function Moradas({ moradas }: { moradas: Morada[] }) {
 
   return (
     <section className="mt-10">
-      <h2 className="text-xl font-bold text-ink">Moradas</h2>
+      <h2 className="text-xl font-bold text-ink">{t('titulo')}</h2>
 
       {moradas.length > 0 ? (
         <ul className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -81,20 +84,20 @@ export function Moradas({ moradas }: { moradas: Morada[] }) {
                 }}
                 className="mt-3 text-sm text-ink-muted underline transition-colors hover:text-terracota-dark"
               >
-                Apagar
+                {t('apagar')}
               </button>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-2 text-ink-muted">Ainda não guardou nenhuma morada.</p>
+        <p className="mt-2 text-ink-muted">{t('semMoradas')}</p>
       )}
 
       {aberto ? (
         <form onSubmit={gravar} className="mt-4 grid gap-4 rounded-card bg-white p-4 shadow-sm sm:grid-cols-2">
           <Campo
             id="m-nome"
-            rotulo="Destinatário"
+            rotulo={t('destinatario')}
             valor={nova.nomeDestinatario}
             obrigatorio
             aoMudar={(v) => setNova({ ...nova, nomeDestinatario: v })}
@@ -102,7 +105,7 @@ export function Moradas({ moradas }: { moradas: Morada[] }) {
           />
           <Campo
             id="m-linha1"
-            rotulo="Morada"
+            rotulo={t('morada')}
             valor={nova.linha1}
             obrigatorio
             aoMudar={(v) => setNova({ ...nova, linha1: v })}
@@ -110,37 +113,37 @@ export function Moradas({ moradas }: { moradas: Morada[] }) {
           />
           <Campo
             id="m-linha2"
-            rotulo="Morada (cont.)"
+            rotulo={t('moradaCont')}
             valor={nova.linha2}
             aoMudar={(v) => setNova({ ...nova, linha2: v })}
             className="sm:col-span-2"
           />
           <Campo
             id="m-cp"
-            rotulo="Código postal"
+            rotulo={t('codigoPostal')}
             valor={nova.codigoPostal}
             obrigatorio
             padrao="\d{4}-\d{3}"
-            dica="1234-567"
+            dica={t('codigoPostalDica')}
             aoMudar={(v) => setNova({ ...nova, codigoPostal: v })}
           />
           <Campo
             id="m-localidade"
-            rotulo="Localidade"
+            rotulo={t('localidade')}
             valor={nova.localidade}
             obrigatorio
             aoMudar={(v) => setNova({ ...nova, localidade: v })}
           />
           <Campo
             id="m-telefone"
-            rotulo="Telefone"
+            rotulo={t('telefone')}
             valor={nova.telefone}
             tipo="tel"
             aoMudar={(v) => setNova({ ...nova, telefone: v })}
           />
           <Campo
             id="m-etiqueta"
-            rotulo="Etiqueta (Casa, Trabalho…)"
+            rotulo={t('etiqueta')}
             valor={nova.etiqueta}
             aoMudar={(v) => setNova({ ...nova, etiqueta: v })}
           />
@@ -160,7 +163,7 @@ export function Moradas({ moradas }: { moradas: Morada[] }) {
               disabled={aGravar}
               className="rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark disabled:opacity-60"
             >
-              {aGravar ? 'A gravar…' : 'Guardar morada'}
+              {aGravar ? t('aGravar') : t('guardarMorada')}
             </button>
             {moradas.length > 0 ? (
               <button
@@ -168,7 +171,7 @@ export function Moradas({ moradas }: { moradas: Morada[] }) {
                 onClick={() => setAberto(false)}
                 className="rounded-xl border border-line px-6 py-3 font-medium text-ink-muted transition-colors hover:text-ink"
               >
-                Cancelar
+                {t('cancelar')}
               </button>
             ) : null}
           </div>
@@ -179,7 +182,7 @@ export function Moradas({ moradas }: { moradas: Morada[] }) {
           onClick={() => setAberto(true)}
           className="mt-4 rounded-xl border border-line bg-white px-6 py-3 font-medium text-ink transition-colors hover:border-terracota"
         >
-          Acrescentar morada
+          {t('acrescentarMorada')}
         </button>
       )}
     </section>
