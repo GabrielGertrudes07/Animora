@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import {
   pesquisarProdutos,
   computeAttributeFacets,
@@ -8,6 +8,7 @@ import {
   type AttributeDef,
   type CatalogFilters,
 } from '../../modules/catalog'
+import { Link } from '../../i18n/navigation'
 import { ProductCard } from '../ui/ProductCard'
 import { EstadoVazio } from '../ui/EstadoVazio'
 import { CascataProdutos } from '../motion/CascataProdutos'
@@ -52,6 +53,7 @@ export async function Catalogo({
   atributosAtivos,
   vazio,
 }: Props) {
+  const t = await getTranslations('Catalogo')
   const q = filtros.q ?? ''
 
   // O universo SEM os filtros do pedido: é dele que saem os limites de preço,
@@ -91,9 +93,7 @@ export async function Catalogo({
       ) : null}
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
-        <p className="text-ink-muted">
-          {produtos.length === 1 ? '1 produto' : `${produtos.length} produtos`}
-        </p>
+        <p className="text-ink-muted">{t('contagemProdutos', { count: produtos.length })}</p>
         <OrdenarPor filtrosAtuais={filtros} />
       </div>
 
@@ -113,21 +113,21 @@ export async function Catalogo({
               // mandar a pessoa para o sítio errado.
               <EstadoVazio
                 ilustracao="lupa"
-                titulo={`Sem resultados para “${q}”`}
-                texto="Experimenta uma palavra mais curta — o nome do produto, a marca ou o animal."
+                titulo={t('semResultadosTitulo', { q })}
+                texto={t('semResultadosTexto')}
               >
                 <Link
                   href={semPesquisa ? `${caminho}?${semPesquisa}` : caminho}
                   className="inline-block rounded-lg bg-terracota px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-terracota-dark"
                 >
-                  Limpar a pesquisa
+                  {t('limparPesquisa')}
                 </Link>
               </EstadoVazio>
             ) : comFiltros ? (
               <EstadoVazio
                 ilustracao="lupa"
-                titulo="Nenhum produto corresponde aos filtros"
-                texto="Experimenta alargar o preço ou tirar uma das marcas escolhidas."
+                titulo={t('semFiltrosTitulo')}
+                texto={t('semFiltrosTexto')}
               />
             ) : (
               <EstadoVazio ilustracao="tigela" titulo={vazio.titulo} texto={vazio.texto} />

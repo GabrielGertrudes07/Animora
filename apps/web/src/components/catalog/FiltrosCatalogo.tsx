@@ -1,8 +1,9 @@
 'use client'
 
 import { useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { usePathname, useRouter } from '../../i18n/navigation'
+import { Link } from '../../i18n/navigation'
 import { formatEuros } from '@animora/core'
 import {
   filtersToQuery,
@@ -61,14 +62,20 @@ function Seccao({ titulo, aberta, children }: { titulo: string; aberta: boolean;
  * ponytail: filtro de preço só a euro inteiro; se um cliente pedir precisão
  * ao cêntimo, alargar o formato de `preco` em `parseFilters` primeiro.
  */
-function CamposFiltro({ marcas, bounds, atributos, filtrosAtuais }: Props) {
+function CamposFiltro({
+  marcas,
+  bounds,
+  atributos,
+  filtrosAtuais,
+  t,
+}: Props & { t: ReturnType<typeof useTranslations<'FiltrosCatalogo'>> }) {
   const precoMinEuros = bounds ? Math.floor(bounds.min / 100) : 0
   const precoMaxEuros = bounds ? Math.ceil(bounds.max / 100) : 0
 
   return (
     <div>
       {bounds ? (
-        <Seccao titulo="Preço" aberta>
+        <Seccao titulo={t('preco')} aberta>
           <div className="flex items-center gap-2 text-sm">
             <input
               type="number"
@@ -82,7 +89,7 @@ function CamposFiltro({ marcas, bounds, atributos, filtrosAtuais }: Props) {
               max={precoMaxEuros}
               step={1}
               inputMode="numeric"
-              aria-label="Preço mínimo em euros"
+              aria-label={t('precoMinAria')}
               className="w-full rounded-lg border border-line px-2 py-1.5 text-ink"
             />
             <span className="text-ink-muted">–</span>
@@ -98,7 +105,7 @@ function CamposFiltro({ marcas, bounds, atributos, filtrosAtuais }: Props) {
               max={precoMaxEuros}
               step={1}
               inputMode="numeric"
-              aria-label="Preço máximo em euros"
+              aria-label={t('precoMaxAria')}
               className="w-full rounded-lg border border-line px-2 py-1.5 text-ink"
             />
           </div>
@@ -109,7 +116,7 @@ function CamposFiltro({ marcas, bounds, atributos, filtrosAtuais }: Props) {
       ) : null}
 
       {marcas.length > 0 ? (
-        <Seccao titulo="Marca" aberta>
+        <Seccao titulo={t('marca')} aberta>
           <div className="flex flex-col gap-2">
             {marcas.map((m) => (
               <label key={m.slug} className="flex items-center gap-2 text-sm text-ink">
@@ -135,7 +142,7 @@ function CamposFiltro({ marcas, bounds, atributos, filtrosAtuais }: Props) {
                 type="number"
                 name={attr.chave}
                 defaultValue={filtrosAtuais.atributos?.[attr.chave]?.[0] ?? attr.min}
-                aria-label={`${attr.nome}, valor mínimo`}
+                aria-label={t('valorMinimoAria', { atributo: attr.nome })}
                 className="w-full rounded-lg border border-line px-2 py-1.5 text-ink"
               />
               <span className="text-ink-muted">–</span>
@@ -143,7 +150,7 @@ function CamposFiltro({ marcas, bounds, atributos, filtrosAtuais }: Props) {
                 type="number"
                 name={attr.chave}
                 defaultValue={filtrosAtuais.atributos?.[attr.chave]?.[1] ?? attr.max}
-                aria-label={`${attr.nome}, valor máximo`}
+                aria-label={t('valorMaximoAria', { atributo: attr.nome })}
                 className="w-full rounded-lg border border-line px-2 py-1.5 text-ink"
               />
             </div>
@@ -185,6 +192,7 @@ function CamposFiltro({ marcas, bounds, atributos, filtrosAtuais }: Props) {
  */
 export function FiltrosCatalogo(props: Props) {
   const { filtrosAtuais, atributos } = props
+  const t = useTranslations('FiltrosCatalogo')
   const router = useRouter()
   const pathname = usePathname()
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -264,17 +272,17 @@ export function FiltrosCatalogo(props: Props) {
       {/* Desktop: barra lateral sempre visível, nunca atrás de um botão. */}
       <aside className="hidden w-64 shrink-0 lg:block">
         <form onSubmit={aplicar}>
-          <CamposFiltro {...props} />
+          <CamposFiltro {...props} t={t} />
           <div className="mt-4 flex items-center gap-3">
             <button
               type="submit"
               className="rounded-lg bg-terracota px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-terracota-dark"
             >
-              Aplicar filtros
+              {t('aplicarFiltros')}
             </button>
             {numeroAtivos > 0 ? (
               <Link href={pathname} className="text-sm font-medium text-ink-muted underline hover:text-ink">
-                Limpar
+                {t('limpar')}
               </Link>
             ) : null}
           </div>
@@ -288,7 +296,7 @@ export function FiltrosCatalogo(props: Props) {
         className="flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink lg:hidden"
       >
         <Icon name="filter" className="h-4 w-4" />
-        Filtros
+        {t('filtros')}
         {numeroAtivos > 0 ? (
           <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-terracota px-1 text-xs font-semibold text-white">
             {numeroAtivos}
@@ -301,23 +309,23 @@ export function FiltrosCatalogo(props: Props) {
         onClick={(e) => {
           if (e.target === e.currentTarget) dialogRef.current?.close()
         }}
-        aria-label="Filtros do catálogo"
+        aria-label={t('filtrosAria')}
         className="m-0 max-h-[85vh] w-full max-w-full rounded-t-card border-t border-line bg-cream p-0 shadow-md backdrop:bg-ink/40 lg:hidden [&[open]]:fixed [&[open]]:inset-x-0 [&[open]]:bottom-0 [&[open]]:top-auto"
       >
         <form onSubmit={aplicar} className="flex max-h-[85vh] flex-col">
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
-            <h2 className="text-base font-semibold text-ink">Filtros</h2>
+            <h2 className="text-base font-semibold text-ink">{t('filtros')}</h2>
             <button
               type="button"
               onClick={() => dialogRef.current?.close()}
-              aria-label="Fechar filtros"
+              aria-label={t('fecharFiltrosAria')}
               className="rounded-lg p-1 text-ink-muted hover:text-ink"
             >
               <Icon name="close" className="h-5 w-5" />
             </button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
-            <CamposFiltro {...props} />
+            <CamposFiltro {...props} t={t} />
           </div>
           <div className="flex shrink-0 items-center gap-3 border-t border-line px-6 py-4">
             <button
@@ -325,7 +333,7 @@ export function FiltrosCatalogo(props: Props) {
               disabled={aplicando}
               className="flex-1 rounded-lg bg-terracota px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-terracota-dark disabled:opacity-60"
             >
-              Ver produtos
+              {t('verProdutos')}
             </button>
             {numeroAtivos > 0 ? (
               <Link
@@ -333,7 +341,7 @@ export function FiltrosCatalogo(props: Props) {
                 onClick={() => dialogRef.current?.close()}
                 className="text-sm font-medium text-ink-muted underline hover:text-ink"
               >
-                Limpar
+                {t('limpar')}
               </Link>
             ) : null}
           </div>

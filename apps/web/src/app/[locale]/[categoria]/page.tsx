@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getCategoryBySlug, lerFiltros, listCategories } from '../../../modules/catalog'
 import { Catalogo } from '../../../components/catalog/Catalogo'
 
 type Props = {
-  params: Promise<{ categoria: string }>
+  params: Promise<{ locale: string; categoria: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
@@ -15,18 +16,22 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { categoria } = await params
+  const { locale, categoria } = await params
   const cat = await getCategoryBySlug(categoria)
-  if (!cat) return { title: 'Categoria não encontrada' }
+  const t = await getTranslations({ locale, namespace: 'CategoriaPage' })
+  if (!cat) return { title: t('metaTituloIndisponivel') }
 
   return {
     title: cat.name,
-    description: `Produtos de ${cat.name} para o teu animal, na Animora.`,
+    description: t('metaDescricao', { categoria: cat.name }),
   }
 }
 
 export default async function CategoriaPage({ params, searchParams }: Props) {
-  const { categoria } = await params
+  const { locale, categoria } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('CategoriaPage')
+
   const cat = await getCategoryBySlug(categoria)
   // Categoria inexistente é 404 — categoria existente e vazia é 200 com
   // estado vazio (dentro de `Catalogo`). São situações diferentes.
@@ -43,10 +48,7 @@ export default async function CategoriaPage({ params, searchParams }: Props) {
       categoriaId={cat.id}
       filtros={filtros}
       atributosAtivos={atributosAtivos}
-      vazio={{
-        titulo: 'Ainda sem produtos nesta categoria',
-        texto: 'Volta em breve — estamos a preparar novidades.',
-      }}
+      vazio={{ titulo: t('vazioTitulo'), texto: t('vazioTexto') }}
     />
   )
 }

@@ -1,13 +1,8 @@
 'use client'
 
-import { useRouter, usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { usePathname, useRouter } from '../../i18n/navigation'
 import { filtersToQuery, type CatalogFilters, type SortKey } from '../../modules/catalog'
-
-const OPCOES: { value: SortKey; label: string }[] = [
-  { value: 'relevancia', label: 'Relevância' },
-  { value: 'preco-asc', label: 'Preço: do mais barato' },
-  { value: 'preco-desc', label: 'Preço: do mais caro' },
-]
 
 /**
  * Independente do painel de filtros de propósito: mudar a ordenação não abre
@@ -17,12 +12,19 @@ const OPCOES: { value: SortKey; label: string }[] = [
  * ter uma segunda forma de montar a query string.
  */
 export function OrdenarPor({ filtrosAtuais }: { filtrosAtuais: CatalogFilters }) {
+  const t = useTranslations('OrdenarPor')
   const router = useRouter()
   const pathname = usePathname()
 
+  const opcoes: { value: SortKey; label: string }[] = [
+    { value: 'relevancia', label: t('relevancia') },
+    { value: 'preco-asc', label: t('precoAsc') },
+    { value: 'preco-desc', label: t('precoDesc') },
+  ]
+
   return (
     <label className="flex items-center gap-2 text-sm text-ink-muted">
-      <span className="hidden sm:inline">Ordenar por</span>
+      <span className="hidden sm:inline">{t('rotulo')}</span>
       <select
         value={filtrosAtuais.ordem}
         onChange={(e) => {
@@ -31,7 +33,7 @@ export function OrdenarPor({ filtrosAtuais }: { filtrosAtuais: CatalogFilters })
         }}
         className="rounded-lg border border-line bg-white px-2 py-1.5 text-sm text-ink"
       >
-        {OPCOES.map((o) => (
+        {opcoes.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
           </option>

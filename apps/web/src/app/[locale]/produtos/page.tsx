@@ -1,14 +1,18 @@
 import type { Metadata } from 'next'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { lerFiltros } from '../../../modules/catalog'
 import { Catalogo } from '../../../components/catalog/Catalogo'
 
-export const metadata: Metadata = {
-  title: 'Todos os produtos',
-  description:
-    'A loja inteira da Animora: alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.',
+type Props = {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'ProdutosPage' })
+  return { title: t('metaTitulo'), description: t('metaDescricao') }
+}
 
 /**
  * A loja inteira, sem categoria.
@@ -23,7 +27,11 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
  * uma categoria com o slug `produtos` passaria a ser inalcançável, e é um nome
  * que ninguém dá a uma categoria de loja de animais.
  */
-export default async function ProdutosPage({ searchParams }: Props) {
+export default async function ProdutosPage({ params, searchParams }: Props) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('ProdutosPage')
+
   // A query string crua morre aqui — ver `lerFiltros`.
   const { filtros, atributosAtivos } = await lerFiltros(await searchParams)
 
@@ -36,19 +44,12 @@ export default async function ProdutosPage({ searchParams }: Props) {
 
   return (
     <Catalogo
-      titulo={q ? `Resultados para “${q}”` : 'Todos os produtos'}
-      descricao={
-        q
-          ? 'Procurámos no título, na marca e na categoria de tudo o que está publicado.'
-          : 'Tudo o que está à venda, de uma vez. Filtra por marca, preço ou característica.'
-      }
+      titulo={q ? t('resultadosPara', { q }) : t('todosOsProdutos')}
+      descricao={q ? t('descricaoComPesquisa') : t('descricaoSemPesquisa')}
       caminho="/produtos"
       filtros={filtros}
       atributosAtivos={atributosAtivos}
-      vazio={{
-        titulo: 'A loja está a ser preparada',
-        texto: 'Ainda não há produtos publicados. Volta em breve.',
-      }}
+      vazio={{ titulo: t('vazioTitulo'), texto: t('vazioTexto') }}
     />
   )
 }
