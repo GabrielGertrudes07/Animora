@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import { getAvaliacaoLoja } from '../../modules/catalog'
 import { Estrelas } from '../ui/Estrelas'
 
@@ -12,9 +13,11 @@ export async function ProvaSocial() {
   const avaliacao = await getAvaliacaoLoja()
   if (avaliacao.media === null) return null
 
+  const t = await getTranslations('ProvaSocial')
+
   return (
     <section className="mx-auto max-w-3xl px-6 py-16 text-center sm:py-20">
-      <h2 className="text-3xl sm:text-4xl">A avaliação de quem já comprou</h2>
+      <h2 className="text-3xl sm:text-4xl">{t('titulo')}</h2>
       <div className="mt-5 flex justify-center">
         <Estrelas resumo={avaliacao} className="text-base" />
       </div>

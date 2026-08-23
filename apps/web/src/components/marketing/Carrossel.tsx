@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '../../i18n/navigation'
 
 export type SlideCarrossel = {
   cor: 'terracota' | 'ink' | 'sage-dark'
@@ -48,6 +49,7 @@ export function Carrossel({ slides }: { slides: SlideCarrossel[] }) {
   const [atual, setAtual] = useState(0)
   const total = slides.length
   const intervalo = useRef<ReturnType<typeof setInterval> | null>(null)
+  const t = useTranslations('Carrossel')
 
   function ir(i: number) {
     setAtual(((i % total) + total) % total)
@@ -68,8 +70,8 @@ export function Carrossel({ slides }: { slides: SlideCarrossel[] }) {
   return (
     <section
       className="relative mx-auto mt-6 max-w-7xl px-6"
-      aria-roledescription="carrossel"
-      aria-label="Destaques e promoções"
+      aria-roledescription={t('roledescription')}
+      aria-label={t('ariaLabel')}
       onMouseEnter={pausar}
     >
       <div className="overflow-hidden rounded-card">
@@ -113,12 +115,7 @@ export function Carrossel({ slides }: { slides: SlideCarrossel[] }) {
                     quadrado só — para o gradiente de baixo se alinhar exatamente
                     com a borda esquerda da foto, e não com a do contentor todo. */}
                 <div className="absolute bottom-[-6%] right-[-6%] aspect-square w-[92%] max-w-[480px] overflow-hidden rounded-2xl shadow-2xl">
-                  <Image
-                    src={slide.imagem.src}
-                    alt={slide.imagem.alt}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={slide.imagem.src} alt={slide.imagem.alt} fill className="object-cover" />
                   <span
                     className={`absolute inset-y-0 left-0 z-[1] w-1/2 bg-gradient-to-r to-transparent ${GRADIENTES_BORDA[slide.cor]}`}
                   />
@@ -140,7 +137,7 @@ export function Carrossel({ slides }: { slides: SlideCarrossel[] }) {
           ir(atual - 1)
           pausar()
         }}
-        aria-label="Slide anterior"
+        aria-label={t('anterior')}
         className="absolute left-10 top-1/2 hidden -translate-y-1/2 text-4xl text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.55)] transition-transform hover:scale-110 sm:flex"
       >
         ‹
@@ -151,20 +148,24 @@ export function Carrossel({ slides }: { slides: SlideCarrossel[] }) {
           ir(atual + 1)
           pausar()
         }}
-        aria-label="Próximo slide"
+        aria-label={t('seguinte')}
         className="absolute right-10 top-1/2 hidden -translate-y-1/2 text-4xl text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.55)] transition-transform hover:scale-110 sm:flex"
       >
         ›
       </button>
 
-      <div className="absolute bottom-1 left-1/2 flex -translate-x-1/2" role="tablist" aria-label="Escolher slide">
+      <div
+        className="absolute bottom-1 left-1/2 flex -translate-x-1/2"
+        role="tablist"
+        aria-label={t('escolherSlide')}
+      >
         {slides.map((slide, i) => (
           <button
             key={slide.titulo}
             type="button"
             role="tab"
             aria-selected={i === atual}
-            aria-label={`Slide ${i + 1}: ${slide.titulo}`}
+            aria-label={t('slideAria', { numero: i + 1, titulo: slide.titulo })}
             onClick={() => {
               ir(i)
               pausar()

@@ -1,5 +1,6 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
+import { Link } from '../../i18n/navigation'
 import { FOTOS_MARKETING } from '../../lib/fotosMarketing'
 
 /**
@@ -16,13 +17,14 @@ const FOTO_ANIMAL: Record<string, string> = {
   aquario: FOTOS_MARKETING.peixeDourado,
 }
 
-export function CategoriasVisuais({
+export async function CategoriasVisuais({
   categorias,
   contagens,
 }: {
   categorias: { name: string; slug: string }[]
   contagens: Record<string, number>
 }) {
+  const t = await getTranslations('CategoriasVisuais')
   const animais = categorias.flatMap((c) => {
     const foto = FOTO_ANIMAL[c.slug]
     return foto ? [{ categoria: c, foto }] : []
@@ -31,10 +33,8 @@ export function CategoriasVisuais({
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
-      <h2 className="text-3xl sm:text-4xl">Escolhe o teu animal</h2>
-      <p className="mt-3 max-w-xl text-ink-muted">
-        Cada bicho tem prateleira própria — e um jeito diferente de fazer render a mesada.
-      </p>
+      <h2 className="text-3xl sm:text-4xl">{t('titulo')}</h2>
+      <p className="mt-3 max-w-xl text-ink-muted">{t('texto')}</p>
 
       <ul className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {animais.map(({ categoria: c, foto }) => (
@@ -54,7 +54,7 @@ export function CategoriasVisuais({
               <span className="absolute bottom-3 left-3 text-white">
                 <span className="block text-lg font-bold">{c.name}</span>
                 <span className="block text-xs text-white/85">
-                  {contagens[c.slug] ?? 0} produtos
+                  {t('produtos', { count: contagens[c.slug] ?? 0 })}
                 </span>
               </span>
             </Link>

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getProductBySlug, listAllSlugs, precoDeMostra } from '../../../../modules/catalog'
-import { formatEuros } from '@animora/core'
+import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
 import { mediaUrl } from '../../../../lib/api'
 import { descriptionToHtml } from '../../../../lib/richtext'
 import { Price } from '../../../../components/ui/Price'
@@ -12,7 +13,7 @@ import { Icon } from '../../../../components/icons/sprite'
 import { Entrada } from '../../../../components/motion/Entrada'
 import { Reveal } from '../../../../components/motion/Reveal'
 
-type Props = { params: Promise<{ slug: string }> }
+type Props = { params: Promise<{ locale: string; slug: string }> }
 
 export async function generateStaticParams() {
   const slugs = await listAllSlugs()
@@ -20,9 +21,10 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
+  const { locale, slug } = await params
   const p = await getProductBySlug(slug)
-  if (!p) return { title: 'Produto não encontrado' }
+  const t = await getTranslations({ locale, namespace: 'ProdutoPage' })
+  if (!p) return { title: t('metaTituloIndisponivel') }
 
   // `shareImage` primeiro: é uma imagem carregada de propósito para partilha
   // (1200×630 e afins). Sem ela, sai a fotografia quadrada do catálogo, que é
@@ -36,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // outra vez. Sem `metaTitle`, o título é só o produto e o template aplica-se
     // normalmente, como nas outras páginas.
     title: p.metaTitle ? { absolute: p.metaTitle } : p.title,
-    description: p.metaDescription ?? `${p.title} da marca ${p.brand.name}, na Animora.`,
+    description: p.metaDescription ?? t('metaDescricao', { titulo: p.title, marca: p.brand.name }),
     openGraph: {
       title: p.metaTitle ?? p.title,
       description: p.metaDescription ?? p.title,
@@ -46,8 +48,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProdutoPage({ params }: Props) {
-  const { slug } = await params
-  const p = await getProductBySlug(slug)
+  const { locale, slug } = await params
+  setRequestLocale(locale)
+
+  const [p, t] = await Promise.all([getProductBySlug(slug), getTranslations('ProdutoPage')])
   if (!p) notFound()
 
   const preco = precoDeMostra(p.variants)
@@ -78,7 +82,7 @@ export default async function ProdutoPage({ params }: Props) {
           <Price cents={preco.cents} old={preco.old} desde={preco.desde} className="mt-5 block" />
 
           <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-muted">
-            Opções disponíveis
+            {t('opcoesDisponiveis')}
           </h2>
           {/*
             Quando os preços divergem, cada opção mostra o seu. É aqui que o
@@ -91,7 +95,7 @@ export default async function ProdutoPage({ params }: Props) {
               const opcoes =
                 Object.entries(v.combination)
                   .map(([k, val]) => `${k}: ${val}`)
-                  .join(' · ') || 'Padrão'
+                  .join(' · ') || t('padrao')
 
               return (
                 <li
@@ -104,7 +108,7 @@ export default async function ProdutoPage({ params }: Props) {
                       <span className="ml-2 font-semibold">{formatEuros(v.priceCents)}</span>
                     ) : null}
                     <span className="ml-2 text-ink-muted">
-                      {v.stock > 0 ? `${v.stock} em stock` : 'esgotado'}
+                      {v.stock > 0 ? t('emStock', { count: v.stock }) : t('esgotado')}
                     </span>
                   </span>
                   {/* Só o id e dois valores simples atravessam para o cliente. */}
@@ -124,7 +128,7 @@ export default async function ProdutoPage({ params }: Props) {
 
           <p className="mt-6 flex items-center gap-2 text-sm text-ink-muted">
             <Icon name="shield" className="h-4 w-4" />
-            Envio grátis acima de 50 €
+            {t('envioGratis', { valor: formatEuros(ENVIO_GRATIS_ACIMA_DE) })}
           </p>
         </div>
       </Entrada>
@@ -132,7 +136,7 @@ export default async function ProdutoPage({ params }: Props) {
       {descricaoHtml ? (
         <Reveal className="mt-12 max-w-3xl border-t border-line pt-8">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
-            Descrição
+            {t('descricao')}
           </h2>
           <div
             className="mt-3 space-y-4 text-ink [&_a]:text-terracota [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_strong]:font-semibold [&_ul]:list-disc"
