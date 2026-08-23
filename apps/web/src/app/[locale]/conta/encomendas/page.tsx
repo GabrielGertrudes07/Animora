@@ -3,9 +3,9 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { formatEuros } from '@animora/core'
 
-import { clienteAtual } from '../../../modules/account/sessao'
-import { dataLegivel, estadoLegivel, listarEncomendas } from '../../../modules/account/encomendas'
-import { EstadoVazio } from '../../../components/ui/EstadoVazio'
+import { clienteAtual } from '../../../../modules/account/sessao'
+import { dataLegivel, estadoLegivel, listarEncomendas } from '../../../../modules/account/encomendas'
+import { EstadoVazio } from '../../../../components/ui/EstadoVazio'
 
 export const metadata: Metadata = { title: 'As minhas encomendas' }
 

@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { formatEuros } from '@animora/core'
 
-import { clienteAtual } from '../../../../modules/account/sessao'
-import { dataLegivel, estadoLegivel, obterEncomenda } from '../../../../modules/account/encomendas'
+import { clienteAtual } from '../../../../../modules/account/sessao'
+import { dataLegivel, estadoLegivel, obterEncomenda } from '../../../../../modules/account/encomendas'
 
 export const metadata: Metadata = { title: 'Encomenda' }
 

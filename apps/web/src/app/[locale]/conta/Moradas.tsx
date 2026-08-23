@@ -3,8 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-import { apagarMorada, guardarMorada } from '../../modules/account/acoes'
-import type { Morada } from '../../modules/account/sessao'
+import { apagarMorada, guardarMorada } from '../../../modules/account/acoes'
+import type { Morada } from '../../../modules/account/sessao'
 
 const VAZIA: Morada = {
   etiqueta: '',

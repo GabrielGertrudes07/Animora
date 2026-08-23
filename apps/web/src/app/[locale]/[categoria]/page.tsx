@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getCategoryBySlug, lerFiltros, listCategories } from '../../modules/catalog'
-import { Catalogo } from '../../components/catalog/Catalogo'
+import { getCategoryBySlug, lerFiltros, listCategories } from '../../../modules/catalog'
+import { Catalogo } from '../../../components/catalog/Catalogo'
 
 type Props = {
   params: Promise<{ categoria: string }>

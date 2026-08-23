@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
-import { clienteAtual } from '../../../modules/account/sessao'
+import { clienteAtual } from '../../../../modules/account/sessao'
 import { FormularioEntrada } from '../FormularioEntrada'
 import { destinoSeguro } from '../destino'
 

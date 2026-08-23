@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
-import { clienteAtual } from '../../modules/account/sessao'
+import { clienteAtual } from '../../../modules/account/sessao'
 import { FormularioCheckout } from './FormularioCheckout'
 
 export const metadata: Metadata = { title: 'Finalizar compra' }

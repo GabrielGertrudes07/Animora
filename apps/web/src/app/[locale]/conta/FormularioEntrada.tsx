@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-import { entrar, registar } from '../../modules/account/acoes'
-import { useCarrinho } from '../../modules/cart/CarrinhoProvider'
+import { entrar, registar } from '../../../modules/account/acoes'
+import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
 
 /**
  * Entrar e registar — o mesmo formulário, com um campo a mais no registo.

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { lerFiltros } from '../../modules/catalog'
-import { Catalogo } from '../../components/catalog/Catalogo'
+import { lerFiltros } from '../../../modules/catalog'
+import { Catalogo } from '../../../components/catalog/Catalogo'
 
 export const metadata: Metadata = {
   title: 'Todos os produtos',

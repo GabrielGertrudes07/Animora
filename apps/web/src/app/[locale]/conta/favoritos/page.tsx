@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
-import { clienteAtual } from '../../../modules/account/sessao'
-import { listProductsByIds } from '../../../modules/catalog'
-import { EstadoVazio } from '../../../components/ui/EstadoVazio'
-import { ProductCard } from '../../../components/ui/ProductCard'
+import { clienteAtual } from '../../../../modules/account/sessao'
+import { listProductsByIds } from '../../../../modules/catalog'
+import { EstadoVazio } from '../../../../components/ui/EstadoVazio'
+import { ProductCard } from '../../../../components/ui/ProductCard'
 
 export const metadata: Metadata = { title: 'Favoritos' }
 

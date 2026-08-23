@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { formatEuros } from '@animora/core'
 
-import { guardarMorada } from '../../modules/account/acoes'
-import type { Morada } from '../../modules/account/sessao'
-import { carregarLinhas, comprar, type FaltaStock } from '../../modules/cart/acoes'
-import { useCarrinho } from '../../modules/cart/CarrinhoProvider'
-import { totaisDoCarrinho, type LinhaCarrinho } from '../../modules/cart/carrinho'
-import { Totais } from '../../components/ui/Totais'
+import { guardarMorada } from '../../../modules/account/acoes'
+import type { Morada } from '../../../modules/account/sessao'
+import { carregarLinhas, comprar, type FaltaStock } from '../../../modules/cart/acoes'
+import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
+import { totaisDoCarrinho, type LinhaCarrinho } from '../../../modules/cart/carrinho'
+import { Totais } from '../../../components/ui/Totais'
 
 /**
  * O checkout.

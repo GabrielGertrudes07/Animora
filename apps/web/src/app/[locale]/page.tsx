@@ -1,14 +1,14 @@
 import Link from 'next/link'
 import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
-import { listCategories, listProducts, marcasDisponiveis } from '../modules/catalog'
-import { ProductCard } from '../components/ui/ProductCard'
-import { Reveal } from '../components/motion/Reveal'
-import { CascataProdutos } from '../components/motion/CascataProdutos'
-import { Carrossel, type SlideCarrossel } from '../components/marketing/Carrossel'
-import { CategoriasVisuais } from '../components/marketing/CategoriasVisuais'
-import { AprovadoPorQuemManda } from '../components/marketing/AprovadoPorQuemManda'
-import { ProvaSocial } from '../components/marketing/ProvaSocial'
-import { FOTOS_MARKETING } from '../lib/fotosMarketing'
+import { listCategories, listProducts, marcasDisponiveis } from '../../modules/catalog'
+import { ProductCard } from '../../components/ui/ProductCard'
+import { Reveal } from '../../components/motion/Reveal'
+import { CascataProdutos } from '../../components/motion/CascataProdutos'
+import { Carrossel, type SlideCarrossel } from '../../components/marketing/Carrossel'
+import { CategoriasVisuais } from '../../components/marketing/CategoriasVisuais'
+import { AprovadoPorQuemManda } from '../../components/marketing/AprovadoPorQuemManda'
+import { ProvaSocial } from '../../components/marketing/ProvaSocial'
+import { FOTOS_MARKETING } from '../../lib/fotosMarketing'
 
 /**
  * Os slides são conteúdo editorial (título, cor, foto), não uma coleção nova

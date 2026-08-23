@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 
-import { sair } from '../../modules/account/acoes'
-import { useCarrinho } from '../../modules/cart/CarrinhoProvider'
+import { sair } from '../../../modules/account/acoes'
+import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
 
 /**
  * Sair.

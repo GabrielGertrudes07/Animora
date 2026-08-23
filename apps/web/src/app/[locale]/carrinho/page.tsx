@@ -5,11 +5,11 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { formatEuros } from '@animora/core'
 
-import { carregarLinhas } from '../../modules/cart/acoes'
-import { useCarrinho } from '../../modules/cart/CarrinhoProvider'
-import { QTY_MAX, totaisDoCarrinho, type LinhaCarrinho } from '../../modules/cart/carrinho'
-import { Totais } from '../../components/ui/Totais'
-import { EstadoVazio } from '../../components/ui/EstadoVazio'
+import { carregarLinhas } from '../../../modules/cart/acoes'
+import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
+import { QTY_MAX, totaisDoCarrinho, type LinhaCarrinho } from '../../../modules/cart/carrinho'
+import { Totais } from '../../../components/ui/Totais'
+import { EstadoVazio } from '../../../components/ui/EstadoVazio'
 
 /**
  * A página do carrinho.

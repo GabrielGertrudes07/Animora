@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
-import { clienteAtual } from '../../modules/account/sessao'
+import { clienteAtual } from '../../../modules/account/sessao'
 import { BotaoSair } from './BotaoSair'
 import { Moradas } from './Moradas'
 

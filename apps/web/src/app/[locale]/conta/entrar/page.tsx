@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
-import { clienteAtual, COOKIE_SESSAO } from '../../../modules/account/sessao'
+import { clienteAtual, COOKIE_SESSAO } from '../../../../modules/account/sessao'
 import { FormularioEntrada } from '../FormularioEntrada'
 import { destinoSeguro } from '../destino'
 
