@@ -1,0 +1,299 @@
+{
+  "Layout": {
+    "saltarParaConteudo": "Zum Inhalt springen"
+  },
+  "SeletorIdioma": {
+    "pt": "PT",
+    "de": "DE",
+    "trocarPara": "Zu {idioma} wechseln"
+  },
+  "Header": {
+    "envioGratis": "Kostenloser Versand ab {valor}. Immer, nicht nur im Angebot.",
+    "logoAria": "Animora — Startseite",
+    "slogan": "Fürsorge mit Herz, ohne bierernst zu sein",
+    "pesquisarPlaceholder": "Was braucht dein Tier heute?",
+    "pesquisarAria": "Produkte durchsuchen",
+    "conta": "Konto",
+    "categoriasAria": "Kategorien",
+    "todosOsProdutos": "Alle Produkte"
+  },
+  "Footer": {
+    "descricao": "Futter, Zubehör, Pflege und Training für Hunde, Katzen, Vögel und Kleintiere.",
+    "direitos": "© {ano} Animora. Alle Rechte vorbehalten."
+  },
+  "Carrossel": {
+    "ariaLabel": "Highlights und Angebote",
+    "roledescription": "Karussell",
+    "anterior": "Vorheriger Slide",
+    "seguinte": "Nächster Slide",
+    "escolherSlide": "Slide auswählen",
+    "slideAria": "Slide {numero}: {titulo}"
+  },
+  "CarrinhoBotao": {
+    "carrinho": "Warenkorb",
+    "carrinhoAria": "{count, plural, =0 {Warenkorb} one {Warenkorb, # Artikel} other {Warenkorb, # Artikel}}"
+  },
+  "Totais": {
+    "subtotal": "Zwischensumme",
+    "envio": "Versand",
+    "gratis": "Kostenlos",
+    "total": "Gesamt",
+    "faltaEnvioGratis": "Noch {valor} bis zum kostenlosen Versand.",
+    "temEnvioGratis": "Du hast kostenlosen Versand."
+  },
+  "AdicionarAoCarrinho": {
+    "esgotado": "Ausverkauft",
+    "adicionar": "Hinzufügen",
+    "noCarrinho": "Im Warenkorb",
+    "adicionarAria": "{etiqueta} zum Warenkorb hinzufügen"
+  },
+  "Catalogo": {
+    "contagemProdutos": "{count, plural, one {1 Produkt} other {# Produkte}}",
+    "semResultadosTitulo": "Keine Ergebnisse für „{q}\"",
+    "semResultadosTexto": "Versuch es mit einem kürzeren Wort — dem Produktnamen, der Marke oder dem Tier.",
+    "limparPesquisa": "Suche löschen",
+    "semFiltrosTitulo": "Kein Produkt entspricht den Filtern",
+    "semFiltrosTexto": "Versuch, die Preisspanne zu erweitern oder eine Marke abzuwählen."
+  },
+  "ProdutosPage": {
+    "metaTitulo": "Alle Produkte",
+    "metaDescricao": "Der ganze Animora-Shop: Futter, Zubehör, Pflege und Training für Hunde, Katzen, Vögel und Kleintiere.",
+    "resultadosPara": "Ergebnisse für „{q}\"",
+    "todosOsProdutos": "Alle Produkte",
+    "descricaoComPesquisa": "Wir haben im Titel, in der Marke und in der Kategorie von allem gesucht, was veröffentlicht ist.",
+    "descricaoSemPesquisa": "Alles, was es zu kaufen gibt, auf einen Blick. Filtere nach Marke, Preis oder Eigenschaft.",
+    "vazioTitulo": "Der Shop wird gerade vorbereitet",
+    "vazioTexto": "Es sind noch keine Produkte veröffentlicht. Schau bald wieder vorbei."
+  },
+  "CategoriaPage": {
+    "metaTituloIndisponivel": "Kategorie nicht gefunden",
+    "metaDescricao": "Produkte aus {categoria} für dein Tier, bei Animora.",
+    "vazioTitulo": "Noch keine Produkte in dieser Kategorie",
+    "vazioTexto": "Schau bald wieder vorbei — wir bereiten Neuigkeiten vor."
+  },
+  "FiltrosCatalogo": {
+    "preco": "Preis",
+    "marca": "Marke",
+    "precoMinAria": "Mindestpreis in Euro",
+    "precoMaxAria": "Höchstpreis in Euro",
+    "aplicarFiltros": "Filter anwenden",
+    "limpar": "Zurücksetzen",
+    "filtros": "Filter",
+    "fecharFiltrosAria": "Filter schließen",
+    "filtrosAria": "Katalogfilter",
+    "verProdutos": "Produkte anzeigen",
+    "valorMinimoAria": "{atributo}, Mindestwert",
+    "valorMaximoAria": "{atributo}, Höchstwert"
+  },
+  "OrdenarPor": {
+    "rotulo": "Sortieren nach",
+    "relevancia": "Relevanz",
+    "precoAsc": "Preis: aufsteigend",
+    "precoDesc": "Preis: absteigend"
+  },
+  "ProductCard": {
+    "esgotado": "Ausverkauft",
+    "emStock": "{count} auf Lager",
+    "semStock": "Momentan nicht auf Lager"
+  },
+  "Price": {
+    "desde": "ab",
+    "poupas": "Du sparst {valor}"
+  },
+  "Estrelas": {
+    "contagem": "{count, plural, one {# Bewertung} other {# Bewertungen}}"
+  },
+  "CarrinhoPage": {
+    "titulo": "Warenkorb",
+    "itensCaidos": "{count, plural, one {Ein Artikel ist nicht mehr verfügbar und wurde aus dem Warenkorb entfernt.} other {# Artikel sind nicht mehr verfügbar und wurden aus dem Warenkorb entfernt.}}",
+    "aCarregar": "Warenkorb wird geladen…",
+    "vazioTitulo": "Der Warenkorb ist leer",
+    "vazioTexto": "Der Napf ist noch leer. Sieh dir alles an, was es gibt, oder wähle eine Kategorie im Header.",
+    "verProdutos": "Produkte ansehen",
+    "quantidadeDe": "Menge von {titulo}",
+    "cada": "{valor} pro Stück",
+    "semStock": "Momentan nicht auf Lager.",
+    "soHaEmStock": "Nur noch {stock} auf Lager.",
+    "remover": "Entfernen",
+    "resumo": "Zusammenfassung",
+    "finalizarCompra": "Zur Kasse"
+  },
+  "CheckoutPage": {
+    "metaTitulo": "Zur Kasse",
+    "titulo": "Zur Kasse",
+    "naoHaNadaParaComprar": "Es gibt nichts zu kaufen.",
+    "verProdutos": "Produkte ansehen"
+  },
+  "FormularioCheckout": {
+    "aCarregar": "Warenkorb wird geladen…",
+    "moradaEnvio": "Lieferadresse",
+    "escolherMorada": "Adresse auswählen",
+    "usarOutraMorada": "Andere Adresse verwenden",
+    "destinatario": "Empfänger",
+    "morada": "Adresse",
+    "moradaCont": "Adresse (Zusatz)",
+    "codigoPostal": "Postleitzahl",
+    "codigoPostalDica": "1234-567",
+    "localidade": "Ort",
+    "telefone": "Telefon",
+    "etiqueta": "Bezeichnung (Zuhause, Arbeit…)",
+    "guardarMorada": "Diese Adresse in meinem Konto speichern",
+    "oQueVaiComprar": "Was du kaufst",
+    "resumo": "Zusammenfassung",
+    "confirmarEncomenda": "Bestellung bestätigen",
+    "aConfirmar": "Wird bestätigt…",
+    "semPagamento": "In dieser Phase ohne Zahlung: Die Bestellung wartet auf die Zahlung.",
+    "carrinhoFicouComoEstava": "Der Warenkorb ist unverändert geblieben.",
+    "voltarAoCarrinho": "Zurück zum Warenkorb",
+    "pediuNaoHaNenhum": "{titulo} — angefragt: {pedido}, es ist keiner mehr verfügbar.",
+    "pediuSoHa": "{titulo} — angefragt: {pedido}, nur noch {disponivel} verfügbar."
+  },
+  "ContaPage": {
+    "metaTitulo": "Mein Konto",
+    "ola": "Hallo, {nome}",
+    "encomendas": "Bestellungen",
+    "favoritos": "Favoriten ({count})",
+    "sair": "Abmelden"
+  },
+  "EntrarPage": {
+    "metaTitulo": "Anmelden",
+    "titulo": "Anmelden",
+    "sessaoQueNaoServe": "Die aktuell angemeldete Sitzung gehört keinem Kunden (oder ist abgelaufen). Wer im Shop arbeitet, kauft mit dem eigenen Kundenkonto ein, wie alle anderen auch.",
+    "carrinhoFicaOndeEsta": "Der Warenkorb bleibt, wo er ist — melde dich an und setze den Kauf fort."
+  },
+  "RegistarPage": {
+    "metaTitulo": "Konto erstellen",
+    "titulo": "Konto erstellen",
+    "descricao": "Um deine Bestellungen zu verfolgen und Adressen und Favoriten zu speichern."
+  },
+  "FormularioEntrada": {
+    "nome": "Name",
+    "email": "E-Mail",
+    "palavraPasse": "Passwort",
+    "criarConta": "Konto erstellen",
+    "entrar": "Anmelden",
+    "umMomento": "Einen Moment…",
+    "jaTemConta": "Schon ein Konto? ",
+    "aindaNaoTemConta": "Noch kein Konto? "
+  },
+  "Moradas": {
+    "titulo": "Adressen",
+    "semMoradas": "Du hast noch keine Adresse gespeichert.",
+    "apagar": "Löschen",
+    "destinatario": "Empfänger",
+    "morada": "Adresse",
+    "moradaCont": "Adresse (Zusatz)",
+    "codigoPostal": "Postleitzahl",
+    "codigoPostalDica": "1234-567",
+    "localidade": "Ort",
+    "telefone": "Telefon",
+    "etiqueta": "Bezeichnung (Zuhause, Arbeit…)",
+    "aGravar": "Wird gespeichert…",
+    "guardarMorada": "Adresse speichern",
+    "cancelar": "Abbrechen",
+    "acrescentarMorada": "Adresse hinzufügen"
+  },
+  "EncomendasPage": {
+    "metaTitulo": "Meine Bestellungen",
+    "minhaConta": "Mein Konto",
+    "titulo": "Bestellungen",
+    "vazioTitulo": "Du hast noch keine Bestellung aufgegeben",
+    "vazioTexto": "Sobald du die erste aufgibst, findest du hier den Status und die Details jeder Position.",
+    "verProdutos": "Produkte ansehen",
+    "artigos": "{count, plural, one {# Artikel} other {# Artikel}}"
+  },
+  "EncomendaDetalhe": {
+    "metaTitulo": "Bestellung",
+    "encomendas": "Bestellungen",
+    "registada": "Bestellung registriert.",
+    "aguardaPagamento": "Sie wartet auf die Zahlung. Wir haben alles gespeichert, was du ausgewählt hast, mit den Preisen von diesem Moment.",
+    "artigos": "Artikel",
+    "totais": "Summen",
+    "subtotal": "Zwischensumme",
+    "envio": "Versand",
+    "gratis": "Kostenlos",
+    "total": "Gesamt",
+    "moradaEnvio": "Lieferadresse"
+  },
+  "FavoritosPage": {
+    "metaTitulo": "Favoriten",
+    "minhaConta": "Mein Konto",
+    "titulo": "Favoriten",
+    "vazioTitulo": "Du hast noch keinen Favoriten gespeichert",
+    "vazioTexto": "Auf jeder Produktseite gibt es ein Herz, um sie hier zu speichern.",
+    "verProdutos": "Produkte ansehen"
+  },
+  "BotaoFavorito": {
+    "entrarParaGuardar": "Melde dich an, um Favoriten zu speichern",
+    "nosFavoritos": "In den Favoriten",
+    "guardarNosFavoritos": "Zu Favoriten hinzufügen"
+  },
+  "Encomendas": {
+    "estadoAAguardarPagamento": "Wartet auf Zahlung",
+    "estadoPago": "Bezahlt",
+    "estadoEnviado": "Versandt",
+    "estadoEntregue": "Geliefert",
+    "estadoCancelado": "Storniert"
+  },
+  "Home": {
+    "metaTitulo": "Animora — Pflege für dein Tier",
+    "metaDescricao": "Futter, Zubehör, Pflege und Training für Hunde, Katzen, Vögel und Kleintiere.",
+    "esteSemana": "Diese Woche",
+    "ofertasDaSemana": "Angebote dieser Woche",
+    "escolhasDaCasa": "Unsere Favoriten",
+    "verTodosOsProdutos": "Alle Produkte ansehen",
+    "marcasEmQueConfiamos": "Marken, denen wir vertrauen",
+    "slide1Rotulo": "🐾 Rabattwoche",
+    "slide1Titulo": "Dein Hund weiß nicht, dass das im Angebot ist.",
+    "slide1Texto": "Du schon. Rabatte auf Futter, Betten und Zubehör, solange der Vorrat reicht.",
+    "slide1CtaPrincipal": "Angebote ansehen",
+    "slide1CtaSecundario": "Shop entdecken",
+    "slide1Selo": "Angebot",
+    "slide2Rotulo": "🐱 Für Katzen",
+    "slide2Titulo": "Deine Katze entscheidet. Du musst nur bezahlen.",
+    "slide2Texto": "Streu, Kratzbäume und Futter der Marken, die den Katzennasen-Test bestehen.",
+    "slide2CtaPrincipal": "Produkte für Katzen ansehen",
+    "slide2CtaSecundario": "Alle Kategorien ansehen",
+    "slide3Rotulo": "🚚 Ohne Kleingedrucktes",
+    "slide3Titulo": "Kommt schneller an, als er vor dem Baden wegläuft.",
+    "slide3Texto": "Kostenloser Versand ab {valor}. Immer, nicht nur im Angebot.",
+    "slide3CtaPrincipal": "Shop entdecken",
+    "slide1Alt": "Französische Bulldogge mit gelbem Pullover vor blauem Hintergrund",
+    "slide2Alt": "Kätzchen streckt die Pfote nach oben, vor türkisfarbenem Hintergrund",
+    "slide3Alt": "Golden-Retriever-Welpe mit Halsband, sitzt an einem sonnigen Tag im Garten"
+  },
+  "CategoriasVisuais": {
+    "titulo": "Wähle dein Tier",
+    "texto": "Jedes Tier hat sein eigenes Regal — und seinen eigenen Weg, dein Taschengeld zu verputzen.",
+    "produtos": "{count} Produkte"
+  },
+  "AprovadoPorQuemManda": {
+    "titulo": "Von den Chefs persönlich abgesegnet",
+    "texto": "Das haben nicht wir gesagt. Das haben sie gesagt.",
+    "testemunho1Fala": "„Der Pullover ist lächerlich. Zieh ihn mir nicht aus.\"",
+    "testemunho1Assinatura": "— Óscar, 2 Jahre, Französische Bulldogge",
+    "testemunho1Alt": "Französische Bulldogge mit gelbem Pullover vor blauem Hintergrund",
+    "testemunho2Fala": "„Ich verstecke das Verbrechen im neuen Streu. Geräuschlos. 5 Sterne.\"",
+    "testemunho2Assinatura": "— Mimi, 1 Jahr, Katze",
+    "testemunho2Alt": "Kätzchen streckt die Pfote nach oben, vor türkisfarbenem Hintergrund",
+    "testemunho3Fala": "„Ich habe das Halsband getestet. Bin noch da. Freigegeben.\"",
+    "testemunho3Assinatura": "— Bóris, 3 Monate, Golden Retriever",
+    "testemunho3Alt": "Golden-Retriever-Welpe mit Halsband, sitzt an einem sonnigen Tag im Garten",
+    "testemunho4Fala": "„Ich habe 14 Stunden im neuen Bett geschlafen. Keine Reue.\"",
+    "testemunho4Assinatura": "— Simba, 4 Jahre, Katze",
+    "testemunho4Alt": "Orangefarbene getigerte Katze liegt auf einem Holztisch"
+  },
+  "ProvaSocial": {
+    "titulo": "Die Bewertung von denen, die schon gekauft haben"
+  },
+  "ProdutoPage": {
+    "metaTituloIndisponivel": "Produkt nicht gefunden",
+    "metaDescricao": "{titulo} von der Marke {marca}, bei Animora.",
+    "opcoesDisponiveis": "Verfügbare Optionen",
+    "padrao": "Standard",
+    "emStock": "{count} auf Lager",
+    "esgotado": "ausverkauft",
+    "envioGratis": "Kostenloser Versand ab {valor}",
+    "descricao": "Beschreibung"
+  }
+}

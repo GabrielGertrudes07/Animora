@@ -1,0 +1,299 @@
+{
+  "Layout": {
+    "saltarParaConteudo": "Saltar para o conteúdo"
+  },
+  "SeletorIdioma": {
+    "pt": "PT",
+    "de": "DE",
+    "trocarPara": "Mudar para {idioma}"
+  },
+  "Header": {
+    "envioGratis": "Envio grátis acima de {valor}. Sempre, não só em promoção.",
+    "logoAria": "Animora — página inicial",
+    "slogan": "cuidados a sério, sem ser sério demais",
+    "pesquisarPlaceholder": "O que o teu animal precisa hoje?",
+    "pesquisarAria": "Pesquisar produtos",
+    "conta": "Conta",
+    "categoriasAria": "Categorias",
+    "todosOsProdutos": "Todos os produtos"
+  },
+  "Footer": {
+    "descricao": "Alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.",
+    "direitos": "© {ano} Animora. Todos os direitos reservados."
+  },
+  "Carrossel": {
+    "ariaLabel": "Destaques e promoções",
+    "roledescription": "carrossel",
+    "anterior": "Slide anterior",
+    "seguinte": "Próximo slide",
+    "escolherSlide": "Escolher slide",
+    "slideAria": "Slide {numero}: {titulo}"
+  },
+  "CarrinhoBotao": {
+    "carrinho": "Carrinho",
+    "carrinhoAria": "{count, plural, =0 {Carrinho} one {Carrinho, # artigo} other {Carrinho, # artigos}}"
+  },
+  "Totais": {
+    "subtotal": "Subtotal",
+    "envio": "Envio",
+    "gratis": "Grátis",
+    "total": "Total",
+    "faltaEnvioGratis": "Faltam {valor} para ter envio grátis.",
+    "temEnvioGratis": "Tem envio grátis."
+  },
+  "AdicionarAoCarrinho": {
+    "esgotado": "Esgotado",
+    "adicionar": "Adicionar",
+    "noCarrinho": "No carrinho",
+    "adicionarAria": "Adicionar {etiqueta} ao carrinho"
+  },
+  "Catalogo": {
+    "contagemProdutos": "{count, plural, one {1 produto} other {# produtos}}",
+    "semResultadosTitulo": "Sem resultados para \"{q}\"",
+    "semResultadosTexto": "Experimenta uma palavra mais curta — o nome do produto, a marca ou o animal.",
+    "limparPesquisa": "Limpar a pesquisa",
+    "semFiltrosTitulo": "Nenhum produto corresponde aos filtros",
+    "semFiltrosTexto": "Experimenta alargar o preço ou tirar uma das marcas escolhidas."
+  },
+  "ProdutosPage": {
+    "metaTitulo": "Todos os produtos",
+    "metaDescricao": "A loja inteira da Animora: alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.",
+    "resultadosPara": "Resultados para \"{q}\"",
+    "todosOsProdutos": "Todos os produtos",
+    "descricaoComPesquisa": "Procurámos no título, na marca e na categoria de tudo o que está publicado.",
+    "descricaoSemPesquisa": "Tudo o que está à venda, de uma vez. Filtra por marca, preço ou característica.",
+    "vazioTitulo": "A loja está a ser preparada",
+    "vazioTexto": "Ainda não há produtos publicados. Volta em breve."
+  },
+  "CategoriaPage": {
+    "metaTituloIndisponivel": "Categoria não encontrada",
+    "metaDescricao": "Produtos de {categoria} para o teu animal, na Animora.",
+    "vazioTitulo": "Ainda sem produtos nesta categoria",
+    "vazioTexto": "Volta em breve — estamos a preparar novidades."
+  },
+  "FiltrosCatalogo": {
+    "preco": "Preço",
+    "marca": "Marca",
+    "precoMinAria": "Preço mínimo em euros",
+    "precoMaxAria": "Preço máximo em euros",
+    "aplicarFiltros": "Aplicar filtros",
+    "limpar": "Limpar",
+    "filtros": "Filtros",
+    "fecharFiltrosAria": "Fechar filtros",
+    "filtrosAria": "Filtros do catálogo",
+    "verProdutos": "Ver produtos",
+    "valorMinimoAria": "{atributo}, valor mínimo",
+    "valorMaximoAria": "{atributo}, valor máximo"
+  },
+  "OrdenarPor": {
+    "rotulo": "Ordenar por",
+    "relevancia": "Relevância",
+    "precoAsc": "Preço: do mais barato",
+    "precoDesc": "Preço: do mais caro"
+  },
+  "ProductCard": {
+    "esgotado": "Esgotado",
+    "emStock": "{count} em stock",
+    "semStock": "Sem stock de momento"
+  },
+  "Price": {
+    "desde": "desde",
+    "poupas": "Poupas {valor}"
+  },
+  "Estrelas": {
+    "contagem": "{count, plural, one {# avaliação} other {# avaliações}}"
+  },
+  "CarrinhoPage": {
+    "titulo": "Carrinho",
+    "itensCaidos": "{count, plural, one {Um artigo deixou de estar à venda e foi retirado do carrinho.} other {# artigos deixaram de estar à venda e foram retirados do carrinho.}}",
+    "aCarregar": "A carregar o carrinho…",
+    "vazioTitulo": "O carrinho está vazio",
+    "vazioTexto": "A tigela ainda está por encher. Vê tudo o que há à venda ou escolhe uma categoria no cabeçalho.",
+    "verProdutos": "Ver produtos",
+    "quantidadeDe": "Quantidade de {titulo}",
+    "cada": "{valor} cada",
+    "semStock": "Sem stock de momento.",
+    "soHaEmStock": "Só há {stock} em stock.",
+    "remover": "Remover",
+    "resumo": "Resumo",
+    "finalizarCompra": "Finalizar compra"
+  },
+  "CheckoutPage": {
+    "metaTitulo": "Finalizar compra",
+    "titulo": "Finalizar compra",
+    "naoHaNadaParaComprar": "Não há nada para comprar.",
+    "verProdutos": "Ver produtos"
+  },
+  "FormularioCheckout": {
+    "aCarregar": "A carregar o carrinho…",
+    "moradaEnvio": "Morada de envio",
+    "escolherMorada": "Escolha a morada",
+    "usarOutraMorada": "Usar outra morada",
+    "destinatario": "Destinatário",
+    "morada": "Morada",
+    "moradaCont": "Morada (cont.)",
+    "codigoPostal": "Código postal",
+    "codigoPostalDica": "1234-567",
+    "localidade": "Localidade",
+    "telefone": "Telefone",
+    "etiqueta": "Etiqueta (Casa, Trabalho…)",
+    "guardarMorada": "Guardar esta morada na minha conta",
+    "oQueVaiComprar": "O que vai comprar",
+    "resumo": "Resumo",
+    "confirmarEncomenda": "Confirmar encomenda",
+    "aConfirmar": "A confirmar…",
+    "semPagamento": "Sem pagamento nesta fase: a encomenda fica a aguardar pagamento.",
+    "carrinhoFicouComoEstava": "O carrinho ficou como estava.",
+    "voltarAoCarrinho": "Voltar ao carrinho",
+    "pediuNaoHaNenhum": "{titulo} — pediu {pedido}, não há nenhum.",
+    "pediuSoHa": "{titulo} — pediu {pedido}, só há {disponivel}."
+  },
+  "ContaPage": {
+    "metaTitulo": "A minha conta",
+    "ola": "Olá, {nome}",
+    "encomendas": "Encomendas",
+    "favoritos": "Favoritos ({count})",
+    "sair": "Sair"
+  },
+  "EntrarPage": {
+    "metaTitulo": "Entrar",
+    "titulo": "Entrar",
+    "sessaoQueNaoServe": "A sessão que tem aberta não é de cliente (ou já terminou). Quem trabalha na loja compra com a sua conta de cliente, como toda a gente.",
+    "carrinhoFicaOndeEsta": "O carrinho fica onde está — entre e continue a compra."
+  },
+  "RegistarPage": {
+    "metaTitulo": "Criar conta",
+    "titulo": "Criar conta",
+    "descricao": "Para acompanhar as suas encomendas e guardar moradas e favoritos."
+  },
+  "FormularioEntrada": {
+    "nome": "Nome",
+    "email": "Email",
+    "palavraPasse": "Palavra-passe",
+    "criarConta": "Criar conta",
+    "entrar": "Entrar",
+    "umMomento": "Um momento…",
+    "jaTemConta": "Já tem conta? ",
+    "aindaNaoTemConta": "Ainda não tem conta? "
+  },
+  "Moradas": {
+    "titulo": "Moradas",
+    "semMoradas": "Ainda não guardou nenhuma morada.",
+    "apagar": "Apagar",
+    "destinatario": "Destinatário",
+    "morada": "Morada",
+    "moradaCont": "Morada (cont.)",
+    "codigoPostal": "Código postal",
+    "codigoPostalDica": "1234-567",
+    "localidade": "Localidade",
+    "telefone": "Telefone",
+    "etiqueta": "Etiqueta (Casa, Trabalho…)",
+    "aGravar": "A gravar…",
+    "guardarMorada": "Guardar morada",
+    "cancelar": "Cancelar",
+    "acrescentarMorada": "Acrescentar morada"
+  },
+  "EncomendasPage": {
+    "metaTitulo": "As minhas encomendas",
+    "minhaConta": "A minha conta",
+    "titulo": "Encomendas",
+    "vazioTitulo": "Ainda não fez nenhuma encomenda",
+    "vazioTexto": "Quando fizer a primeira, fica aqui com o estado e o detalhe de cada linha.",
+    "verProdutos": "Ver produtos",
+    "artigos": "{count, plural, one {# artigo} other {# artigos}}"
+  },
+  "EncomendaDetalhe": {
+    "metaTitulo": "Encomenda",
+    "encomendas": "Encomendas",
+    "registada": "Encomenda registada.",
+    "aguardaPagamento": "Fica a aguardar pagamento. Guardámos tudo o que escolheu, com os preços deste momento.",
+    "artigos": "Artigos",
+    "totais": "Totais",
+    "subtotal": "Subtotal",
+    "envio": "Envio",
+    "gratis": "Grátis",
+    "total": "Total",
+    "moradaEnvio": "Morada de envio"
+  },
+  "FavoritosPage": {
+    "metaTitulo": "Favoritos",
+    "minhaConta": "A minha conta",
+    "titulo": "Favoritos",
+    "vazioTitulo": "Ainda não guardou nenhum favorito",
+    "vazioTexto": "Na ficha de cada produto há um coração para o guardar aqui.",
+    "verProdutos": "Ver produtos"
+  },
+  "BotaoFavorito": {
+    "entrarParaGuardar": "Entre na conta para guardar nos favoritos",
+    "nosFavoritos": "Nos favoritos",
+    "guardarNosFavoritos": "Guardar nos favoritos"
+  },
+  "Encomendas": {
+    "estadoAAguardarPagamento": "A aguardar pagamento",
+    "estadoPago": "Pago",
+    "estadoEnviado": "Enviado",
+    "estadoEntregue": "Entregue",
+    "estadoCancelado": "Cancelado"
+  },
+  "Home": {
+    "metaTitulo": "Animora — cuidados para o teu animal",
+    "metaDescricao": "Alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.",
+    "esteSemana": "Esta semana",
+    "ofertasDaSemana": "Ofertas desta semana",
+    "escolhasDaCasa": "Escolhas da casa",
+    "verTodosOsProdutos": "Ver todos os produtos",
+    "marcasEmQueConfiamos": "Marcas em que confiamos",
+    "slide1Rotulo": "🐾 Semana de saldo",
+    "slide1Titulo": "O teu cão não sabe que isto está em saldo.",
+    "slide1Texto": "Tu sabes. Descontos em ração, camas e acessórios, enquanto durar o stock.",
+    "slide1CtaPrincipal": "Ver ofertas",
+    "slide1CtaSecundario": "Explorar loja",
+    "slide1Selo": "Saldo",
+    "slide2Rotulo": "🐱 Para os felinos",
+    "slide2Titulo": "O teu gato escolhe. Tu só precisas de comprar.",
+    "slide2Texto": "Areia, arranhadores e ração das marcas que sobrevivem ao teste do faro felino.",
+    "slide2CtaPrincipal": "Ver produtos para gatos",
+    "slide2CtaSecundario": "Ver todas as categorias",
+    "slide3Rotulo": "🚚 Sem letras pequenas",
+    "slide3Titulo": "Chega mais rápido do que ele foge do banho.",
+    "slide3Texto": "Envio grátis acima de {valor}. Sempre, não só em promoção.",
+    "slide3CtaPrincipal": "Explorar loja",
+    "slide1Alt": "Bulldog francês com camisola amarela, sobre fundo azul",
+    "slide2Alt": "Gatinho a esticar a pata para cima, sobre fundo verde-água",
+    "slide3Alt": "Cachorro golden retriever com coleira, sentado num quintal ao sol"
+  },
+  "CategoriasVisuais": {
+    "titulo": "Escolhe o teu animal",
+    "texto": "Cada bicho tem prateleira própria — e um jeito diferente de fazer render a mesada.",
+    "produtos": "{count} produtos"
+  },
+  "AprovadoPorQuemManda": {
+    "titulo": "Aprovado por quem manda",
+    "texto": "Não fomos nós que dissemos. Foram eles.",
+    "testemunho1Fala": "\"A camisola é ridícula. Não a tires.\"",
+    "testemunho1Assinatura": "— Óscar, 2 anos, Bulldog Francês",
+    "testemunho1Alt": "Bulldog francês com camisola amarela, sobre fundo azul",
+    "testemunho2Fala": "\"Escondo o crime na areia nova. Silenciosa. 5 estrelas.\"",
+    "testemunho2Assinatura": "— Mimi, 1 ano, Gata",
+    "testemunho2Alt": "Gatinho a esticar a pata para cima, sobre fundo verde-água",
+    "testemunho3Fala": "\"Testei a coleira. Continuo aqui. Aprovo.\"",
+    "testemunho3Assinatura": "— Bóris, 3 meses, Golden Retriever",
+    "testemunho3Alt": "Cachorro golden retriever com coleira, sentado num quintal ao sol",
+    "testemunho4Fala": "\"Dormi na cama nova 14 horas. Sem arrependimentos.\"",
+    "testemunho4Assinatura": "— Simba, 4 anos, Gato",
+    "testemunho4Alt": "Gato malhado laranja deitado numa mesa de madeira"
+  },
+  "ProvaSocial": {
+    "titulo": "A avaliação de quem já comprou"
+  },
+  "ProdutoPage": {
+    "metaTituloIndisponivel": "Produto não encontrado",
+    "metaDescricao": "{titulo} da marca {marca}, na Animora.",
+    "opcoesDisponiveis": "Opções disponíveis",
+    "padrao": "Padrão",
+    "emStock": "{count} em stock",
+    "esgotado": "esgotado",
+    "envioGratis": "Envio grátis acima de {valor}",
+    "descricao": "Descrição"
+  }
+}
