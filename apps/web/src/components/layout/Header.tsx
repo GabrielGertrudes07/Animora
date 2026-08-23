@@ -1,8 +1,8 @@
 import Image from 'next/image'
-import { getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
 import { listCategories } from '../../modules/catalog'
-import { Link } from '../../i18n/navigation'
+import { Link, getPathname } from '../../i18n/navigation'
 import { CarrinhoBotao } from './CarrinhoBotao'
 import { SeletorIdioma } from './SeletorIdioma'
 import { Icon } from '../icons/sprite'
@@ -26,7 +26,12 @@ import { Icon } from '../icons/sprite'
  * um Client Component — o resto continua a ser lido no servidor.
  */
 export async function Header() {
-  const [categorias, t] = await Promise.all([listCategories(), getTranslations('Header')])
+  const [categorias, t, locale] = await Promise.all([
+    listCategories(),
+    getTranslations('Header'),
+    getLocale(),
+  ])
+  const acaoPesquisa = getPathname({ href: '/produtos', locale })
 
   return (
     <header className="border-b border-line bg-white">
@@ -49,7 +54,7 @@ export async function Header() {
         </Link>
 
         <form
-          action="/produtos"
+          action={acaoPesquisa}
           method="get"
           className="order-3 flex w-full items-center gap-2 rounded-full border border-line bg-cream/60 px-4 py-2 transition-colors focus-within:border-terracota sm:order-none sm:ml-auto sm:w-auto sm:max-w-sm sm:flex-1"
         >
