@@ -1,30 +1,45 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { redirect } from '../../../i18n/navigation'
 
 import { clienteAtual } from '../../../modules/account/sessao'
 import { FormularioCheckout } from './FormularioCheckout'
 
-export const metadata: Metadata = { title: 'Finalizar compra' }
+type Props = { params: Promise<{ locale: string }> }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'CheckoutPage' })
+  return { title: t('metaTitulo') }
+}
 
 /**
  * Sem sessão, o checkout leva a entrar — e o carrinho não se perde.
  *
  * O carrinho vive no `localStorage`, do lado do browser: um redireccionamento
- * não lhe toca. O `?voltar=/checkout` é só para o ecrã de entrada saber para
- * onde devolver a pessoa depois, em vez de a deixar na página da conta a
- * perguntar-se o que aconteceu à compra.
+ * não lhe toca. `voltar` fica sempre como caminho SEM prefixo de idioma
+ * (`/checkout`, nunca `/de/checkout`) — é o `redirect`/`router.push` locale-aware
+ * (de `i18n/navigation`) que acrescenta o prefixo certo no momento de navegar,
+ * tanto aqui como em `FormularioEntrada` (Task 10). Prefixar `voltar` já aqui
+ * faria `FormularioEntrada` prefixar outra vez por cima e dava `/de/de/checkout`.
  *
  * Uma sessão de staff conta como "não é cliente" e vem aqui parar também: é a
  * mesma decisão que o `POST /api/checkout` toma (403, "entre com a sua conta de
  * cliente"), tomada um ecrã antes.
  */
-export default async function CheckoutPage() {
+export default async function CheckoutPage({ params }: Props) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('CheckoutPage')
+
   const cliente = await clienteAtual()
-  if (!cliente) redirect('/conta/entrar?voltar=/checkout')
+  if (!cliente) {
+    return redirect({ href: { pathname: '/conta/entrar', query: { voltar: '/checkout' } }, locale })
+  }
 
   return (
     <main id="conteudo" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold text-ink">Finalizar compra</h1>
+      <h1 className="text-3xl font-bold text-ink">{t('titulo')}</h1>
       <p className="mt-2 text-ink-muted">{cliente.email}</p>
 
       <div className="mt-8">

@@ -1,13 +1,14 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { formatEuros } from '@animora/core'
 
 import { carregarLinhas } from '../../../modules/cart/acoes'
 import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
 import { QTY_MAX, totaisDoCarrinho, type LinhaCarrinho } from '../../../modules/cart/carrinho'
+import { Link } from '../../../i18n/navigation'
 import { Totais } from '../../../components/ui/Totais'
 import { EstadoVazio } from '../../../components/ui/EstadoVazio'
 
@@ -26,6 +27,7 @@ export default function CarrinhoPage() {
   const [linhas, setLinhas] = useState<LinhaCarrinho[]>([])
   const [aCarregar, setACarregar] = useState(true)
   const [caidos, setCaidos] = useState(0)
+  const t = useTranslations('CarrinhoPage')
 
   // `itens` é um array novo a cada render, e um efeito que dependa dele
   // diretamente volta a correr para sempre. A chave serializada só muda quando
@@ -56,27 +58,21 @@ export default function CarrinhoPage() {
 
   return (
     <main id="conteudo" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold text-ink">Carrinho</h1>
+      <h1 className="text-3xl font-bold text-ink">{t('titulo')}</h1>
 
       {caidos > 0 ? (
         <p className="mt-4 rounded-lg border border-terracota bg-terracota/10 px-4 py-3 text-sm text-ink">
-          {caidos === 1
-            ? 'Um artigo deixou de estar à venda e foi retirado do carrinho.'
-            : `${caidos} artigos deixaram de estar à venda e foram retirados do carrinho.`}
+          {t('itensCaidos', { count: caidos })}
         </p>
       ) : null}
 
       {!pronto || aCarregar ? (
-        <p className="mt-8 text-ink-muted">A carregar o carrinho…</p>
+        <p className="mt-8 text-ink-muted">{t('aCarregar')}</p>
       ) : linhas.length === 0 ? (
         <div className="mt-8">
-          <EstadoVazio
-            ilustracao="tigela"
-            titulo="O carrinho está vazio"
-            texto="A tigela ainda está por encher. Vê tudo o que há à venda ou escolhe uma categoria no cabeçalho."
-          >
+          <EstadoVazio ilustracao="tigela" titulo={t('vazioTitulo')} texto={t('vazioTexto')}>
             <Link href="/produtos" className="botao-principal">
-              Ver produtos
+              {t('verProdutos')}
             </Link>
           </EstadoVazio>
         </div>
@@ -111,18 +107,18 @@ export default function CarrinhoPage() {
                   </Link>
                   {l.opcoes ? <p className="text-sm text-ink-muted">{l.opcoes}</p> : null}
                   <p className="mt-1 text-sm text-ink-muted">
-                    {formatEuros(l.precoUnitarioCents)} cada
+                    {t('cada', { valor: formatEuros(l.precoUnitarioCents) })}
                   </p>
                   {l.qty > l.stock ? (
                     <p className="mt-1 text-sm font-medium text-terracota-dark">
-                      {l.stock === 0 ? 'Sem stock de momento.' : `Só há ${l.stock} em stock.`}
+                      {l.stock === 0 ? t('semStock') : t('soHaEmStock', { stock: l.stock })}
                     </p>
                   ) : null}
                 </div>
 
                 <div className="flex items-center gap-3">
                   <label className="sr-only" htmlFor={`qty-${l.variantId}`}>
-                    Quantidade de {l.titulo}
+                    {t('quantidadeDe', { titulo: l.titulo })}
                   </label>
                   <input
                     id={`qty-${l.variantId}`}
@@ -148,7 +144,7 @@ export default function CarrinhoPage() {
                     onClick={() => remover(l.variantId)}
                     className="text-sm text-ink-muted underline transition-colors hover:text-terracota-dark"
                   >
-                    Remover
+                    {t('remover')}
                   </button>
                 </div>
               </li>
@@ -156,13 +152,10 @@ export default function CarrinhoPage() {
           </ul>
 
           <aside className="h-fit rounded-card bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-ink">Resumo</h2>
+            <h2 className="text-lg font-bold text-ink">{t('resumo')}</h2>
             <Totais totais={totais} />
-            <Link
-              href="/checkout"
-              className="botao-principal mt-6 block"
-            >
-              Finalizar compra
+            <Link href="/checkout" className="botao-principal mt-6 block">
+              {t('finalizarCompra')}
             </Link>
           </aside>
         </div>

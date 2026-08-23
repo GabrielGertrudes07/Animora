@@ -1,9 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { formatEuros } from '@animora/core'
 
 import { guardarMorada } from '../../../modules/account/acoes'
@@ -11,6 +10,7 @@ import type { Morada } from '../../../modules/account/sessao'
 import { carregarLinhas, comprar, type FaltaStock } from '../../../modules/cart/acoes'
 import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
 import { totaisDoCarrinho, type LinhaCarrinho } from '../../../modules/cart/carrinho'
+import { Link, useRouter } from '../../../i18n/navigation'
 import { Totais } from '../../../components/ui/Totais'
 
 /**
@@ -26,6 +26,10 @@ import { Totais } from '../../../components/ui/Totais'
  * A recusa por falta de stock (409) mostra o que falta e **não mexe no
  * carrinho**: quem estava a comprar cinco coisas não perde as outras quatro
  * porque outra pessoa levou a última unidade de uma.
+ *
+ * O formato de morada (código postal, `pattern`) continua só português nesta
+ * fase, em português e em alemão — internacionalizar o checkout (país, formato
+ * por país, portes) é o sub-projeto 3, fora desta spec.
  */
 
 const MORADA_VAZIA: Morada = {
@@ -50,6 +54,8 @@ export function FormularioCheckout({
 }) {
   const router = useRouter()
   const { itens, pronto, esvaziar } = useCarrinho()
+  const t = useTranslations('FormularioCheckout')
+  const tCheckout = useTranslations('CheckoutPage')
 
   const [linhas, setLinhas] = useState<LinhaCarrinho[]>([])
   const [aCarregar, setACarregar] = useState(true)
@@ -113,18 +119,18 @@ export function FormularioCheckout({
   }
 
   if (!pronto || aCarregar) {
-    return <p className="text-ink-muted">A carregar o carrinho…</p>
+    return <p className="text-ink-muted">{t('aCarregar')}</p>
   }
 
   if (linhas.length === 0) {
     return (
       <div className="rounded-card bg-white p-8 text-center shadow-sm">
-        <p className="text-lg font-semibold text-ink">Não há nada para comprar.</p>
+        <p className="text-lg font-semibold text-ink">{tCheckout('naoHaNadaParaComprar')}</p>
         <Link
           href="/"
           className="mt-6 inline-block rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark"
         >
-          Ver produtos
+          {tCheckout('verProdutos')}
         </Link>
       </div>
     )
@@ -133,11 +139,11 @@ export function FormularioCheckout({
   return (
     <form onSubmit={confirmar} className="grid gap-8 lg:grid-cols-[1fr_20rem]">
       <div className="min-w-0">
-        <h2 className="text-lg font-bold text-ink">Morada de envio</h2>
+        <h2 className="text-lg font-bold text-ink">{t('moradaEnvio')}</h2>
 
         {moradas.length > 0 ? (
           <fieldset className="mt-4 flex flex-col gap-3">
-            <legend className="sr-only">Escolha a morada</legend>
+            <legend className="sr-only">{t('escolherMorada')}</legend>
             {moradas.map((m, i) => (
               <label
                 key={`${m.codigoPostal}-${i}`}
@@ -170,7 +176,7 @@ export function FormularioCheckout({
                 checked={escolhida === NOVA}
                 onChange={() => setEscolhida(NOVA)}
               />
-              Usar outra morada
+              {t('usarOutraMorada')}
             </label>
           </fieldset>
         ) : null}
@@ -179,7 +185,7 @@ export function FormularioCheckout({
           <div className="mt-4 grid gap-4 rounded-card bg-white p-4 shadow-sm sm:grid-cols-2">
             <Campo
               id="nomeDestinatario"
-              rotulo="Destinatário"
+              rotulo={t('destinatario')}
               valor={nova.nomeDestinatario}
               obrigatorio
               aoMudar={(v) => setNova({ ...nova, nomeDestinatario: v })}
@@ -187,7 +193,7 @@ export function FormularioCheckout({
             />
             <Campo
               id="linha1"
-              rotulo="Morada"
+              rotulo={t('morada')}
               valor={nova.linha1}
               obrigatorio
               aoMudar={(v) => setNova({ ...nova, linha1: v })}
@@ -195,40 +201,37 @@ export function FormularioCheckout({
             />
             <Campo
               id="linha2"
-              rotulo="Morada (cont.)"
+              rotulo={t('moradaCont')}
               valor={nova.linha2}
               aoMudar={(v) => setNova({ ...nova, linha2: v })}
               className="sm:col-span-2"
             />
             <Campo
               id="codigoPostal"
-              rotulo="Código postal"
+              rotulo={t('codigoPostal')}
               valor={nova.codigoPostal}
               obrigatorio
-              // `pattern` nativo: o formato português, verificado pelo browser
-              // antes de haver pedido nenhum. A coleção valida o mesmo do outro
-              // lado — esta é a cortesia, aquela é a regra.
               padrao="\d{4}-\d{3}"
-              dica="1234-567"
+              dica={t('codigoPostalDica')}
               aoMudar={(v) => setNova({ ...nova, codigoPostal: v })}
             />
             <Campo
               id="localidade"
-              rotulo="Localidade"
+              rotulo={t('localidade')}
               valor={nova.localidade}
               obrigatorio
               aoMudar={(v) => setNova({ ...nova, localidade: v })}
             />
             <Campo
               id="telefone"
-              rotulo="Telefone"
+              rotulo={t('telefone')}
               valor={nova.telefone}
               tipo="tel"
               aoMudar={(v) => setNova({ ...nova, telefone: v })}
             />
             <Campo
               id="etiqueta"
-              rotulo="Etiqueta (Casa, Trabalho…)"
+              rotulo={t('etiqueta')}
               valor={nova.etiqueta}
               aoMudar={(v) => setNova({ ...nova, etiqueta: v })}
             />
@@ -238,12 +241,12 @@ export function FormularioCheckout({
                 checked={guardar}
                 onChange={(e) => setGuardar(e.target.checked)}
               />
-              Guardar esta morada na minha conta
+              {t('guardarMorada')}
             </label>
           </div>
         ) : null}
 
-        <h2 className="mt-8 text-lg font-bold text-ink">O que vai comprar</h2>
+        <h2 className="mt-8 text-lg font-bold text-ink">{t('oQueVaiComprar')}</h2>
         <ul className="mt-4 flex flex-col gap-3">
           {linhas.map((l) => (
             <li
@@ -275,7 +278,7 @@ export function FormularioCheckout({
       </div>
 
       <aside className="h-fit rounded-card bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-ink">Resumo</h2>
+        <h2 className="text-lg font-bold text-ink">{t('resumo')}</h2>
         <Totais totais={totais} />
 
         {erro ? (
@@ -288,16 +291,17 @@ export function FormularioCheckout({
               <ul className="mt-2 list-disc pl-4">
                 {semStock.map((f) => (
                   <li key={f.variantId}>
-                    {f.titulo} — pediu {f.pedido},{' '}
-                    {f.disponivel === 0 ? 'não há nenhum' : `só há ${f.disponivel}`}.
+                    {f.disponivel === 0
+                      ? t('pediuNaoHaNenhum', { titulo: f.titulo, pedido: f.pedido })
+                      : t('pediuSoHa', { titulo: f.titulo, pedido: f.pedido, disponivel: f.disponivel })}
                   </li>
                 ))}
               </ul>
             ) : null}
             <p className="mt-2">
-              O carrinho ficou como estava.{' '}
+              {t('carrinhoFicouComoEstava')}{' '}
               <Link href="/carrinho" className="underline">
-                Voltar ao carrinho
+                {t('voltarAoCarrinho')}
               </Link>
               .
             </p>
@@ -309,11 +313,9 @@ export function FormularioCheckout({
           disabled={aEnviar}
           className="mt-6 w-full rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark disabled:opacity-60"
         >
-          {aEnviar ? 'A confirmar…' : 'Confirmar encomenda'}
+          {aEnviar ? t('aConfirmar') : t('confirmarEncomenda')}
         </button>
-        <p className="mt-3 text-xs text-ink-muted">
-          Sem pagamento nesta fase: a encomenda fica a aguardar pagamento.
-        </p>
+        <p className="mt-3 text-xs text-ink-muted">{t('semPagamento')}</p>
       </aside>
     </form>
   )
