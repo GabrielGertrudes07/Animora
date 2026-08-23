@@ -48,7 +48,7 @@
     "adicionarAria": "Adicionar {etiqueta} ao carrinho"
   },
   "Catalogo": {
-    "contagemProdutos": "{count, plural, one {1 produto} other {# produtos}}",
+    "contagemProdutos": "{count, plural, =0 {0 produtos} one {1 produto} other {# produtos}}",
     "semResultadosTitulo": "Sem resultados para “{q}”",
     "semResultadosTexto": "Experimenta uma palavra mais curta — o nome do produto, a marca ou o animal.",
     "limparPesquisa": "Limpar a pesquisa",
