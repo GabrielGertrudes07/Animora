@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Fraunces, Nunito_Sans } from 'next/font/google'
+import { Bricolage_Grotesque, Figtree } from 'next/font/google'
 import '../styles/globals.css'
 import { Header } from '../components/layout/Header'
 import { Footer } from '../components/layout/Footer'
@@ -9,18 +9,19 @@ import { CarrinhoProvider } from '../modules/cart/CarrinhoProvider'
  * As duas famílias da loja, auto-alojadas por `next/font` — sem pedido a
  * servidores de fontes em tempo de execução e sem salto de tipo ao carregar.
  *
- * Fraunces (serifa suave, com `SOFT`/`WONK` a arredondar-lhe os cantos) só nos
- * títulos: é ela que tira o ar de template. Nunito Sans no texto, que é para
- * ler. Duas e mais nenhuma.
+ * Fraunces + Nunito Sans (a combinação anterior) é a escolha-reflexo de
+ * qualquer gerador de design — foi apontada como "cara de IA" na crítica que
+ * levou a este redesign. Bricolage Grotesque nos títulos tem carácter próprio
+ * sem cair em serifa editorial; Figtree no texto continua legível. Duas e
+ * mais nenhuma.
  */
-const fonteTitulo = Fraunces({
+const fonteTitulo = Bricolage_Grotesque({
   subsets: ['latin'],
-  axes: ['SOFT', 'WONK', 'opsz'],
   variable: '--fonte-titulo',
   display: 'swap',
 })
 
-const fonteTexto = Nunito_Sans({
+const fonteTexto = Figtree({
   subsets: ['latin'],
   variable: '--fonte-texto',
   display: 'swap',

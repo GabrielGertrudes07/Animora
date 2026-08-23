@@ -39,6 +39,7 @@ export default async function CategoriaPage({ params, searchParams }: Props) {
   return (
     <Catalogo
       titulo={cat.name}
+      caminho={`/${cat.slug}`}
       categoriaId={cat.id}
       filtros={filtros}
       atributosAtivos={atributosAtivos}

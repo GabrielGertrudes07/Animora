@@ -165,3 +165,69 @@ describe('restringirAtributosAtivos', () => {
     expect(restringirAtributosAtivos(f, [])).toEqual(f)
   })
 })
+
+/**
+ * A pesquisa vive na query string, como os filtros — é o que a torna
+ * partilhável, indexável e capaz de sobreviver ao botão "voltar" do browser,
+ * que não faz nada mais do que repor o endereço anterior.
+ */
+describe('pesquisa na query string', () => {
+  /** Query string → o `searchParams` que o Next entrega a uma página. */
+  const comoSearchParams = (query: string): Record<string, string | string[]> => {
+    const sp: Record<string, string | string[]> = {}
+    for (const [k, v] of new URLSearchParams(query)) {
+      const atual = sp[k]
+      if (atual === undefined) sp[k] = v
+      else sp[k] = Array.isArray(atual) ? [...atual, v] : [atual, v]
+    }
+    return sp
+  }
+
+  it('lê o termo pesquisado', () => {
+    expect(parseFilters({ q: 'coleira' }).q).toBe('coleira')
+  })
+
+  it('`?q=` vazio ou só com espaços é não haver pesquisa nenhuma', () => {
+    expect(parseFilters({ q: '' }).q).toBeUndefined()
+    expect(parseFilters({ q: '   ' }).q).toBeUndefined()
+    expect(parseFilters({}).q).toBeUndefined()
+  })
+
+  it('dois `q` ficam pelo primeiro', () => {
+    expect(parseFilters({ q: ['coleira', 'racao'] }).q).toBe('coleira')
+  })
+
+  it('`q` não é lido como filtro de atributo', () => {
+    expect(parseFilters({ q: 'coleira' }).atributos).toBeUndefined()
+  })
+
+  it('escreve o termo de volta, e primeiro', () => {
+    expect(filtersToQuery({ ordem: 'relevancia', q: 'coleira' })).toBe('q=coleira')
+    expect(filtersToQuery({ ordem: 'relevancia', q: 'coleira', marca: ['petnest'] })).toBe(
+      'q=coleira&marca=petnest',
+    )
+  })
+
+  it('o endereço sobrevive à ida e volta — é o que o "voltar" e o partilhar precisam', () => {
+    const filtros = {
+      ordem: 'preco-asc' as const,
+      q: 'ração para cão',
+      marca: ['petnest', 'happypaws'],
+      precoMin: 1000,
+      precoMax: 5000,
+      atributos: { tamanho: ['M', 'L'] },
+    }
+    expect(parseFilters(comoSearchParams(filtersToQuery(filtros)))).toEqual(filtros)
+  })
+
+  it('um acento no termo atravessa o endereço intacto', () => {
+    const query = filtersToQuery({ ordem: 'relevancia', q: 'ração' })
+    expect(query).toBe('q=ra%C3%A7%C3%A3o')
+    expect(parseFilters(comoSearchParams(query)).q).toBe('ração')
+  })
+
+  it('restringir os atributos ativos não leva a pesquisa à frente', () => {
+    const f = parseFilters({ q: 'coleira', tamanho: 'M' })
+    expect(restringirAtributosAtivos(f, []).q).toBe('coleira')
+  })
+})

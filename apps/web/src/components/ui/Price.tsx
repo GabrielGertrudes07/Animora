@@ -21,7 +21,12 @@ export function Price({
       {desde ? <span className="mr-1 text-sm text-ink-muted">desde</span> : null}
       <span className="text-lg font-bold text-ink">{formatEuros(cents)}</span>
       {old && old > cents ? (
-        <span className="ml-2 text-sm text-ink-muted line-through">{formatEuros(old)}</span>
+        <>
+          <span className="ml-2 text-sm text-ink-muted line-through">{formatEuros(old)}</span>
+          <span className="ml-2 rounded-full bg-sage-soft px-2 py-0.5 text-xs font-semibold text-sage-dark">
+            Poupas {formatEuros(old - cents)}
+          </span>
+        </>
       ) : null}
     </span>
   )

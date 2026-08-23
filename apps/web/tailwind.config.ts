@@ -5,11 +5,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Paleta herdada de legacy/styles.css — verde escuro, terracota, creme
+        // Verde-escuro (confiança, texto) + terracota (energia da marca,
+        // agora mais viva — ver docs/superpowers/specs do redesign) + creme
+        // (só para superfícies pontuais, o fundo da loja passou a branco).
         ink: '#18352A',
         'ink-muted': '#4F685F',
-        terracota: { DEFAULT: '#D9825B', dark: '#BF6A44', strong: '#C76E47' },
-        sage: { DEFAULT: '#6F8F72', dark: '#58735E' },
+        terracota: { DEFAULT: '#F2703A', dark: '#D6531F', strong: '#C76E47' },
+        sage: { DEFAULT: '#6F8F72', dark: '#58735E', soft: '#E1F3E7' },
+        // Só para desconto/urgência — nunca reutilizado como cor de marca.
+        promo: { DEFAULT: '#E63946', dark: '#C22836', soft: '#FCE1E3' },
         cream: '#F7F5EF',
         line: 'rgba(111, 143, 114, 0.18)',
       },

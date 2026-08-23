@@ -6,9 +6,18 @@ const SORT_KEYS: readonly SortKey[] = ['relevancia', 'preco-asc', 'preco-desc']
 
 /** Os únicos parâmetros com significado fixo. Tudo o resto na query string é
  * lido como um filtro de atributo, pela chave — ver `parseFilters`. */
-const RESERVADOS = new Set(['marca', 'preco', 'ordem'])
+const RESERVADOS = new Set(['marca', 'preco', 'ordem', 'q'])
 
 export type CatalogFilters = {
+  /**
+   * O texto pesquisado. Vive aqui, e não à parte, por uma razão prática: o
+   * `filtersToQuery` é o único sítio do projeto que monta a query string do
+   * catálogo, e é dele que saem os endereços da barra de filtros e da caixa de
+   * ordenação. Com a pesquisa fora de `CatalogFilters`, escolher uma marca
+   * depois de procurar apagava a procura — e a pesquisa combina com os filtros,
+   * não os substitui.
+   */
+  q?: string
   marca?: string[]
   precoMin?: number
   precoMax?: number
@@ -42,6 +51,12 @@ function toArray(v: string | string[] | undefined): string[] | undefined {
 export function parseFilters(sp: SearchParams): CatalogFilters {
   const f: CatalogFilters = { ordem: 'relevancia' }
 
+  // `?q=` vazio, ou só com espaços, é não haver pesquisa nenhuma — devolve a
+  // loja toda, não zero resultados. Um `?q=a&q=b` fica pelo primeiro: a caixa
+  // de pesquisa é uma só e não há segunda leitura de "duas pesquisas".
+  const q = toArray(sp.q)?.[0]?.trim()
+  if (q) f.q = q
+
   const marca = toArray(sp.marca)
   if (marca && marca.length > 0) f.marca = marca
 
@@ -73,6 +88,9 @@ export function parseFilters(sp: SearchParams): CatalogFilters {
 /** Escreve os filtros de volta na query string, omitindo o que é omissão. */
 export function filtersToQuery(f: CatalogFilters): string {
   const p = new URLSearchParams()
+
+  // Primeiro, para o endereço se ler como o que é: uma pesquisa, filtrada.
+  if (f.q) p.set('q', f.q)
 
   for (const m of f.marca ?? []) p.append('marca', m)
 

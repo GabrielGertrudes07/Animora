@@ -27,10 +27,22 @@ export default async function ProdutosPage({ searchParams }: Props) {
   // A query string crua morre aqui — ver `lerFiltros`.
   const { filtros, atributosAtivos } = await lerFiltros(await searchParams)
 
+  // `/produtos?q=coleira` é a página de resultados da loja: mesma rota, mesmos
+  // filtros, mesma grelha — só o cabeçalho muda, para quem chega por um link
+  // partilhado saber o que está a ver. A pesquisa vive na query string e não
+  // numa rota própria justamente para se combinar com os filtros sem duplicar
+  // nada disto.
+  const q = filtros.q
+
   return (
     <Catalogo
-      titulo="Todos os produtos"
-      descricao="Tudo o que está à venda, de uma vez. Filtra por marca, preço ou característica."
+      titulo={q ? `Resultados para “${q}”` : 'Todos os produtos'}
+      descricao={
+        q
+          ? 'Procurámos no título, na marca e na categoria de tudo o que está publicado.'
+          : 'Tudo o que está à venda, de uma vez. Filtra por marca, preço ou característica.'
+      }
+      caminho="/produtos"
       filtros={filtros}
       atributosAtivos={atributosAtivos}
       vazio={{

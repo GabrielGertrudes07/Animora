@@ -7,7 +7,7 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-cream font-sans text-ink antialiased;
+    @apply bg-white font-sans text-ink antialiased;
   }
   /* Os títulos são todos da família de display, num sítio só — nenhuma página
      precisa de se lembrar de `font-display`. */
@@ -19,7 +19,7 @@
   /* O site antigo não tinha nenhum estilo de foco visível — foi um dos
      defeitos apontados na crítica. Aqui é a camada base, num sítio só. */
   :focus-visible {
-    @apply outline-none ring-2 ring-terracota ring-offset-2 ring-offset-cream;
+    @apply outline-none ring-2 ring-terracota ring-offset-2 ring-offset-white;
   }
 }
 

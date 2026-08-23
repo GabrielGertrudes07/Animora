@@ -48,6 +48,13 @@ export const Products: CollectionConfig = {
       tabs: [
         {
           label: 'Geral',
+          admin: {
+            description:
+              'Para publicar precisa de: categoria, marca, pelo menos uma imagem na galeria, e ' +
+              'pelo menos uma variante ativa com preço acima de zero. As variantes só existem ' +
+              'depois de o produto estar gravado — grave como rascunho, defina o preço em ' +
+              '/admin/collections/variants, e só depois publique.',
+          },
           fields: [
             { name: 'title', type: 'text', required: true, label: 'Título' },
             {

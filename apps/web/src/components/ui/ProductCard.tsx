@@ -1,9 +1,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { PublicProduct } from '../../modules/catalog'
-import { precoDeMostra } from '../../modules/catalog'
+import { precoDeMostra, getAvaliacaoProduto } from '../../modules/catalog'
 import { mediaUrl } from '../../lib/api'
 import { Price } from './Price'
+import { Estrelas } from './Estrelas'
 import { Icon } from '../icons/sprite'
 
 /**
@@ -13,11 +14,20 @@ import { Icon } from '../icons/sprite'
  * ele que a grelha encontra os cartões para a cascata e para a micro-interação
  * do rato, sem que o GSAP precise de conhecer a estrutura interna deste
  * componente nem de o transformar num Client Component.
+ *
+ * Assíncrono para ler as avaliações do produto — uma leitura a mais por
+ * cartão (`getAvaliacaoProduto`), aceitável numa grelha de destaques ou
+ * ofertas com poucas dezenas de cartões.
  */
-export function ProductCard({ product }: { product: PublicProduct }) {
+export async function ProductCard({ product }: { product: PublicProduct }) {
   const preco = precoDeMostra(product.variants)
   const img = product.primaryImage ?? product.gallery[0]?.image ?? null
   const stockTotal = product.variants.reduce((s, v) => s + v.stock, 0)
+  const avaliacao = await getAvaliacaoProduto(product.id)
+  const desconto =
+    preco.old && preco.old > preco.cents
+      ? Math.round(((preco.old - preco.cents) / preco.old) * 100)
+      : null
 
   return (
     <article
@@ -41,8 +51,13 @@ export function ProductCard({ product }: { product: PublicProduct }) {
               <Icon name="paw" className="h-16 w-16" />
             </span>
           )}
+          {desconto ? (
+            <span className="absolute left-3 top-3 rounded-full bg-promo px-3 py-1 text-xs font-bold text-white shadow-sm">
+              -{desconto}%
+            </span>
+          ) : null}
           {stockTotal === 0 ? (
-            <span className="absolute left-3 top-3 rounded-full bg-ink/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cream">
+            <span className="absolute right-3 top-3 rounded-full bg-ink/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cream">
               Esgotado
             </span>
           ) : null}
@@ -53,6 +68,7 @@ export function ProductCard({ product }: { product: PublicProduct }) {
             {product.brand.name}
           </p>
           <h3 className="text-lg font-semibold leading-snug text-ink">{product.title}</h3>
+          <Estrelas resumo={avaliacao} />
           <Price cents={preco.cents} old={preco.old} desde={preco.desde} className="mt-2 block" />
           {stockTotal > 0 ? (
             <p className="text-sm text-ink-muted">{stockTotal} em stock</p>

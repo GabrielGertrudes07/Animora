@@ -1,6 +1,8 @@
+import Link from 'next/link'
 import {
-  listProducts,
+  pesquisarProdutos,
   computeAttributeFacets,
+  filtersToQuery,
   precoBounds,
   marcasDisponiveis,
   type AttributeDef,
@@ -15,6 +17,8 @@ import { OrdenarPor } from './OrdenarPor'
 type Props = {
   titulo: string
   descricao?: string
+  /** O endereço desta página, sem query string — para os links que limpam. */
+  caminho: string
   /** Ausente em `/produtos`: a loja inteira. Presente em `/[categoria]`. */
   categoriaId?: number
   /**
@@ -42,19 +46,27 @@ type Props = {
 export async function Catalogo({
   titulo,
   descricao,
+  caminho,
   categoriaId,
   filtros,
   atributosAtivos,
   vazio,
 }: Props) {
+  const q = filtros.q ?? ''
+
   // O universo SEM os filtros do pedido: é dele que saem os limites de preço,
   // as marcas e os valores de atributo REAIS — nunca uma constante e nunca
   // reduzido pelos próprios filtros que se está a montar (senão a barra de
   // preço encolhia sozinha a cada seleção). A lista efetivamente mostrada
   // (`produtos`, abaixo) é uma segunda leitura, já com os filtros aplicados.
+  //
+  // A pesquisa é a exceção e entra nos dois: quem procurou "ração" tem de ver
+  // as marcas das rações, não as do catálogo inteiro. Um filtro que devolveria
+  // zero resultados nunca é oferecido — é a regra do `computeAttributeFacets`,
+  // e a pesquisa não a suspende.
   const [todos, produtos] = await Promise.all([
-    listProducts({ ordem: 'relevancia' }, categoriaId),
-    listProducts(filtros, categoriaId, atributosAtivos),
+    pesquisarProdutos(q, { ordem: 'relevancia' }, categoriaId),
+    pesquisarProdutos(q, filtros, categoriaId, atributosAtivos),
   ])
 
   const facetas = computeAttributeFacets(todos, atributosAtivos)
@@ -66,6 +78,10 @@ export async function Catalogo({
       filtros.precoMin !== undefined ||
       Object.keys(filtros.atributos ?? {}).length > 0,
   )
+
+  // Limpar a pesquisa tira só a pesquisa: os filtros que a pessoa escolheu
+  // continuam lá.
+  const semPesquisa = filtersToQuery({ ...filtros, q: undefined })
 
   return (
     <main id="conteudo" className="mx-auto max-w-7xl px-6 py-10">
@@ -91,7 +107,23 @@ export async function Catalogo({
 
         <div className="min-w-0 flex-1">
           {produtos.length === 0 ? (
-            comFiltros ? (
+            q ? (
+              // A pesquisa vem primeiro: com `?q=xpto&marca=x`, o que não
+              // encontrou nada foi a palavra, e mandar alargar o preço era
+              // mandar a pessoa para o sítio errado.
+              <EstadoVazio
+                ilustracao="lupa"
+                titulo={`Sem resultados para “${q}”`}
+                texto="Experimenta uma palavra mais curta — o nome do produto, a marca ou o animal."
+              >
+                <Link
+                  href={semPesquisa ? `${caminho}?${semPesquisa}` : caminho}
+                  className="inline-block rounded-lg bg-terracota px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-terracota-dark"
+                >
+                  Limpar a pesquisa
+                </Link>
+              </EstadoVazio>
+            ) : comFiltros ? (
               <EstadoVazio
                 ilustracao="lupa"
                 titulo="Nenhum produto corresponde aos filtros"

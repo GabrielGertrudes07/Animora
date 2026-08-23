@@ -240,6 +240,10 @@ export function FiltrosCatalogo(props: Props) {
 
     const novosFiltros: CatalogFilters = {
       ordem: filtrosAtuais.ordem,
+      // A pesquisa sobrevive a aplicar filtros: procurar e depois escolher uma
+      // marca é estreitar, não recomeçar. Este objeto é montado de raiz a cada
+      // submissão, por isso o que não estiver aqui desaparece do endereço.
+      ...(filtrosAtuais.q ? { q: filtrosAtuais.q } : {}),
       ...(marca.length > 0 ? { marca } : {}),
       ...(precoEstreitado
         ? { precoMin: Math.min(precoMin!, precoMax!), precoMax: Math.max(precoMin!, precoMax!) }
