@@ -1,8 +1,9 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import type { PublicProduct } from '../../modules/catalog'
 import { precoDeMostra, getAvaliacaoProduto } from '../../modules/catalog'
 import { mediaUrl } from '../../lib/api'
+import { Link } from '../../i18n/navigation'
 import { Price } from './Price'
 import { Estrelas } from './Estrelas'
 import { Icon } from '../icons/sprite'
@@ -23,7 +24,10 @@ export async function ProductCard({ product }: { product: PublicProduct }) {
   const preco = precoDeMostra(product.variants)
   const img = product.primaryImage ?? product.gallery[0]?.image ?? null
   const stockTotal = product.variants.reduce((s, v) => s + v.stock, 0)
-  const avaliacao = await getAvaliacaoProduto(product.id)
+  const [avaliacao, t] = await Promise.all([
+    getAvaliacaoProduto(product.id),
+    getTranslations('ProductCard'),
+  ])
   const desconto =
     preco.old && preco.old > preco.cents
       ? Math.round(((preco.old - preco.cents) / preco.old) * 100)
@@ -58,7 +62,7 @@ export async function ProductCard({ product }: { product: PublicProduct }) {
           ) : null}
           {stockTotal === 0 ? (
             <span className="absolute right-3 top-3 rounded-full bg-ink/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cream">
-              Esgotado
+              {t('esgotado')}
             </span>
           ) : null}
         </div>
@@ -71,9 +75,9 @@ export async function ProductCard({ product }: { product: PublicProduct }) {
           <Estrelas resumo={avaliacao} />
           <Price cents={preco.cents} old={preco.old} desde={preco.desde} className="mt-2 block" />
           {stockTotal > 0 ? (
-            <p className="text-sm text-ink-muted">{stockTotal} em stock</p>
+            <p className="text-sm text-ink-muted">{t('emStock', { count: stockTotal })}</p>
           ) : (
-            <p className="text-sm text-ink-muted">Sem stock de momento</p>
+            <p className="text-sm text-ink-muted">{t('semStock')}</p>
           )}
         </div>
       </Link>

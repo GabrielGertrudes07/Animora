@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import type { ResumoAvaliacoes } from '@animora/core'
 
 /**
@@ -7,7 +8,7 @@ import type { ResumoAvaliacoes } from '@animora/core'
  * não desenha nada. Um produto novo sem avaliações não é um produto mal
  * avaliado, e mostrar "0,0 ★" diria exatamente isso.
  */
-export function Estrelas({
+export async function Estrelas({
   resumo,
   className = '',
 }: {
@@ -16,6 +17,7 @@ export function Estrelas({
 }) {
   if (resumo.media === null) return null
 
+  const t = await getTranslations('Estrelas')
   const media = resumo.media / 10
 
   return (
@@ -25,7 +27,7 @@ export function Estrelas({
         {'☆☆☆☆☆'.slice(0, 5 - Math.round(media))}
       </span>
       <span>
-        {media.toFixed(1)} · {resumo.total} {resumo.total === 1 ? 'avaliação' : 'avaliações'}
+        {media.toFixed(1)} · {t('contagem', { count: resumo.total })}
       </span>
     </div>
   )
