@@ -1,8 +1,9 @@
 'use client'
 
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 import { useCarrinho } from '../../modules/cart/CarrinhoProvider'
+import { Link } from '../../i18n/navigation'
 import { Icon } from '../icons/sprite'
 
 /**
@@ -15,19 +16,16 @@ import { Icon } from '../icons/sprite'
  */
 export function CarrinhoBotao() {
   const { contagem, pronto } = useCarrinho()
+  const t = useTranslations('CarrinhoBotao')
 
   return (
     <Link
       href="/carrinho"
       className="flex shrink-0 items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink transition-colors hover:border-terracota"
-      aria-label={
-        pronto
-          ? `Carrinho, ${contagem} ${contagem === 1 ? 'artigo' : 'artigos'}`
-          : 'Carrinho'
-      }
+      aria-label={t('carrinhoAria', { count: pronto ? contagem : 0 })}
     >
       <Icon name="cart" className="h-5 w-5" />
-      <span className="hidden sm:inline">Carrinho</span>
+      <span className="hidden sm:inline">{t('carrinho')}</span>
       {pronto && contagem > 0 ? (
         <span className="rounded-full bg-terracota px-2 py-0.5 text-xs font-semibold text-white">
           {contagem}

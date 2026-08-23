@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 import { useCarrinho } from '../../modules/cart/CarrinhoProvider'
 
@@ -24,9 +25,10 @@ export function AdicionarAoCarrinho({
 }) {
   const { acrescentar } = useCarrinho()
   const [feito, setFeito] = useState(false)
+  const t = useTranslations('AdicionarAoCarrinho')
 
   if (esgotado) {
-    return <span className="text-sm font-medium text-ink-muted">Esgotado</span>
+    return <span className="text-sm font-medium text-ink-muted">{t('esgotado')}</span>
   }
 
   return (
@@ -37,10 +39,10 @@ export function AdicionarAoCarrinho({
         setFeito(true)
         window.setTimeout(() => setFeito(false), 2000)
       }}
-      aria-label={`Adicionar ${etiqueta} ao carrinho`}
+      aria-label={t('adicionarAria', { etiqueta })}
       className="rounded-lg bg-terracota px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-terracota-dark"
     >
-      {feito ? 'No carrinho' : 'Adicionar'}
+      {feito ? t('noCarrinho') : t('adicionar')}
     </button>
   )
 }

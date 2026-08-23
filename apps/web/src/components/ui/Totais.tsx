@@ -1,3 +1,6 @@
+'use client'
+
+import { useTranslations } from 'next-intl'
 import { formatEuros, type CartTotals } from '@animora/core'
 
 import { Icon } from '../icons/sprite'
@@ -17,24 +20,26 @@ import { Icon } from '../icons/sprite'
  *
  * `data-total-cents` existe para a verificação poder medir o número exato no
  * HTML e compará-lo com o `totalCents` da encomenda criada, sem ter de
- * desformatar texto português.
+ * desformatar texto.
  */
 export function Totais({ totais }: { totais: CartTotals }) {
+  const t = useTranslations('Totais')
+
   return (
     <>
       <dl className="mt-4 flex flex-col gap-2 text-sm">
         <div className="flex justify-between gap-4">
-          <dt className="text-ink-muted">Subtotal</dt>
+          <dt className="text-ink-muted">{t('subtotal')}</dt>
           <dd className="font-medium text-ink">{formatEuros(totais.subtotalCents)}</dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-ink-muted">Envio</dt>
+          <dt className="text-ink-muted">{t('envio')}</dt>
           <dd className="font-medium text-ink">
-            {totais.shippingCents === 0 ? 'Grátis' : formatEuros(totais.shippingCents)}
+            {totais.shippingCents === 0 ? t('gratis') : formatEuros(totais.shippingCents)}
           </dd>
         </div>
         <div className="mt-2 flex justify-between gap-4 border-t border-line pt-3 text-base">
-          <dt className="font-bold text-ink">Total</dt>
+          <dt className="font-bold text-ink">{t('total')}</dt>
           <dd className="font-bold text-ink" data-total-cents={totais.totalCents}>
             {formatEuros(totais.totalCents)}
           </dd>
@@ -44,15 +49,12 @@ export function Totais({ totais }: { totais: CartTotals }) {
       {totais.faltaParaEnvioGratisCents > 0 ? (
         <p className="mt-4 flex items-start gap-2 rounded-lg bg-cream px-3 py-2 text-sm text-ink">
           <Icon name="shield" className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>
-            Faltam <strong>{formatEuros(totais.faltaParaEnvioGratisCents)}</strong> para ter envio
-            grátis.
-          </span>
+          <span>{t('faltaEnvioGratis', { valor: formatEuros(totais.faltaParaEnvioGratisCents) })}</span>
         </p>
       ) : totais.subtotalCents > 0 ? (
         <p className="mt-4 flex items-center gap-2 rounded-lg bg-cream px-3 py-2 text-sm text-ink">
           <Icon name="shield" className="h-4 w-4 shrink-0" />
-          Tem envio grátis.
+          {t('temEnvioGratis')}
         </p>
       ) : null}
     </>
