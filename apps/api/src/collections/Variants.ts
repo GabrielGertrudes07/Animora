@@ -7,6 +7,7 @@ import { soStaff, soStaffCampo } from '../access/staff'
 import { ajustarStock } from '../hooks/ajustarStock'
 import { blockOffMatrix } from '../hooks/blockOffMatrix'
 import { blockUnsellableChange, blockUnsellableDelete } from '../hooks/blockUnsellable'
+import { campoShopifyId } from '../shopify/campos'
 
 const EXEMPLO = 'Ex.: { "Tamanho": "S", "Cor": "Preto" }'
 
@@ -245,5 +246,6 @@ export const Variants: CollectionConfig = {
         },
       ],
     },
+    campoShopifyId,
   ],
 }

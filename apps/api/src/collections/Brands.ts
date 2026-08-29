@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { soStaff } from '../access/staff'
 import { blockDeleteIfPublished } from '../hooks/blockDeleteIfPublished'
+import { campoShopifyId } from '../shopify/campos'
 
 export const Brands: CollectionConfig = {
   slug: 'brands',
@@ -14,5 +15,6 @@ export const Brands: CollectionConfig = {
   fields: [
     { name: 'name', type: 'text', required: true, label: 'Nome' },
     { name: 'slug', type: 'text', required: true, unique: true, label: 'Slug' },
+    campoShopifyId,
   ],
 }

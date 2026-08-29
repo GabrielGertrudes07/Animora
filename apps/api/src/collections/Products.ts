@@ -6,6 +6,7 @@ import { deleteVariantsOfProduct, syncVariants } from '../hooks/syncVariants'
 import { validatePublish } from '../hooks/validatePublish'
 import { uniqueSlug } from '../hooks/uniqueSlug'
 import { apagarAvaliacoesDe } from './Reviews'
+import { campoShopifyId } from '../shopify/campos'
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -158,5 +159,6 @@ export const Products: CollectionConfig = {
         },
       ],
     },
+    campoShopifyId,
   ],
 }

@@ -179,6 +179,40 @@ afterAll(async () => {
   await payload.delete({ collection: 'media', where: { alt: { contains: P } } })
 })
 
+describe('espelho do Shopify', () => {
+  it('recusa dois produtos com o mesmo shopifyId', async () => {
+    const gid = `gid://shopify/Product/${P}-duplicado`
+
+    await payload.create({
+      collection: 'products',
+      data: {
+        title: 'Zteste shopify um',
+        slug: `${P}-shopify-um`,
+        brand: marca,
+        categories: [categoria],
+        gallery: [{ image: imagem }],
+        options: [],
+        shopifyId: gid,
+      },
+    })
+
+    await expect(
+      payload.create({
+        collection: 'products',
+        data: {
+          title: 'Zteste shopify dois',
+          slug: `${P}-shopify-dois`,
+          brand: marca,
+          categories: [categoria],
+          gallery: [{ image: imagem }],
+          options: [],
+          shopifyId: gid,
+        },
+      }),
+    ).rejects.toThrow()
+  })
+})
+
 describe('sincronização de variantes', () => {
   it('acrescentar um valor preserva preço, stock e id das variantes existentes', async () => {
     const produto = await criarRascunho('acrescentar', [opcao('Tamanho', 'S', 'M')])

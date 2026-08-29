@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { soStaff } from '../access/staff'
 import { blockDeleteIfPublished } from '../hooks/blockDeleteIfPublished'
+import { campoShopifyId } from '../shopify/campos'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
@@ -28,5 +29,6 @@ export const Categories: CollectionConfig = {
       label: 'Categoria mãe',
       admin: { description: 'Deixar vazio para categoria de topo' },
     },
+    campoShopifyId,
   ],
 }
