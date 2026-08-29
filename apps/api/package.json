@@ -7,7 +7,8 @@
     "build": "next build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "seed": "payload run src/seed.ts"
+    "seed": "payload run src/seed.ts",
+    "shopify:validar": "payload run src/shopify/validar-consulta.ts"
   },
   "dependencies": {
     "@animora/core": "workspace:*",
