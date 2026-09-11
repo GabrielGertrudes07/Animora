@@ -11,13 +11,21 @@ crescer daqui para a frente, não só o que foi corrigido.
 HTTP 200 em vez de 404 — confirmado que até uma rota totalmente aleatória
 respondia 200, então o problema era estrutural, não um erro de lógica.
 
-**Causa raiz:** um `loading.tsx` em qualquer segmento ancestral envolve a
-página numa fronteira `<Suspense>` automática do Next.js. O Next começa a
-transmitir a resposta como 200 assim que a fronteira monta o `fallback`,
-antes de o componente da página (async, pode chamar `notFound()`) resolver
-— quando resolve para "não encontrado", o código de estado já está
-travado em 200. É um comportamento documentado do App Router
-(`vercel/next.js` discussions #76501, #70170), não um bug desta loja.
+**Causa raiz (redigida com mais precisão após a revisão geral, achado do
+processo sobre a D01):** a causa exata não é "existe um `loading.tsx`
+ancestral" em abstrato — é o momento em que o corpo da resposta HTTP
+começa a ser transmitido. Isso acontece assim que uma fronteira
+`<Suspense>` renderiza o seu `fallback` (o que um `loading.tsx` cria
+automaticamente para o segmento) **ou** quando um Server Component
+suspende dentro de uma fronteira já existente. Nesse instante o Next já
+enviou os cabeçalhos da resposta com status 200; se o componente da
+página (async, pode chamar `notFound()`) só resolve depois, o código de
+estado já não pode mudar — documentado na própria página do Next sobre
+`loading.js` (secção "Status Codes"). Um `loading.tsx` em segmento
+ancestral é a forma mais comum de criar essa fronteira, por isso "tirar o
+`loading.tsx` do caminho de quem chama `notFound()`" resolve o problema
+na prática — mas o que se está a evitar é o início do streaming antes da
+checagem de existência, não o arquivo em si.
 
 **Decisão:** `app/[locale]/loading.tsx` — que cobria a home e, por
 herança, `/[categoria]` e `/produto/[slug]` (as duas rotas que chamam
@@ -27,11 +35,22 @@ rota `app/[locale]/(home)/` só para isso: nenhuma outra rota herda o
 chama `notFound()`) ganhou o seu próprio `loading.tsx` local, mesmo
 padrão.
 
+**Alternativa não escolhida:** a doc do Next também aponta garantir a
+existência do recurso *antes* do streaming começar (por exemplo, uma
+checagem em middleware/proxy) como outra forma de obter um 404 real sem
+mexer em fronteiras de Suspense. Não foi o caminho tomado aqui porque
+exigiria uma consulta ao catálogo fora do componente de página, duplicando
+a leitura que a própria página já faz — mas é a opção a considerar se uma
+fase futura precisar de `loading.tsx` num segmento que também tem de
+responder 404.
+
 **Regra daqui para a frente:** antes de adicionar um `loading.tsx` a
 qualquer segmento, perguntar se alguma rota abaixo dele chama
-`notFound()`. Se sim, o `loading.tsx` tem de viver mais perto da folha
-(a própria rota, ou um grupo de rota que isole só quem não chama
-`notFound()`) — nunca num ancestral compartilhado.
+`notFound()` (ou qualquer outra mudança de status depois de um `await`
+que possa suspender). Se sim, o `loading.tsx` tem de viver mais perto da
+folha (a própria rota, ou um grupo de rota que isole só quem não chama
+`notFound()`) — nunca num ancestral compartilhado — ou a checagem de
+existência precisa acontecer antes do streaming começar.
 
 ## D02 — Um `index.ts` de módulo não pode misturar arquivos `'use server'` com arquivos servidor-só sem a diretiva
 

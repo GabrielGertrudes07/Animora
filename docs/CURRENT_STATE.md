@@ -1,6 +1,8 @@
 # Estado atual — Animora
 
-**Última atualização:** 2026-09-11, ao final da Fase 1 do plano estrutural v1.
+**Última atualização:** 2026-09-11, após a rodada corretiva pós-revisão geral
+(ver `docs/reviews/2026-09-11-revisao-geral.md`), que segue o fim da Fase 7
+do plano estrutural v1.
 
 > Este documento descreve só o que foi verificado. Onde a verificação é
 > indireta (histórico de commits, não releitura linha a linha), isso é dito
@@ -706,11 +708,20 @@ justifique o custo.
 | PDP | 95/100 | 3,0 s | 0 | 0 ms |
 
 CLS e TBT em zero nas três — nenhum salto de layout, nenhum JS
-bloqueando a thread principal. O LCP mais alto que o ideal repete o
-achado já registado desde a Fase 3/5 (aviso do Next/Image sugerindo
-`priority` na imagem acima da dobra) — não é uma regressão desta fase,
-não foi corrigido aqui (fora do escopo de "validação", é uma otimização
-de uma fase futura de performance dedicada).
+bloqueando a thread principal. **Correção (revisão geral, achado R11):** a
+frase anterior aqui atribuía o LCP alto ao aviso do Next/Image sobre
+`priority` numa imagem acima da dobra, nas três páginas. Isso está errado
+para a Home: `Hero.tsx` não tem nenhum `<Image>`, só `MediaPlaceholder`
+(uma `div` de fundo neutro) — não há imagem nenhuma para priorizar, o
+elemento de LCP ali só pode ser texto (`<h1>` ou o placeholder). Não
+identifiquei o elemento de LCP real em nenhuma das três páginas (precisa
+do relatório detalhado do Lighthouse, não só do número); o que fica
+registado é isto: o número existe, a causa não foi verificada, e a
+explicação anterior não se sustenta para a Home. Também vale registar que
+TBT=0 é uma métrica de laboratório e não substitui INP (métrica de campo,
+de interações reais) — não posso afirmar responsividade a interações a
+partir do TBT sozinho. Investigação de performance completa fica para uma
+fase dedicada.
 
 ### Marco: fim da fase estrutural v1
 
@@ -721,8 +732,120 @@ nenhuma direção de arte nova. A fase de criativos e motion (retomando "A
 Clareira e o Balcão", preservada no checkpoint `1ac1d5b`) só começa com
 aprovação explícita do usuário — não iniciada nesta sessão.
 
+## Rodada corretiva pós-revisão geral
+
+A revisão externa (`docs/reviews/2026-09-11-revisao-geral.md`) foi
+verificada achado a achado antes de qualquer correção, seguindo a skill
+`superpowers:receiving-code-review` — não implementação por concordância
+performática. Veredito completo (confirmado / disputado / precisa de mais
+informação do usuário) foi entregue na conversa antes desta rodada. Esta
+secção documenta só o que foi corrigido, na ordem que o usuário pediu:
+P1 (confiança na compra) → P2 (decisão e sincronização de estado) → Home.
+R07, R08, R09, R10 e R11 **não** entraram nesta rodada — ficam para uma
+decisão de produto/priorização à parte.
+
+**P1 — R01 (CTA fixo mobile da PDP):** os quatro problemas confirmados
+foram corrigidos na origem, não sintoma a sintoma:
+- Sobreposição com a `BarraMobile`: o CTA agora ancora em
+  `bottom: calc(3.5rem + env(safe-area-inset-bottom))` (a altura da nav
+  inferior), não em `bottom-0` — os dois ficam visíveis ao mesmo tempo.
+- Quantidade duplicada: `CtaStickyMobile` deixou de ter o seu próprio
+  `<AdicionarAoCarrinho>` com estado próprio. Novo componente
+  `components/produto/AreaCompra.tsx` (Client Component) é o único dono
+  do `useState` de quantidade quando há variante única, partilhado entre
+  a lista de opções e o CTA fixo — `AdicionarAoCarrinho` ganhou
+  `quantidade`/`aoMudarQuantidade` opcionais para aceitar esse controlo
+  externo sem mudar o uso não controlado já existente (`ProductCard`).
+- Aparecia antes de ter sido visto: o `IntersectionObserver` agora só
+  arma `visivel` depois de já ter visto `#area-compra` intersectar pelo
+  menos uma vez.
+- Faltava "desde": o CTA usa o mesmo prefixo (`Price.desde`) que o preço
+  principal, calculado uma vez em `page.tsx`.
+
+**P1 — R02 (falha de rede trava em estado de carregamento):**
+`carrinho/page.tsx` e `FormularioCheckout.tsx` ganharam `.catch` na
+leitura de preços (`carregarLinhas`) com um estado de erro + botão
+"Tentar novamente"; `confirmar()` no checkout ganhou `try/catch` em volta
+de `guardarMorada`/`comprar`, mostrando `t('erroDeRede')` em vez de deixar
+o botão preso em "A confirmar…" para sempre.
+
+**P2 — R03 (quantidade sem teto):** o `+` do seletor agora satura em
+`QTY_MAX` (`Math.min(QTY_MAX, quantidade + 1)`), a mesma constante que
+`acrescentar` já usava para saturar a soma — antes só o clique isolado
+não tinha teto, o que produzia uma exceção não tratada ao tentar
+adicionar.
+
+**P2 — R04 (Limpar não ressincronizava os filtros):**
+`FiltrosCatalogo.tsx` agora dá `key={JSON.stringify(filtrosAtuais)}` aos
+dois `<form>` (barra lateral e folha mobile) — os campos são não
+controlados de propósito (`defaultChecked`/`defaultValue`), e a `key`
+força o remount exatamente quando a prop muda, o que uma navegação para
+`pathname` sem query não fazia sozinha.
+
+**P2 — R05 ("mostrar mais" perdia produtos ao voltar):**
+`MostrarMais.tsx` escreve `?mostrar=N` com `history.replaceState` (não o
+router do Next — evita uma nova busca ao servidor a cada clique) e lê
+esse valor como estado inicial. Concessão registada: o comentário
+original deste componente justificava a ausência de paginação por URL
+dizendo que perderia o filtro/ordenação atual — raciocínio errado (um
+parâmetro adicional convive com os outros); a causa real era só a
+ausência de qualquer persistência.
+
+**P2 — R06 (troca de idioma descartava a query):** `SeletorIdioma.tsx`
+lê `window.location.search` no clique (não `useSearchParams`, que
+forçaria toda página que usa o cabeçalho a sair da geração estática) e
+anexa a query ao `pathname` antes de trocar de locale.
+
+**Correções de documentação (achados sobre o meu próprio processo):**
+cabeçalho de data deste ficheiro corrigido; explicação do LCP alto na
+Home corrigida (não há `<Image>` na Home, a atribuição a "falta de
+`priority`" estava errada); D01 (`docs/DECISIONS.md`) reescrita para
+nomear a causa exata (início do streaming, não "existe um
+`loading.tsx`") e registar a alternativa de checagem em
+middleware/proxy, que não tinha sido considerada.
+
+**Verificações:**
+
+| Verificação | Resultado |
+|---|---|
+| `pnpm --filter @animora/web typecheck` | ✅ 0 erros |
+| `pnpm --filter @animora/web test` | ✅ 13 arquivos, 149 testes |
+| `pnpm --filter @animora/web build` | ✅ 125 páginas |
+| `git diff --check` | ✅ sem erros de espaço em branco |
+
+**QA real de navegador** (Playwright, servidor de dev, produto real com
+página alta o bastante para o CTA sair da viewport): 10/10 verificações
+passaram — CTA não aparece antes de rolar, aparece depois de ver e
+passar a área de compra, não sobrepõe a `BarraMobile`, soma a quantidade
+partilhada (3, não 1) ao clicar no CTA fixo; seletor de quantidade
+satura em 99 sem lançar exceção ao adicionar; checkbox de marca
+desmarca visualmente depois de "Limpar"; contagem revelada por "mostrar
+mais" sobrevive a abrir um produto e voltar; troca de idioma preserva
+`?q=`. R01's "desde" (preço com prefixo no CTA) não foi verificado em
+navegador — os 42 produtos semeados têm todos variante única, não há
+como produzir um produto com preços divergentes sem inventar dados;
+verificado só por leitura de código.
+
+**Compactação da Home (item 3):** o ritmo vertical entre as ~9 secções da
+Home vem de um token único, `spacing.secao` (`tailwind.config.ts`) —
+confirmado que só a Home (e, incidentalmente, `not-found`/`error`/
+`loading`) o usa; PLP e PDP têm o próprio ritmo, por isso não são
+afetadas. Reduzido de `clamp(4rem, 9vw, 8rem)` (64-128px de topo+fundo
+por secção) para `clamp(2.5rem, 6vw, 4rem)` (40-64px) — a mudança de
+magnitude de um valor já existente, não uma direção visual nova. Nenhum
+componente, cor, proporção ou composição foi alterado.
+
+Verificado visualmente (Playwright, `reducedMotion:'reduce'` para não
+confundir a opacidade inicial do `CascataProdutos`/GSAP com conteúdo em
+falta — sem isso, a secção "Em destaque" parecia vazia numa captura de
+página inteira; com o motion desligado, os 4 cartões aparecem
+normalmente) em 390px e 1440px: todas as secções renderizam com o
+conteúdo real esperado, sem sobreposição nem corte. `pnpm test` (149/149)
+e `pnpm build` (125 páginas) continuam verdes depois da mudança —
+esperado, é só CSS gerado pelo Tailwind, nenhuma lógica tocada.
+
 ### Próximo passo
 
-Aguardando decisão do usuário: iniciar a fase de criativos, ou abrir uma
-nova fase estrutural (ex.: dashboard/admin, checkout completo) antes
+Aguardar decisão do usuário sobre iniciar a fase de criativos, ou tratar
+R07/R08/R09/R10/R11 (deixados de fora desta rodada corretiva) antes
 disso.
