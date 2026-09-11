@@ -54,8 +54,12 @@ export default {
         eyebrow: ['0.6875rem', { lineHeight: '1.2', letterSpacing: '0.14em' }],
       },
       spacing: {
-        // O ar entre secções, também num sítio só.
-        secao: 'clamp(4rem, 9vw, 8rem)',
+        // O ar entre secções, também num sítio só. Reduzido (era
+        // `clamp(4rem, 9vw, 8rem)`, 64-128px): lido como vitrine editorial
+        // espaçada em vez de comércio — a home é a única consumidora deste
+        // token (PLP e PDP têm o próprio ritmo), por isso mexer aqui compacta
+        // só ela.
+        secao: 'clamp(2.5rem, 6vw, 4rem)',
       },
       maxWidth: {
         // A medida do texto corrido. Mais do que isto e o olho perde a linha.
