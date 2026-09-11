@@ -199,6 +199,10 @@ export interface Category {
    * Deixar vazio para categoria de topo
    */
   parent?: (number | null) | Category;
+  /**
+   * Preenchido pela sincronização. Não editar.
+   */
+  shopifyId?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -210,6 +214,10 @@ export interface Brand {
   id: number;
   name: string;
   slug: string;
+  /**
+   * Preenchido pela sincronização. Não editar.
+   */
+  shopifyId?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -316,6 +324,10 @@ export interface Product {
   metaTitle?: string | null;
   metaDescription?: string | null;
   shareImage?: (number | null) | Media;
+  /**
+   * Preenchido pela sincronização. Não editar.
+   */
+  shopifyId?: string | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -368,6 +380,10 @@ export interface Variant {
   ean?: string | null;
   warehouseLocation?: string | null;
   shippingWeightG?: number | null;
+  /**
+   * Preenchido pela sincronização. Não editar.
+   */
+  shopifyId?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -661,6 +677,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   parent?: T;
+  shopifyId?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -671,6 +688,7 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface BrandsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
+  shopifyId?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -759,6 +777,7 @@ export interface ProductsSelect<T extends boolean = true> {
   metaTitle?: T;
   metaDescription?: T;
   shareImage?: T;
+  shopifyId?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -784,6 +803,7 @@ export interface VariantsSelect<T extends boolean = true> {
   ean?: T;
   warehouseLocation?: T;
   shippingWeightG?: T;
+  shopifyId?: T;
   updatedAt?: T;
   createdAt?: T;
 }

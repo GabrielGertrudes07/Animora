@@ -17,13 +17,16 @@ import { useMotion } from './useMotion'
 const jaAnimou = new Set<string>()
 
 /**
- * A grelha de cartões: cascata suave à entrada no ecrã, e a micro-interação
- * do rato em cima de cada cartão.
+ * A grelha de cartões: uma cascata curta à entrada no ecrã, e nada mais.
  *
- * Os ouvintes ficam no contentor e não em cada cartão, por duas razões: um
- * ouvinte em vez de vinte, e — a que interessa — a lista muda quando os
- * filtros mudam, e cartões novos não teriam ouvinte nenhum se este estivesse
- * agarrado a cada um deles.
+ * Aqui viviam também os ouvintes do hover — `pointerover`/`pointerout`
+ * delegados no contentor, com deteção de fronteira, a levantar o cartão 6 px e
+ * a escalar a imagem. O levantamento saiu (um cartão que salta lê-se como
+ * salto, não como elevação) e a escala da imagem passou a uma transição CSS no
+ * próprio cartão, que é o sítio dela. Ficou a cascata.
+ *
+ * `y: 12` e não 24: o deslocamento é o que se sente, não o que se vê. Vinte e
+ * quatro píxeis é o fade-up de qualquer template.
  */
 export function CascataProdutos({
   children,
@@ -36,54 +39,22 @@ export function CascataProdutos({
 
   const ref = useMotion<HTMLDivElement>(
     (el) => {
-      if (!jaAnimou.has(pathname)) {
-        jaAnimou.add(pathname)
-        gsap.from(el.querySelectorAll('[data-cartao]'), {
-          opacity: 0,
-          y: 24,
-          duration: 0.5,
-          ease: 'power2.out',
-          // O atraso total é fixo, não por cartão: numa grelha de quarenta
-          // produtos, 0,07 s cada dava três segundos até o último aparecer.
-          stagger: { amount: 0.5 },
-          clearProps: 'transform,opacity',
-          scrollTrigger: { trigger: el, start: 'top 92%', once: true },
-        })
-      }
+      if (jaAnimou.has(pathname)) return
+      jaAnimou.add(pathname)
 
-      const cartaoDe = (e: PointerEvent) =>
-        (e.target as Element | null)?.closest<HTMLElement>('[data-cartao]') ?? null
-
-      /** Um movimento de e para dentro do mesmo cartão não conta como entrar
-       * nem como sair — senão o cartão saltava a cada elemento atravessado. */
-      const atravessouAFronteira = (e: PointerEvent, cartao: HTMLElement) =>
-        !cartao.contains(e.relatedTarget as Node | null)
-
-      const mover = (cartao: HTMLElement, y: number, escala: number) => {
-        gsap.to(cartao, { y, duration: 0.3, ease: 'power2.out' })
-        const imagem = cartao.querySelector('img')
-        if (imagem) gsap.to(imagem, { scale: escala, duration: 0.5, ease: 'power2.out' })
-      }
-
-      const parar = new AbortController()
-      el.addEventListener(
-        'pointerover',
-        (e) => {
-          const cartao = cartaoDe(e)
-          if (cartao && atravessouAFronteira(e, cartao)) mover(cartao, -6, 1.06)
-        },
-        { signal: parar.signal },
-      )
-      el.addEventListener(
-        'pointerout',
-        (e) => {
-          const cartao = cartaoDe(e)
-          if (cartao && atravessouAFronteira(e, cartao)) mover(cartao, 0, 1)
-        },
-        { signal: parar.signal },
-      )
-
-      return () => parar.abort()
+      gsap.from(el.querySelectorAll('[data-cartao]'), {
+        opacity: 0,
+        y: 12,
+        duration: 0.42,
+        // Vizinho de `var(--curva)` em CSS: o GSAP não come `cubic-bezier`
+        // sem plugin, e `power3.out` é a mesma sensação de travagem.
+        ease: 'power3.out',
+        // O atraso total é fixo, não por cartão: numa grelha de quarenta
+        // produtos, 0,07 s cada dava três segundos até o último aparecer.
+        stagger: { amount: 0.35 },
+        clearProps: 'transform,opacity',
+        scrollTrigger: { trigger: el, start: 'top 92%', once: true },
+      })
     },
     [pathname],
   )

@@ -151,7 +151,7 @@ export function Moradas({ moradas }: { moradas: Morada[] }) {
           {erro ? (
             <p
               role="alert"
-              className="rounded-lg border border-terracota bg-terracota/10 px-3 py-2 text-sm text-ink sm:col-span-2"
+              className="rounded-campo border border-terracota bg-terracota/10 px-3 py-2 text-sm text-ink sm:col-span-2"
             >
               {erro}
             </p>
@@ -161,7 +161,7 @@ export function Moradas({ moradas }: { moradas: Morada[] }) {
             <button
               type="submit"
               disabled={aGravar}
-              className="rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark disabled:opacity-60"
+              className="botao-principal"
             >
               {aGravar ? t('aGravar') : t('guardarMorada')}
             </button>
@@ -169,7 +169,7 @@ export function Moradas({ moradas }: { moradas: Morada[] }) {
               <button
                 type="button"
                 onClick={() => setAberto(false)}
-                className="rounded-xl border border-line px-6 py-3 font-medium text-ink-muted transition-colors hover:text-ink"
+                className="rounded-card border border-line px-6 py-3 font-medium text-ink-muted transition-colors hover:text-ink"
               >
                 {t('cancelar')}
               </button>
@@ -180,7 +180,7 @@ export function Moradas({ moradas }: { moradas: Morada[] }) {
         <button
           type="button"
           onClick={() => setAberto(true)}
-          className="mt-4 rounded-xl border border-line bg-white px-6 py-3 font-medium text-ink transition-colors hover:border-terracota"
+          className="mt-4 rounded-card border border-line bg-white px-6 py-3 font-medium text-ink transition-colors hover:border-terracota"
         >
           {t('acrescentarMorada')}
         </button>
@@ -225,7 +225,7 @@ function Campo({
         pattern={padrao}
         placeholder={dica}
         onChange={(e) => aoMudar(e.target.value)}
-        className="mt-1 w-full rounded-lg border border-line bg-cream px-3 py-2 text-ink"
+        className="mt-1 w-full rounded-campo border border-line bg-papel px-3 py-2 text-ink"
       />
     </div>
   )

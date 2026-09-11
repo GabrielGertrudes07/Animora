@@ -37,9 +37,9 @@ export default async function EntrarPage({ params, searchParams }: Props) {
 
   return (
     <main id="conteudo" className="mx-auto max-w-md px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold text-ink">{t('titulo')}</h1>
+      <h1 className="text-titulo text-ink">{t('titulo')}</h1>
       {sessaoQueNaoServe ? (
-        <p className="mt-2 rounded-lg border border-terracota bg-terracota/10 px-3 py-2 text-sm text-ink">
+        <p className="mt-2 rounded-campo border border-terracota bg-terracota/10 px-3 py-2 text-sm text-ink">
           {t('sessaoQueNaoServe')}
         </p>
       ) : null}

@@ -27,7 +27,7 @@ export default async function RegistarPage({ params, searchParams }: Props) {
 
   return (
     <main id="conteudo" className="mx-auto max-w-md px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold text-ink">{t('titulo')}</h1>
+      <h1 className="text-titulo text-ink">{t('titulo')}</h1>
       <p className="mt-2 text-ink-muted">{t('descricao')}</p>
       <FormularioEntrada modo="registar" voltar={voltar} />
     </main>

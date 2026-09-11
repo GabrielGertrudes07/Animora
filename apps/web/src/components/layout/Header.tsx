@@ -4,6 +4,7 @@ import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
 import { listCategories } from '../../modules/catalog'
 import { Link, getPathname } from '../../i18n/navigation'
 import { CarrinhoBotao } from './CarrinhoBotao'
+import { BarraMobile } from './BarraMobile'
 import { SeletorIdioma } from './SeletorIdioma'
 import { Icon } from '../icons/sprite'
 
@@ -14,6 +15,12 @@ import { Icon } from '../icons/sprite'
  * mão aqui. Em ecrãs estreitos, a lista de categorias ganha scroll horizontal
  * próprio (`overflow-x-auto`) em vez de espremer a página inteira: a página
  * nunca ganha scroll horizontal, só esta barra.
+ *
+ * A barra de aviso do topo era a terceira faixa escura da página — floresta
+ * com um nascer do sol em gradiente radial e um fio dourado a fechar em baixo.
+ * Somada ao balcão e à fiada de categorias, dava cento e sessenta píxeis de
+ * cromo antes de qualquer conteúdo. Agora é uma linha em papel: diz o que tem
+ * a dizer e não disputa a atenção do herói.
  *
  * `logo-cabecalho.png` é o `logo.png` original sem a legenda alemã
  * ("Haustierbedarf") que vinha por baixo do nome — um resto de um genérico
@@ -34,77 +41,90 @@ export async function Header() {
   const acaoPesquisa = getPathname({ href: '/produtos', locale })
 
   return (
-    <header className="border-b border-line bg-white">
-      <p className="bg-ink px-6 py-2 text-center text-xs font-semibold text-cream sm:text-sm">
-        {t('envioGratis', { valor: formatEuros(ENVIO_GRATIS_ACIMA_DE) })}
-      </p>
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-6 py-4">
-        <Link href="/" className="flex shrink-0 flex-col" aria-label={t('logoAria')}>
-          <Image
-            src="/logo-cabecalho.png"
-            alt="Animora"
-            width={771}
-            height={160}
-            className="h-11 w-auto"
-            priority
-          />
-          <span className="mt-0.5 hidden pl-1 text-xs font-medium text-ink-muted lg:block">
-            {t('slogan')}
-          </span>
-        </Link>
-
-        <form
-          action={acaoPesquisa}
-          method="get"
-          className="order-3 flex w-full items-center gap-2 rounded-full border border-line bg-cream/60 px-4 py-2 transition-colors focus-within:border-terracota sm:order-none sm:ml-auto sm:w-auto sm:max-w-sm sm:flex-1"
-        >
-          <Icon name="search" className="h-4 w-4 shrink-0 text-ink-muted" />
-          <input
-            type="search"
-            name="q"
-            placeholder={t('pesquisarPlaceholder')}
-            aria-label={t('pesquisarAria')}
-            className="w-full min-w-0 bg-transparent text-sm text-ink placeholder:text-ink-muted focus:outline-none"
-          />
-        </form>
-
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0">
-          <SeletorIdioma />
+    <>
+      <header className="border-b border-line bg-white">
+        <p className="border-b border-line bg-papel px-4 py-1.5 text-center text-xs font-medium text-ink-muted sm:px-6">
+          {t('envioGratis', { valor: formatEuros(ENVIO_GRATIS_ACIMA_DE) })}
+        </p>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-6 py-4">
           <Link
-            href="/conta"
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+            href="/"
+            className="flex min-h-11 shrink-0 flex-col justify-center"
+            aria-label={t('logoAria')}
           >
-            <Icon name="paw" className="h-5 w-5" />
-            <span className="hidden sm:inline">{t('conta')}</span>
+            <Image
+              src="/logo-cabecalho.png"
+              alt="Animora"
+              width={771}
+              height={160}
+              className="h-9 w-auto sm:h-11"
+              priority
+            />
+            <span className="mt-0.5 hidden pl-1 text-xs font-medium text-ink-muted lg:block">
+              {t('slogan')}
+            </span>
           </Link>
-          <CarrinhoBotao />
-        </div>
-      </div>
 
-      <nav aria-label={t('categoriasAria')} className="border-t border-line">
-        <ul className="mx-auto flex max-w-7xl gap-1 overflow-x-auto whitespace-nowrap px-6 py-2 text-sm">
-          {/* Primeiro item, sempre: a loja inteira. Sem ele só se chegava a
-              produtos escolhendo primeiro uma categoria. */}
-          <li className="shrink-0">
+          <form
+            action={acaoPesquisa}
+            method="get"
+            className="order-3 hidden w-full items-center gap-2 sm:flex rounded-full border border-line bg-papel/60 px-4 py-2 transition-colors focus-within:border-terracota sm:order-none sm:ml-auto sm:w-auto sm:max-w-sm sm:flex-1"
+          >
+            <Icon name="search" className="h-4 w-4 shrink-0 text-ink-muted" />
+            <input
+              type="search"
+              name="q"
+              placeholder={t('pesquisarPlaceholder')}
+              aria-label={t('pesquisarAria')}
+              className="w-full min-w-0 bg-transparent text-sm text-ink placeholder:text-ink-muted focus:outline-none"
+            />
+          </form>
+
+          <div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0">
+            <SeletorIdioma />
             <Link
-              href="/produtos"
-              className="block rounded-lg px-3 py-1.5 font-medium text-ink transition-colors hover:bg-cream"
+              href="/conta"
+              className="hidden items-center gap-2 rounded-campo px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink sm:flex"
             >
-              {t('todosOsProdutos')}
+              <Icon name="paw" className="h-5 w-5" />
+              <span className="hidden sm:inline">{t('conta')}</span>
             </Link>
-          </li>
-          {categorias.map((c) => (
-            <li key={c.slug} className="shrink-0">
+            <span className="hidden sm:block">
+              <CarrinhoBotao />
+            </span>
+          </div>
+        </div>
+
+        <nav
+          aria-label={t('categoriasAria')}
+          className="hidden border-t border-line sm:block"
+        >
+          <ul className="mx-auto flex max-w-7xl gap-1 overflow-x-auto whitespace-nowrap px-6 py-2 text-sm">
+            {/* Primeiro item, sempre: a loja inteira. Sem ele só se chegava a
+              produtos escolhendo primeiro uma categoria. */}
+            <li className="shrink-0">
               <Link
-                href={`/${c.slug}`}
-                className="block rounded-lg px-3 py-1.5 text-ink-muted transition-colors hover:bg-cream hover:text-ink"
+                href="/produtos"
+                className="block rounded-campo px-3 py-1.5 font-medium text-ink transition-colors hover:bg-papel"
               >
-                {c.name}
+                {t('todosOsProdutos')}
               </Link>
             </li>
-          ))}
-        </ul>
-      </nav>
-    </header>
+            {categorias.map((c) => (
+              <li key={c.slug} className="shrink-0">
+                <Link
+                  href={`/${c.slug}`}
+                  className="block rounded-campo px-3 py-1.5 text-ink-muted transition-colors hover:bg-papel hover:text-ink"
+                >
+                  {c.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </header>
+
+      <BarraMobile categorias={categorias.map((c) => ({ slug: c.slug, name: c.name }))} />
+    </>
   )
 }

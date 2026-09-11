@@ -27,7 +27,7 @@ export function SeletorIdioma() {
           disabled={locale === (params.locale as string | undefined)}
           aria-label={t('trocarPara', { idioma: NOME[locale]! })}
           onClick={() => router.replace(pathname, { locale })}
-          className="rounded-lg px-2 py-1 transition-colors hover:text-ink disabled:font-semibold disabled:text-terracota disabled:hover:text-terracota"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-campo px-2 py-1 transition-colors hover:text-ink sm:min-h-0 sm:min-w-0 disabled:font-semibold disabled:text-terracota disabled:hover:text-terracota"
         >
           {t(locale as 'pt' | 'de')}
         </button>

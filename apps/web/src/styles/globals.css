@@ -3,39 +3,127 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* A curva da loja. Uma só, para tudo o que se move — do hover de 180 ms ao
+       gesto do herói de 700 ms. O que distingue os movimentos é a duração, não
+       a curva; três curvas diferentes numa página leem-se como três autores. */
+    --curva: cubic-bezier(0.16, 1, 0.3, 1);
+  }
   html {
     scroll-behavior: smooth;
   }
   body {
     @apply bg-white font-sans text-ink antialiased;
+    /* Sobre que cor é que o anel de foco se destaca. Branco em quase toda a
+       loja; as faixas de campanha trocam-no em `.chao-floresta`. Sem isto o
+       anel ganhava uma auréola branca no meio do chão de floresta. */
+    --foco-fundo: theme('colors.white');
+    /* As superfícies que o browser desenha e que não pertencem a design
+       system nenhum: a barra de scroll, o cursor de texto, o acento nativo
+       das checkboxes. Ficam na cor da loja em vez do azul do sistema. */
+    caret-color: theme('colors.terracota.DEFAULT');
+    accent-color: theme('colors.terracota.DEFAULT');
+    scrollbar-color: theme('colors.sage') theme('colors.papel');
   }
   /* Os títulos são todos da família de display, num sítio só — nenhuma página
-     precisa de se lembrar de `font-display`. */
+     precisa de se lembrar de `font-display`. O tamanho vem da escala
+     (`text-display`, `text-titulo`, `text-secao`), nunca escrito à mão. */
   h1,
   h2,
   h3 {
-    @apply font-display tracking-tight;
+    @apply font-display;
+  }
+  /* A seleção de texto é o primeiro sítio onde se vê que uma página foi
+     desenhada e não montada. */
+  ::selection {
+    /* Verde-salva a 28%, não `papel`: papel sobre o branco da loja dá 1,09:1
+       — a seleção existia mas não se via. Aqui são 1,35:1 contra o fundo, com
+       o texto a manter 9,8:1 por cima. */
+    background-color: rgba(111, 143, 114, 0.28);
+    color: theme('colors.ink');
+  }
+  .chao-floresta ::selection {
+    background-color: rgba(224, 98, 58, 0.35);
+    color: theme('colors.papel');
   }
   /* O site antigo não tinha nenhum estilo de foco visível — foi um dos
      defeitos apontados na crítica. Aqui é a camada base, num sítio só. */
   :focus-visible {
-    @apply outline-none ring-2 ring-terracota ring-offset-2 ring-offset-white;
+    @apply outline-none ring-2 ring-terracota ring-offset-2;
+    --tw-ring-offset-color: var(--foco-fundo);
   }
 }
 
 @layer components {
-  /* O botão principal da loja, escrito uma vez. Estava copiado à mão em seis
-     sítios — e é a peça que tem de parecer sempre a mesma. */
+  /*
+    O botão principal da loja, escrito uma vez.
+
+    Terracota chapado. A versão anterior era um comprimido lustroso — degradê
+    de três paradas, fio de luz `inset` no bordo, sombra na cor do próprio
+    laranja, `brightness/saturate` no hover — amostrado do `botao.png` do
+    pacote de arte da campanha. Era a peça que mais denunciava a gama:
+    linguagem de widget de 2011 num site que quer ler como premium.
+
+    O que faz um botão parecer caro é o contrário disso: uma cor que só ele
+    usa, tipografia com peso, e nada a brilhar.
+  */
   .botao-principal {
-    @apply inline-block rounded-xl bg-terracota px-6 py-3 text-center font-semibold text-white transition-colors hover:bg-terracota-dark;
+    @apply inline-block rounded-full px-6 py-3 text-center font-semibold text-white;
+    background-color: theme('colors.terracota.DEFAULT');
+    transition: background-color 180ms var(--curva);
+  }
+  .botao-principal:hover {
+    background-color: theme('colors.terracota.dark');
+  }
+  /* Pressionado afunda um pixel, e mais nada. */
+  .botao-principal:active {
+    transform: translateY(1px);
+  }
+  .botao-principal:disabled {
+    @apply cursor-not-allowed opacity-45;
+  }
+  /* A mesma peça em escala de controlo — filtros, "adicionar ao carrinho" numa
+     grelha. Só muda a caixa; a matéria é a de cima. */
+  .botao-principal-pequeno {
+    @apply px-4 py-2 text-sm;
   }
 
-  /* Patas em marca de água, para o herói. Um SVG minúsculo em `data:` repetido
-     pelo fundo: não é um pedido de rede, não é uma imagem a carregar e não
-     entra na árvore de acessibilidade. */
-  .textura-patas {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cg fill='rgba(247,245,239,0.05)'%3E%3Cellipse cx='40' cy='54' rx='11' ry='9'/%3E%3Ccircle cx='27' cy='37' r='4.5'/%3E%3Ccircle cx='39' cy='32' r='4.5'/%3E%3Ccircle cx='52' cy='36' r='4.5'/%3E%3Cellipse cx='104' cy='116' rx='9' ry='7'/%3E%3Ccircle cx='93' cy='103' r='3.6'/%3E%3Ccircle cx='103' cy='99' r='3.6'/%3E%3Ccircle cx='113' cy='102' r='3.6'/%3E%3C/g%3E%3C/svg%3E");
-    background-size: 140px 140px;
+  /*
+    O botão secundário. Contorno hairline, sem preenchimento: ao lado do
+    principal lê-se como a segunda opção sem lhe roubar atenção.
+  */
+  .botao-contorno {
+    @apply inline-block rounded-full border border-line bg-white px-6 py-3 text-center font-semibold text-ink;
+    transition:
+      border-color 180ms var(--curva),
+      background-color 180ms var(--curva);
+  }
+  .botao-contorno:hover {
+    @apply border-terracota;
+  }
+
+  /*
+    O chão das superfícies de campanha: testemunhos, marcas, rodapé.
+
+    Um degradê de floresta para o seu tom mais fundo, e nada mais. Saíram o
+    nascer do sol em gradiente radial e o fio dourado na aresta de cima: o
+    dourado metálico era a cor que mais atraiçoava a gama, e um fio de luz
+    repetido em três faixas lê-se como as riscas de um banner. Com o fio fora,
+    duas faixas encostadas já não fazem costura — e `.chao-floresta-continua`,
+    que existia só para o apagar na segunda, deixou de ter trabalho.
+
+    O que separa esta superfície da anterior passa a ser o espaço e a
+    tipografia, que é como as marcas de gama alta o fazem.
+  */
+  .chao-floresta {
+    @apply relative isolate;
+    color: theme('colors.papel');
+    --foco-fundo: theme('colors.floresta.DEFAULT');
+    background-image: linear-gradient(
+      180deg,
+      theme('colors.floresta.DEFAULT') 0%,
+      theme('colors.floresta.fundo') 100%
+    );
   }
 }
 

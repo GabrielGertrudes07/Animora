@@ -128,7 +128,7 @@ export function FormularioCheckout({
         <p className="text-lg font-semibold text-ink">{tCheckout('naoHaNadaParaComprar')}</p>
         <Link
           href="/"
-          className="mt-6 inline-block rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark"
+          className="botao-principal mt-6"
         >
           {tCheckout('verProdutos')}
         </Link>
@@ -259,7 +259,7 @@ export function FormularioCheckout({
                   alt={l.imagem.alt}
                   width={l.imagem.width}
                   height={l.imagem.height}
-                  className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                  className="h-14 w-14 shrink-0 rounded-campo object-cover"
                 />
               ) : null}
               <div className="min-w-0 flex-1">
@@ -284,7 +284,7 @@ export function FormularioCheckout({
         {erro ? (
           <div
             role="alert"
-            className="mt-4 rounded-lg border border-terracota bg-terracota/10 px-3 py-2 text-sm text-ink"
+            className="mt-4 rounded-campo border border-terracota bg-terracota/10 px-3 py-2 text-sm text-ink"
           >
             <p className="font-semibold">{erro}</p>
             {semStock.length > 0 ? (
@@ -293,7 +293,11 @@ export function FormularioCheckout({
                   <li key={f.variantId}>
                     {f.disponivel === 0
                       ? t('pediuNaoHaNenhum', { titulo: f.titulo, pedido: f.pedido })
-                      : t('pediuSoHa', { titulo: f.titulo, pedido: f.pedido, disponivel: f.disponivel })}
+                      : t('pediuSoHa', {
+                          titulo: f.titulo,
+                          pedido: f.pedido,
+                          disponivel: f.disponivel,
+                        })}
                   </li>
                 ))}
               </ul>
@@ -311,7 +315,7 @@ export function FormularioCheckout({
         <button
           type="submit"
           disabled={aEnviar}
-          className="mt-6 w-full rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark disabled:opacity-60"
+          className="botao-principal mt-6 w-full"
         >
           {aEnviar ? t('aConfirmar') : t('confirmarEncomenda')}
         </button>
@@ -357,7 +361,7 @@ function Campo({
         pattern={padrao}
         placeholder={dica}
         onChange={(e) => aoMudar(e.target.value)}
-        className="mt-1 w-full rounded-lg border border-line bg-cream px-3 py-2 text-ink"
+        className="mt-1 min-h-11 w-full rounded-campo border border-line bg-papel px-3 py-2 text-base text-ink sm:min-h-0 sm:text-sm"
       />
     </div>
   )

@@ -60,11 +60,17 @@ export default async function LocaleLayout({ children, params }: Props) {
   ])
 
   return (
-    <html lang={HTML_LANG[locale] ?? locale} className={`${fonteTitulo.variable} ${fonteTexto.variable}`}>
-      <body>
+    <html
+      lang={HTML_LANG[locale] ?? locale}
+      className={`${fonteTitulo.variable} ${fonteTexto.variable}`}
+    >
+      {/* A folga em baixo é do tamanho da barra de navegação em telemóvel
+          (ver `BarraMobile`), que é fixa e taparia o fim do rodapé. A partir
+          de `sm` a barra não existe e a folga também não. */}
+      <body className="pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:pb-0">
         <a
           href="#conteudo"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:text-cream"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-campo focus:bg-ink focus:px-4 focus:py-2 focus:text-papel"
         >
           {t('saltarParaConteudo')}
         </a>

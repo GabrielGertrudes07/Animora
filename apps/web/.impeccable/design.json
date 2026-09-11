@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-21T00:00:00Z",
+  "title": "Design System: Animora",
+  "extensions": {
+    "colorMeta": {
+      "ink": { "role": "neutral", "displayName": "Verde-Escuro de Confiança", "canonical": "#18352A", "tonalRamp": ["#18352a", "#2d624e", "#419072", "#5eb694", "#8bcbb3", "#b2dccc", "#d5ece3", "#edf7f3"] },
+      "ink-muted": { "role": "neutral", "displayName": "Verde-Acinzentado de Apoio", "canonical": "#4F685F" },
+      "terracota": { "role": "primary", "displayName": "Terracota Animora", "canonical": "#F2703A", "tonalRamp": ["#481805", "#862e09", "#c4430d", "#f05f23", "#f58c61", "#f8b396", "#fbd5c6", "#fdeee7"] },
+      "terracota-dark": { "role": "primary", "displayName": "Terracota Profundo", "canonical": "#D6531F" },
+      "terracota-strong": { "role": "primary", "displayName": "Terracota Forte", "canonical": "#C76E47" },
+      "sage": { "role": "secondary", "displayName": "Verde-Salva", "canonical": "#6F8F72", "tonalRamp": ["#212b22", "#3e5040", "#5b765e", "#7b987e", "#a0b5a2", "#c0cec1", "#dde4dd", "#f1f4f1"] },
+      "sage-dark": { "role": "secondary", "displayName": "Verde-Salva Profundo", "canonical": "#58735E" },
+      "sage-soft": { "role": "secondary", "displayName": "Verde-Salva Suave", "canonical": "#E1F3E7" },
+      "promo": { "role": "tertiary", "displayName": "Vermelho de Alerta", "canonical": "#E63946", "tonalRamp": ["#44090d", "#7f1018", "#ba1724", "#e52f3c", "#ec6a73", "#f29ba2", "#f8c9cc", "#fce8ea"] },
+      "promo-dark": { "role": "tertiary", "displayName": "Vermelho de Alerta Escuro", "canonical": "#C22836" },
+      "promo-soft": { "role": "tertiary", "displayName": "Vermelho de Alerta Suave", "canonical": "#FCE1E3" },
+      "cream": { "role": "neutral", "displayName": "Creme Pontual", "canonical": "#F7F5EF", "tonalRamp": ["#332d19", "#5f5330", "#8b7a46", "#b19d63", "#c7b98f", "#dad0b4", "#ebe6d6", "#f7f4ee"] },
+      "white": { "role": "neutral", "displayName": "Branco", "canonical": "#FFFFFF" },
+      "line": { "role": "neutral", "displayName": "Linha Verde-Salva a 18%", "canonical": "#6F8F722E" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Título do herói no carrossel de marketing, sobre fundo de cor cheia." },
+      "headline": { "displayName": "Headline", "purpose": "Títulos de secção na home." },
+      "title": { "displayName": "Title", "purpose": "Título do produto no cartão de catálogo." },
+      "body": { "displayName": "Body", "purpose": "Texto corrido — descrições, metadados, mensagens de estado." },
+      "label": { "displayName": "Label", "purpose": "Etiquetas curtas em maiúsculas — marca no cartão, kicker de secção." }
+    },
+    "shadows": [
+      { "name": "sm", "value": "0 10px 20px rgba(24, 53, 42, 0.06)", "purpose": "Estado de repouso de qualquer cartão ou superfície levantada." },
+      { "name": "md", "value": "0 18px 45px rgba(24, 53, 42, 0.12)", "purpose": "Hover do cartão de produto; sombra do painel de filtros em mobile." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão Principal",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ação primária — comprar, aplicar filtros, submeter formulário.",
+      "html": "<button class=\"ds-btn-primary\">Adicionar</button>",
+      "css": ".ds-btn-primary { background: #F2703A; color: #FFFFFF; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 0.875rem; border: none; transition: background-color 0.2s; } .ds-btn-primary:hover { background: #D6531F; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #F2703A; }"
+    },
+    {
+      "name": "Cartão de Produto",
+      "kind": "card",
+      "refersTo": "card-product",
+      "description": "A peça mais repetida da loja — imagem, marca, título, avaliação, preço.",
+      "html": "<article class=\"ds-card-product\"><div class=\"ds-card-product__body\"><p class=\"ds-card-product__brand\">Marca</p><h3 class=\"ds-card-product__title\">Nome do produto</h3><span class=\"ds-card-product__price\">29,90 €</span></div></article>",
+      "css": ".ds-card-product { background: #FFFFFF; border: 1px solid #6F8F722E; border-radius: 18px; box-shadow: 0 10px 20px rgba(24, 53, 42, 0.06); overflow: hidden; transition: box-shadow 0.2s; } .ds-card-product:hover { box-shadow: 0 18px 45px rgba(24, 53, 42, 0.12); } .ds-card-product__body { padding: 20px; display: flex; flex-direction: column; gap: 6px; } .ds-card-product__brand { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #6F8F72; } .ds-card-product__title { font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 1.125rem; font-weight: 600; color: #18352A; } .ds-card-product__price { font-size: 1.125rem; font-weight: 700; color: #18352A; }"
+    },
+    {
+      "name": "Distintivo de Desconto",
+      "kind": "chip",
+      "refersTo": "badge-discount",
+      "description": "Percentagem de desconto sobre a imagem do produto; exclusivo para desconto/urgência.",
+      "html": "<span class=\"ds-badge-discount\">-20%</span>",
+      "css": ".ds-badge-discount { background: #E63946; color: #FFFFFF; font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px; box-shadow: 0 10px 20px rgba(24, 53, 42, 0.06); }"
+    },
+    {
+      "name": "Campo de Formulário",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Input de filtro (preço, atributos) — bordas suaves, foco terracota.",
+      "html": "<input class=\"ds-input\" type=\"number\" placeholder=\"0\" />",
+      "css": ".ds-input { background: #FFFFFF; color: #18352A; border: 1px solid #6F8F722E; border-radius: 8px; padding: 6px 8px; font-size: 0.875rem; } .ds-input:focus-visible { outline: none; box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #F2703A; }"
+    },
+    {
+      "name": "Navegação de Categorias",
+      "kind": "nav",
+      "refersTo": "nav-categories",
+      "description": "Barra de categorias no cabeçalho, com scroll horizontal próprio em mobile.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav__link ds-nav__link--active\" href=\"#\">Todos os produtos</a><a class=\"ds-nav__link\" href=\"#\">Cães</a><a class=\"ds-nav__link\" href=\"#\">Gatos</a></nav>",
+      "css": ".ds-nav { display: flex; gap: 4px; overflow-x: auto; white-space: nowrap; border-top: 1px solid #6F8F722E; padding: 8px 24px; } .ds-nav__link { display: block; padding: 6px 12px; border-radius: 8px; font-size: 0.875rem; color: #4F685F; text-decoration: none; transition: background-color 0.2s, color 0.2s; } .ds-nav__link:hover { background: #F7F5EF; color: #18352A; } .ds-nav__link--active { color: #18352A; font-weight: 600; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "O Guia de Bolso",
+    "overview": "Animora é uma ferramenta prática para uma tarefa concreta — encontrar o produto certo para o teu animal e comprá-lo sem atrito — não uma vitrine de luxo. O verde-escuro (ink) carrega confiança e legibilidade; o terracota é a única cor de ação, usada com disciplina; o creme aparece só em superfícies pontuais (a barra de pesquisa, a folha de filtros em mobile), nunca como fundo da loja — o fundo é branco. O sistema rejeita explicitamente dois géneros: a loja de startup genérica (o par Fraunces + Nunito Sans foi substituído por Bricolage Grotesque + Figtree precisamente por parecer \"cara de IA\") e o retalho frio e corporativo — cantos generosos e um tom de copy próximo mantêm a loja com cara de bairro, não de armazém.",
+    "keyCharacteristics": [
+      "Base neutra: fundo branco, verde-escuro para texto, terracota como único acento de ação",
+      "Cartões e superfícies elevadas nunca ficam rasantes ao fundo — sempre uma sombra suave, tingida de verde",
+      "Duas famílias tipográficas e mais nenhuma",
+      "Creme reservado para superfícies pontuais, nunca para o fundo da loja",
+      "Vermelho de alerta (promo) reservado exclusivamente a desconto/urgência"
+    ],
+    "rules": [
+      { "name": "The Punctual Cream Rule", "body": "Creme é para bocados, não para páginas. Se uma superfície ocupa o viewport inteiro, é branca; creme entra só em elementos pequenos e pontuais.", "section": "colors" },
+      { "name": "The Promo-Only Rule", "body": "Vermelho de alerta faz um trabalho e um só: sinalizar desconto ou urgência. Nunca aparece num botão de navegação, num título de secção ou em qualquer lugar que não seja \"isto está mais barato\" ou \"isto está a acabar\".", "section": "colors" },
+      { "name": "The Two-Family Rule", "body": "Exactamente duas famílias tipográficas em toda a loja — Bricolage Grotesque para h1–h3 via font-display na camada base, Figtree para tudo o resto.", "section": "typography" },
+      { "name": "The Never-Flat Rule", "body": "Uma superfície levantada nunca aparece sem sombra nenhuma. Se não tem shadow-sm em repouso, não é um cartão — é fundo.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do manter o fundo da loja branco; reservar creme (#F7F5EF) só para superfícies pequenas e pontuais.",
+      "Do usar terracota (#F2703A) como a única cor de ação em toda a loja.",
+      "Do dar a qualquer cartão ou superfície levantada uma sombra suave tingida de verde desde o repouso, aprofundando no hover.",
+      "Do reutilizar .botao-principal para ações primárias, em vez de repetir estilos de botão ad hoc.",
+      "Do manter os ícones como SVG próprio em currentColor, traço fino."
+    ],
+    "donts": [
+      "Don't reutilizar o vermelho de alerta fora de desconto/urgência.",
+      "Don't deixar a loja parecer um armazém frio e corporativo.",
+      "Don't introduzir uma terceira família tipográfica.",
+      "Don't repetir o par Fraunces + Nunito Sans nem combinação parecida.",
+      "Don't generalizar o kicker em maiúsculas com tracking largo como reflexo por omissão para toda secção nova."
+    ]
+  }
+}

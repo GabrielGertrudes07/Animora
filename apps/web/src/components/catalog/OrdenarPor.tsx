@@ -31,7 +31,7 @@ export function OrdenarPor({ filtrosAtuais }: { filtrosAtuais: CatalogFilters })
           const query = filtersToQuery({ ...filtrosAtuais, ordem: e.target.value as SortKey })
           router.push(query ? `${pathname}?${query}` : pathname)
         }}
-        className="rounded-lg border border-line bg-white px-2 py-1.5 text-sm text-ink"
+        className="min-h-11 rounded-campo border border-line bg-white px-2 py-1.5 text-base text-ink sm:min-h-0 sm:text-sm"
       >
         {opcoes.map((o) => (
           <option key={o.value} value={o.value}>

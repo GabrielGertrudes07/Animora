@@ -47,12 +47,12 @@ export function Totais({ totais }: { totais: CartTotals }) {
       </dl>
 
       {totais.faltaParaEnvioGratisCents > 0 ? (
-        <p className="mt-4 flex items-start gap-2 rounded-lg bg-cream px-3 py-2 text-sm text-ink">
+        <p className="mt-4 flex items-start gap-2 rounded-campo bg-papel px-3 py-2 text-sm text-ink">
           <Icon name="shield" className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{t('faltaEnvioGratis', { valor: formatEuros(totais.faltaParaEnvioGratisCents) })}</span>
         </p>
       ) : totais.subtotalCents > 0 ? (
-        <p className="mt-4 flex items-center gap-2 rounded-lg bg-cream px-3 py-2 text-sm text-ink">
+        <p className="mt-4 flex items-center gap-2 rounded-campo bg-papel px-3 py-2 text-sm text-ink">
           <Icon name="shield" className="h-4 w-4 shrink-0" />
           {t('temEnvioGratis')}
         </p>

@@ -21,14 +21,6 @@
     "descricao": "Alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.",
     "direitos": "© {ano} Animora. Todos os direitos reservados."
   },
-  "Carrossel": {
-    "ariaLabel": "Destaques e promoções",
-    "roledescription": "carrossel",
-    "anterior": "Slide anterior",
-    "seguinte": "Próximo slide",
-    "escolherSlide": "Escolher slide",
-    "slideAria": "Slide {numero}: {titulo}"
-  },
   "CarrinhoBotao": {
     "carrinho": "Carrinho",
     "carrinhoAria": "{count, plural, =0 {Carrinho} one {Carrinho, # artigo} other {Carrinho, # artigos}}"
@@ -97,8 +89,7 @@
     "semStock": "Sem stock de momento"
   },
   "Price": {
-    "desde": "desde",
-    "poupas": "Poupas {valor}"
+    "desde": "desde"
   },
   "Estrelas": {
     "contagem": "{count, plural, one {# avaliação} other {# avaliações}}"
@@ -238,34 +229,15 @@
   "Home": {
     "metaTitulo": "Animora — cuidados para o teu animal",
     "metaDescricao": "Alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.",
-    "esteSemana": "Esta semana",
     "ofertasDaSemana": "Ofertas desta semana",
     "escolhasDaCasa": "Escolhas da casa",
     "verTodosOsProdutos": "Ver todos os produtos",
-    "marcasEmQueConfiamos": "Marcas em que confiamos",
-    "slide1Rotulo": "🐾 Semana de saldo",
-    "slide1Titulo": "O teu cão não sabe que isto está em saldo.",
-    "slide1Texto": "Tu sabes. Descontos em ração, camas e acessórios, enquanto durar o stock.",
-    "slide1CtaPrincipal": "Ver ofertas",
-    "slide1CtaSecundario": "Explorar loja",
-    "slide1Selo": "Saldo",
-    "slide2Rotulo": "🐱 Para os felinos",
-    "slide2Titulo": "O teu gato escolhe. Tu só precisas de comprar.",
-    "slide2Texto": "Areia, arranhadores e ração das marcas que sobrevivem ao teste do faro felino.",
-    "slide2CtaPrincipal": "Ver produtos para gatos",
-    "slide2CtaSecundario": "Ver todas as categorias",
-    "slide3Rotulo": "🚚 Sem letras pequenas",
-    "slide3Titulo": "Chega mais rápido do que ele foge do banho.",
-    "slide3Texto": "Envio grátis acima de {valor}. Sempre, não só em promoção.",
-    "slide3CtaPrincipal": "Explorar loja",
-    "slide1Alt": "Bulldog francês com camisola amarela, sobre fundo azul",
-    "slide2Alt": "Gatinho a esticar a pata para cima, sobre fundo verde-água",
-    "slide3Alt": "Cachorro golden retriever com coleira, sentado num quintal ao sol"
+    "marcasEmQueConfiamos": "Marcas em que confiamos"
   },
   "CategoriasVisuais": {
     "titulo": "Escolhe o teu animal",
     "texto": "Cada bicho tem prateleira própria — e um jeito diferente de fazer render a mesada.",
-    "produtos": "{count} produtos"
+    "produtos": "{count, plural, =0 {0 produtos} one {1 produto} other {# produtos}}"
   },
   "AprovadoPorQuemManda": {
     "titulo": "Aprovado por quem manda",
@@ -295,5 +267,51 @@
     "esgotado": "esgotado",
     "envioGratis": "Envio grátis acima de {valor}",
     "descricao": "Descrição"
+  },
+  "BarraMobile": {
+    "navegacaoAria": "Navegação principal",
+    "inicio": "Início",
+    "categorias": "Categorias",
+    "pesquisa": "Procurar",
+    "conta": "Conta",
+    "carrinho": "Carrinho",
+    "fechar": "Fechar",
+    "categoriasTitulo": "Escolhe uma categoria",
+    "todosOsProdutos": "Todos os produtos",
+    "pesquisaTitulo": "Procurar na loja",
+    "pesquisaPlaceholder": "O que o teu animal precisa hoje?",
+    "pesquisaAria": "Procurar produtos",
+    "procurar": "Procurar"
+  },
+  "CarrosselCampanhas": {
+    "roledescription": "carrossel",
+    "ariaLabel": "Campanhas em destaque",
+    "anterior": "Campanha anterior",
+    "seguinte": "Campanha seguinte",
+    "verSlide": "Ver campanha {numero}: {titulo}",
+    "slide1Eyebrow": "Campanha principal",
+    "slide1Titulo": "Até 30% em escolhas essenciais",
+    "slide1Texto": "Alimentação, camas, brinquedos e higiene com uma curadoria mais bonita, mais clara e pronta para comprar.",
+    "slide1CtaPrincipal": "Ver ofertas",
+    "slide1CtaSecundario": "Ver tudo",
+    "slide1Alt": "Cão e gato numa clareira verde com luz quente lateral e produtos para animais em primeiro plano",
+    "slide2Eyebrow": "Para cães",
+    "slide2Titulo": "Passeios, treino e descanso sem improviso",
+    "slide2Texto": "Equipamento resistente, acessórios úteis e conforto para cães que vivem a casa e a rua todos os dias.",
+    "slide2CtaPrincipal": "Comprar cães",
+    "slide2CtaSecundario": "Ver categorias",
+    "slide2Alt": "Cão atento numa cena verde premium com acessórios de passeio e luz de fim de tarde",
+    "slide3Eyebrow": "Para gatos",
+    "slide3Titulo": "Conforto para quem manda na casa",
+    "slide3Texto": "Arranhadores, camas, areia e brinquedos com visual cuidado e escolhas fáceis de comparar.",
+    "slide3CtaPrincipal": "Comprar gatos",
+    "slide3CtaSecundario": "Explorar loja",
+    "slide3Alt": "Gato numa composição acolhedora com plantas, luz quente e produtos de conforto",
+    "slide4Eyebrow": "Todas as espécies",
+    "slide4Titulo": "Uma loja com mundos para cada animal",
+    "slide4Texto": "Cães, gatos, pássaros, roedores e aquários numa navegação visual mais forte desde a primeira dobra.",
+    "slide4CtaPrincipal": "Escolher animal",
+    "slide4CtaSecundario": "Ver pássaros",
+    "slide4Alt": "Composição premium com animais de estimação diferentes em cenário botânico escuro e chamativo"
   }
 }

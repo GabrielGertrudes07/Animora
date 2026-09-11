@@ -58,19 +58,34 @@ const CATEGORIAS = [
 ] as const
 type CategoriaChave = (typeof CATEGORIAS)[number]['chave']
 
-/** Uma cor por categoria, para as imagens geradas serem distinguíveis à vista. */
+/**
+ * Uma cor por categoria, para as imagens geradas serem distinguíveis à vista.
+ *
+ * Todas dentro do mundo da loja — a clareira de floresta do cartaz da campanha
+ * e o dourado que lhe entra pela direita. As dez cores anteriores (roxo, azul,
+ * vinho, mostarda) eram matizes escolhidos ao acaso, e numa grelha de catálogo
+ * inteira davam uma parede de amostras de cor que anulava a paleta da loja.
+ * Aqui distinguem-se por valor e temperatura dentro de uma família só: os
+ * verdes para as categorias de animal, a água puxada para o azul-esverdeado,
+ * e a terra dourada para as de consumo (alimentação, higiene, brinquedos).
+ *
+ * São placeholders — saem todas no dia em que houver fotografia de produto.
+ */
 const CORES_CATEGORIA: Record<CategoriaChave, string> = {
-  caes: '#2F6F4E',
-  gatos: '#6A4C93',
-  passaros: '#1B6FA8',
-  roedores: '#8C5E33',
-  aquario: '#0F6E8C',
-  alimentacao: '#C1440E',
-  higiene: '#3E7CB1',
-  brinquedos: '#B8860B',
-  treino: '#4B5320',
-  acessorios: '#8E3B46',
+  caes: '#22401F',
+  gatos: '#2C4A34',
+  passaros: '#3A5525',
+  roedores: '#4A5527',
+  aquario: '#17423C',
+  alimentacao: '#6B3F17',
+  higiene: '#1D4740',
+  brinquedos: '#7A5310',
+  treino: '#39441C',
+  acessorios: '#563618',
 }
+
+/** O creme dos algarismos do cartaz — o texto de leitura sobre a floresta. */
+const CREME_LUZ = '#FDF1D4'
 
 const MARCAS = [
   { chave: 'petiscoReal', name: 'Petisco Real', slug: 'petisco-real' },
@@ -735,9 +750,15 @@ function hexParaRgb(hex: string): { r: number; g: number; b: number } {
 const LADO = 800
 
 /**
- * Uma imagem quadrada por produto: fundo sólido na cor da categoria (para as
- * categorias serem distinguíveis à vista) com o nome do produto composto por
- * cima em SVG — o sharp compõe o texto sobre a base rasterizada.
+ * Uma imagem quadrada por produto: a cor da categoria com o mesmo nascer do
+ * sol que o cartaz da campanha tem no canto direito, e o nome do produto
+ * composto por cima em SVG — o sharp compõe tudo sobre a base rasterizada.
+ *
+ * O nascer do sol é o que separa isto de uma amostra de cor chapada: dá à
+ * peça uma direção de luz, e é a mesma direção em todas — numa grelha de
+ * catálogo as imagens passam a ler-se como um conjunto, não como retângulos
+ * pintados um a um. A moldura fina passou de branco a dourado pela mesma
+ * razão. Continua a ser um placeholder, mas um placeholder da loja.
  */
 async function gerarImagemProduto(titulo: string, corCategoria: string): Promise<Buffer> {
   const base = sharp({
@@ -752,8 +773,21 @@ async function gerarImagemProduto(titulo: string, corCategoria: string): Promise
     .join('')
 
   const overlay = `<svg width="${LADO}" height="${LADO}" xmlns="http://www.w3.org/2000/svg">
-    <rect x="28" y="28" width="${LADO - 56}" height="${LADO - 56}" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="6"/>
-    <text font-family="Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${tspans}</text>
+    <defs>
+      <radialGradient id="sol" cx="0.97" cy="0.04" r="0.78">
+        <stop offset="0" stop-color="#E2910C" stop-opacity="0.42"/>
+        <stop offset="0.4" stop-color="#E2910C" stop-opacity="0.1"/>
+        <stop offset="1" stop-color="#E2910C" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="chao" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0.5" stop-color="#061003" stop-opacity="0"/>
+        <stop offset="1" stop-color="#061003" stop-opacity="0.4"/>
+      </linearGradient>
+    </defs>
+    <rect width="${LADO}" height="${LADO}" fill="url(#sol)"/>
+    <rect width="${LADO}" height="${LADO}" fill="url(#chao)"/>
+    <rect x="28" y="28" width="${LADO - 56}" height="${LADO - 56}" fill="none" stroke="rgba(253,213,139,0.38)" stroke-width="4"/>
+    <text font-family="Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="${CREME_LUZ}" text-anchor="middle" dominant-baseline="middle">${tspans}</text>
   </svg>`
 
   return base.composite([{ input: Buffer.from(overlay) }]).png().toBuffer()

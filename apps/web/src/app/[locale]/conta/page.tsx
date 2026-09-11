@@ -28,7 +28,7 @@ export default async function ContaPage({ params }: Props) {
     <main id="conteudo" className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-ink">{t('ola', { nome: cliente.nome })}</h1>
+          <h1 className="text-titulo text-ink">{t('ola', { nome: cliente.nome })}</h1>
           <p className="mt-1 text-ink-muted">{cliente.email}</p>
         </div>
         <BotaoSair />
@@ -37,13 +37,13 @@ export default async function ContaPage({ params }: Props) {
       <nav className="mt-8 flex flex-wrap gap-3">
         <Link
           href="/conta/encomendas"
-          className="rounded-xl border border-line bg-white px-5 py-3 font-medium text-ink transition-colors hover:border-terracota"
+          className="rounded-card border border-line bg-white px-5 py-3 font-medium text-ink transition-colors hover:border-terracota"
         >
           {t('encomendas')}
         </Link>
         <Link
           href="/conta/favoritos"
-          className="rounded-xl border border-line bg-white px-5 py-3 font-medium text-ink transition-colors hover:border-terracota"
+          className="rounded-card border border-line bg-white px-5 py-3 font-medium text-ink transition-colors hover:border-terracota"
         >
           {t('favoritos', { count: cliente.favoritos.length })}
         </Link>

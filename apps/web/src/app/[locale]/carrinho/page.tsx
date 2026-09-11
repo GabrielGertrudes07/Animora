@@ -58,10 +58,10 @@ export default function CarrinhoPage() {
 
   return (
     <main id="conteudo" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold text-ink">{t('titulo')}</h1>
+      <h1 className="text-titulo text-ink">{t('titulo')}</h1>
 
       {caidos > 0 ? (
-        <p className="mt-4 rounded-lg border border-terracota bg-terracota/10 px-4 py-3 text-sm text-ink">
+        <p className="mt-4 rounded-campo border border-terracota bg-terracota/10 px-4 py-3 text-sm text-ink">
           {t('itensCaidos', { count: caidos })}
         </p>
       ) : null}
@@ -91,10 +91,10 @@ export default function CarrinhoPage() {
                       alt={l.imagem.alt}
                       width={l.imagem.width}
                       height={l.imagem.height}
-                      className="h-20 w-20 rounded-lg object-cover"
+                      className="h-20 w-20 rounded-campo object-cover"
                     />
                   ) : (
-                    <span className="block h-20 w-20 rounded-lg bg-cream" />
+                    <span className="block h-20 w-20 rounded-campo bg-papel" />
                   )}
                 </Link>
 
@@ -134,7 +134,7 @@ export default function CarrinhoPage() {
                       // enquanto a pessoa ainda está a escrever.
                       if (Number.isInteger(q) && q >= 1 && q <= QTY_MAX) alterarQty(l.variantId, q)
                     }}
-                    className="w-16 rounded-lg border border-line bg-white px-2 py-1 text-center text-ink"
+                    className="w-16 rounded-campo border border-line bg-white px-2 py-1 text-center text-ink"
                   />
                   <span className="w-20 text-right font-semibold text-ink">
                     {formatEuros(l.precoUnitarioCents * l.qty)}

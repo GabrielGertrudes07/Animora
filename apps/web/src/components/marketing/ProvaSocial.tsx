@@ -16,8 +16,8 @@ export async function ProvaSocial() {
   const t = await getTranslations('ProvaSocial')
 
   return (
-    <section className="mx-auto max-w-3xl px-6 py-16 text-center sm:py-20">
-      <h2 className="text-3xl sm:text-4xl">{t('titulo')}</h2>
+    <section className="mx-auto max-w-3xl px-6 py-secao text-center">
+      <h2 className="text-titulo">{t('titulo')}</h2>
       <div className="mt-5 flex justify-center">
         <Estrelas resumo={avaliacao} className="text-base" />
       </div>

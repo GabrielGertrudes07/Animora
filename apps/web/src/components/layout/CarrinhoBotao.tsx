@@ -21,7 +21,7 @@ export function CarrinhoBotao() {
   return (
     <Link
       href="/carrinho"
-      className="flex shrink-0 items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink transition-colors hover:border-terracota"
+      className="flex shrink-0 items-center gap-2 rounded-campo border border-line bg-white px-3 py-2 text-sm font-medium text-ink transition-colors hover:border-terracota"
       aria-label={t('carrinhoAria', { count: pronto ? contagem : 0 })}
     >
       <Icon name="cart" className="h-5 w-5" />

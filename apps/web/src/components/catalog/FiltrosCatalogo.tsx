@@ -5,11 +5,7 @@ import { useTranslations } from 'next-intl'
 import { usePathname, useRouter } from '../../i18n/navigation'
 import { Link } from '../../i18n/navigation'
 import { formatEuros } from '@animora/core'
-import {
-  filtersToQuery,
-  type AttributeFacet,
-  type CatalogFilters,
-} from '../../modules/catalog'
+import { filtersToQuery, type AttributeFacet, type CatalogFilters } from '../../modules/catalog'
 import { Icon } from '../icons/sprite'
 
 type Marca = { nome: string; slug: string }
@@ -35,7 +31,15 @@ function contarSelecionados(f: CatalogFilters): number {
  * defeito original (uma lista comprida de opções a empurrar o catálogo para
  * fora do ecrã): secções fechadas por omissão ocupam uma linha só.
  */
-function Seccao({ titulo, aberta, children }: { titulo: string; aberta: boolean; children: ReactNode }) {
+function Seccao({
+  titulo,
+  aberta,
+  children,
+}: {
+  titulo: string
+  aberta: boolean
+  children: ReactNode
+}) {
   return (
     <details open={aberta} className="border-b border-line pb-4 [&:not(:last-child)]:mb-4">
       <summary className="cursor-pointer text-sm font-semibold text-ink marker:text-ink-muted">
@@ -90,7 +94,7 @@ function CamposFiltro({
               step={1}
               inputMode="numeric"
               aria-label={t('precoMinAria')}
-              className="w-full rounded-lg border border-line px-2 py-1.5 text-ink"
+              className="w-full rounded-campo border border-line px-2 py-1.5 text-ink"
             />
             <span className="text-ink-muted">–</span>
             <input
@@ -106,7 +110,7 @@ function CamposFiltro({
               step={1}
               inputMode="numeric"
               aria-label={t('precoMaxAria')}
-              className="w-full rounded-lg border border-line px-2 py-1.5 text-ink"
+              className="w-full rounded-campo border border-line px-2 py-1.5 text-ink"
             />
           </div>
           <p className="mt-1.5 text-xs text-ink-muted">
@@ -143,7 +147,7 @@ function CamposFiltro({
                 name={attr.chave}
                 defaultValue={filtrosAtuais.atributos?.[attr.chave]?.[0] ?? attr.min}
                 aria-label={t('valorMinimoAria', { atributo: attr.nome })}
-                className="w-full rounded-lg border border-line px-2 py-1.5 text-ink"
+                className="w-full rounded-campo border border-line px-2 py-1.5 text-ink"
               />
               <span className="text-ink-muted">–</span>
               <input
@@ -151,7 +155,7 @@ function CamposFiltro({
                 name={attr.chave}
                 defaultValue={filtrosAtuais.atributos?.[attr.chave]?.[1] ?? attr.max}
                 aria-label={t('valorMaximoAria', { atributo: attr.nome })}
-                className="w-full rounded-lg border border-line px-2 py-1.5 text-ink"
+                className="w-full rounded-campo border border-line px-2 py-1.5 text-ink"
               />
             </div>
           ) : (
@@ -225,11 +229,15 @@ export function FiltrosCatalogo(props: Props) {
       precoMax !== undefined &&
       Number.isFinite(precoMin) &&
       Number.isFinite(precoMax) &&
-      (Math.min(precoMin, precoMax) > props.bounds.min || Math.max(precoMin, precoMax) < props.bounds.max)
+      (Math.min(precoMin, precoMax) > props.bounds.min ||
+        Math.max(precoMin, precoMax) < props.bounds.max)
 
     const selecionados: Record<string, string[]> = {}
     for (const attr of atributos) {
-      const valores = dados.getAll(attr.chave).map(String).filter((v) => v !== '')
+      const valores = dados
+        .getAll(attr.chave)
+        .map(String)
+        .filter((v) => v !== '')
       if (valores.length === 0) continue
 
       if (attr.tipo === 'intervalo') {
@@ -239,7 +247,8 @@ export function FiltrosCatalogo(props: Props) {
           maxV !== undefined &&
           Number.isFinite(minV) &&
           Number.isFinite(maxV) &&
-          (Math.min(minV, maxV) > (attr.min ?? -Infinity) || Math.max(minV, maxV) < (attr.max ?? Infinity))
+          (Math.min(minV, maxV) > (attr.min ?? -Infinity) ||
+            Math.max(minV, maxV) < (attr.max ?? Infinity))
         if (estreitado) selecionados[attr.chave] = valores
       } else {
         selecionados[attr.chave] = valores
@@ -276,12 +285,15 @@ export function FiltrosCatalogo(props: Props) {
           <div className="mt-4 flex items-center gap-3">
             <button
               type="submit"
-              className="rounded-lg bg-terracota px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-terracota-dark"
+              className="botao-principal botao-principal-pequeno"
             >
               {t('aplicarFiltros')}
             </button>
             {numeroAtivos > 0 ? (
-              <Link href={pathname} className="text-sm font-medium text-ink-muted underline hover:text-ink">
+              <Link
+                href={pathname}
+                className="text-sm font-medium text-ink-muted underline hover:text-ink"
+              >
                 {t('limpar')}
               </Link>
             ) : null}
@@ -293,7 +305,7 @@ export function FiltrosCatalogo(props: Props) {
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className="flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink lg:hidden"
+        className="flex min-h-11 items-center gap-2 rounded-campo border border-line bg-white px-3 py-2 text-sm font-medium text-ink lg:min-h-0 lg:hidden"
       >
         <Icon name="filter" className="h-4 w-4" />
         {t('filtros')}
@@ -310,7 +322,7 @@ export function FiltrosCatalogo(props: Props) {
           if (e.target === e.currentTarget) dialogRef.current?.close()
         }}
         aria-label={t('filtrosAria')}
-        className="m-0 max-h-[85vh] w-full max-w-full rounded-t-card border-t border-line bg-cream p-0 shadow-md backdrop:bg-ink/40 lg:hidden [&[open]]:fixed [&[open]]:inset-x-0 [&[open]]:bottom-0 [&[open]]:top-auto"
+        className="m-0 max-h-[85vh] w-full max-w-full rounded-t-card border-t border-line bg-papel p-0 shadow-md backdrop:bg-ink/40 lg:hidden [&[open]]:fixed [&[open]]:inset-x-0 [&[open]]:bottom-0 [&[open]]:top-auto"
       >
         <form onSubmit={aplicar} className="flex max-h-[85vh] flex-col">
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
@@ -319,7 +331,7 @@ export function FiltrosCatalogo(props: Props) {
               type="button"
               onClick={() => dialogRef.current?.close()}
               aria-label={t('fecharFiltrosAria')}
-              className="rounded-lg p-1 text-ink-muted hover:text-ink"
+              className="rounded-campo p-1 text-ink-muted hover:text-ink"
             >
               <Icon name="close" className="h-5 w-5" />
             </button>
@@ -331,7 +343,7 @@ export function FiltrosCatalogo(props: Props) {
             <button
               type="submit"
               disabled={aplicando}
-              className="flex-1 rounded-lg bg-terracota px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-terracota-dark disabled:opacity-60"
+              className="botao-principal botao-principal-pequeno flex-1"
             >
               {t('verProdutos')}
             </button>

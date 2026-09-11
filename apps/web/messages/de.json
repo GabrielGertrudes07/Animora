@@ -21,14 +21,6 @@
     "descricao": "Futter, Zubehör, Pflege und Training für Hunde, Katzen, Vögel und Kleintiere.",
     "direitos": "© {ano} Animora. Alle Rechte vorbehalten."
   },
-  "Carrossel": {
-    "ariaLabel": "Highlights und Angebote",
-    "roledescription": "Karussell",
-    "anterior": "Vorheriger Slide",
-    "seguinte": "Nächster Slide",
-    "escolherSlide": "Slide auswählen",
-    "slideAria": "Slide {numero}: {titulo}"
-  },
   "CarrinhoBotao": {
     "carrinho": "Warenkorb",
     "carrinhoAria": "{count, plural, =0 {Warenkorb} one {Warenkorb, # Artikel} other {Warenkorb, # Artikel}}"
@@ -97,8 +89,7 @@
     "semStock": "Momentan nicht auf Lager"
   },
   "Price": {
-    "desde": "ab",
-    "poupas": "Du sparst {valor}"
+    "desde": "ab"
   },
   "Estrelas": {
     "contagem": "{count, plural, one {# Bewertung} other {# Bewertungen}}"
@@ -238,34 +229,15 @@
   "Home": {
     "metaTitulo": "Animora — Pflege für dein Tier",
     "metaDescricao": "Futter, Zubehör, Pflege und Training für Hunde, Katzen, Vögel und Kleintiere.",
-    "esteSemana": "Diese Woche",
     "ofertasDaSemana": "Angebote dieser Woche",
     "escolhasDaCasa": "Unsere Favoriten",
     "verTodosOsProdutos": "Alle Produkte ansehen",
-    "marcasEmQueConfiamos": "Marken, denen wir vertrauen",
-    "slide1Rotulo": "🐾 Rabattwoche",
-    "slide1Titulo": "Dein Hund weiß nicht, dass das im Angebot ist.",
-    "slide1Texto": "Du schon. Rabatte auf Futter, Betten und Zubehör, solange der Vorrat reicht.",
-    "slide1CtaPrincipal": "Angebote ansehen",
-    "slide1CtaSecundario": "Shop entdecken",
-    "slide1Selo": "Angebot",
-    "slide2Rotulo": "🐱 Für Katzen",
-    "slide2Titulo": "Deine Katze entscheidet. Du musst nur bezahlen.",
-    "slide2Texto": "Streu, Kratzbäume und Futter der Marken, die den Katzennasen-Test bestehen.",
-    "slide2CtaPrincipal": "Produkte für Katzen ansehen",
-    "slide2CtaSecundario": "Alle Kategorien ansehen",
-    "slide3Rotulo": "🚚 Ohne Kleingedrucktes",
-    "slide3Titulo": "Kommt schneller an, als er vor dem Baden wegläuft.",
-    "slide3Texto": "Kostenloser Versand ab {valor}. Immer, nicht nur im Angebot.",
-    "slide3CtaPrincipal": "Shop entdecken",
-    "slide1Alt": "Französische Bulldogge mit gelbem Pullover vor blauem Hintergrund",
-    "slide2Alt": "Kätzchen streckt die Pfote nach oben, vor türkisfarbenem Hintergrund",
-    "slide3Alt": "Golden-Retriever-Welpe mit Halsband, sitzt an einem sonnigen Tag im Garten"
+    "marcasEmQueConfiamos": "Marken, denen wir vertrauen"
   },
   "CategoriasVisuais": {
     "titulo": "Wähle dein Tier",
     "texto": "Jedes Tier hat sein eigenes Regal — und seinen eigenen Weg, dein Taschengeld zu verputzen.",
-    "produtos": "{count} Produkte"
+    "produtos": "{count, plural, =0 {0 Produkte} one {1 Produkt} other {# Produkte}}"
   },
   "AprovadoPorQuemManda": {
     "titulo": "Von den Chefs persönlich abgesegnet",
@@ -295,5 +267,51 @@
     "esgotado": "ausverkauft",
     "envioGratis": "Kostenloser Versand ab {valor}",
     "descricao": "Beschreibung"
+  },
+  "BarraMobile": {
+    "navegacaoAria": "Hauptnavigation",
+    "inicio": "Start",
+    "categorias": "Kategorien",
+    "pesquisa": "Suchen",
+    "conta": "Konto",
+    "carrinho": "Warenkorb",
+    "fechar": "Schließen",
+    "categoriasTitulo": "Kategorie wählen",
+    "todosOsProdutos": "Alle Produkte",
+    "pesquisaTitulo": "Im Shop suchen",
+    "pesquisaPlaceholder": "Was braucht dein Tier heute?",
+    "pesquisaAria": "Produkte suchen",
+    "procurar": "Suchen"
+  },
+  "CarrosselCampanhas": {
+    "roledescription": "Karussell",
+    "ariaLabel": "Ausgewählte Kampagnen",
+    "anterior": "Vorherige Kampagne",
+    "seguinte": "Nächste Kampagne",
+    "verSlide": "Kampagne {numero} ansehen: {titulo}",
+    "slide1Eyebrow": "Hauptkampagne",
+    "slide1Titulo": "Bis zu 30% auf Essentials",
+    "slide1Texto": "Futter, Betten, Spielzeug und Pflege in einer schöneren, klareren Auswahl, bereit zum Kaufen.",
+    "slide1CtaPrincipal": "Angebote ansehen",
+    "slide1CtaSecundario": "Alles ansehen",
+    "slide1Alt": "Hund und Katze auf einer grünen Lichtung mit warmem Seitenlicht und Tierprodukten im Vordergrund",
+    "slide2Eyebrow": "Für Hunde",
+    "slide2Titulo": "Spaziergang, Training und Ruhe ohne Improvisation",
+    "slide2Texto": "Robuste Ausrüstung, nützliches Zubehör und Komfort für Hunde, die Haus und Straße jeden Tag erleben.",
+    "slide2CtaPrincipal": "Hunde kaufen",
+    "slide2CtaSecundario": "Kategorien ansehen",
+    "slide2Alt": "Aufmerksamer Hund in einer hochwertigen grünen Szene mit Spaziergangszubehör und Abendlicht",
+    "slide3Eyebrow": "Für Katzen",
+    "slide3Titulo": "Komfort für die Chefs im Haus",
+    "slide3Texto": "Kratzbäume, Betten, Streu und Spielzeug mit gepflegtem Look und leicht vergleichbaren Optionen.",
+    "slide3CtaPrincipal": "Katzen kaufen",
+    "slide3CtaSecundario": "Shop entdecken",
+    "slide3Alt": "Katze in einer gemütlichen Komposition mit Pflanzen, warmem Licht und Komfortprodukten",
+    "slide4Eyebrow": "Alle Arten",
+    "slide4Titulo": "Ein Shop mit Welten für jedes Tier",
+    "slide4Texto": "Hunde, Katzen, Vögel, Kleintiere und Aquarien in einer stärkeren visuellen Navigation ab dem ersten Blick.",
+    "slide4CtaPrincipal": "Tier wählen",
+    "slide4CtaSecundario": "Vögel ansehen",
+    "slide4Alt": "Hochwertige Komposition mit verschiedenen Haustieren in einer dunklen, auffälligen botanischen Szene"
   }
 }

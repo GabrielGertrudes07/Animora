@@ -19,7 +19,13 @@ import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
  * é o `useRouter` locale-aware de `i18n/navigation`, que acrescenta o prefixo
  * certo sozinho.
  */
-export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar'; voltar: string }) {
+export function FormularioEntrada({
+  modo,
+  voltar,
+}: {
+  modo: 'entrar' | 'registar'
+  voltar: string
+}) {
   const router = useRouter()
   const { entrarNaConta } = useCarrinho()
   const t = useTranslations('FormularioEntrada')
@@ -52,7 +58,10 @@ export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar
   }
 
   return (
-    <form onSubmit={submeter} className="mt-8 flex flex-col gap-4 rounded-card bg-white p-6 shadow-sm">
+    <form
+      onSubmit={submeter}
+      className="mt-8 flex flex-col gap-4 rounded-card bg-white p-6 shadow-sm"
+    >
       {ehRegisto ? (
         <div>
           <label htmlFor="nome" className="block text-sm font-medium text-ink">
@@ -65,7 +74,7 @@ export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar
             autoComplete="name"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-cream px-3 py-2 text-ink"
+            className="mt-1 min-h-11 w-full rounded-campo border border-line bg-papel px-3 py-2 text-base text-ink sm:min-h-0 sm:text-sm"
           />
         </div>
       ) : null}
@@ -82,7 +91,7 @@ export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-line bg-cream px-3 py-2 text-ink"
+          className="mt-1 min-h-11 w-full rounded-campo border border-line bg-papel px-3 py-2 text-base text-ink sm:min-h-0 sm:text-sm"
         />
       </div>
 
@@ -99,14 +108,14 @@ export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar
           autoComplete={ehRegisto ? 'new-password' : 'current-password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-line bg-cream px-3 py-2 text-ink"
+          className="mt-1 min-h-11 w-full rounded-campo border border-line bg-papel px-3 py-2 text-base text-ink sm:min-h-0 sm:text-sm"
         />
       </div>
 
       {erro ? (
         <p
           role="alert"
-          className="rounded-lg border border-terracota bg-terracota/10 px-3 py-2 text-sm text-ink"
+          className="rounded-campo border border-terracota bg-terracota/10 px-3 py-2 text-sm text-ink"
         >
           {erro}
         </p>
@@ -115,7 +124,7 @@ export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar
       <button
         type="submit"
         disabled={aEnviar}
-        className="rounded-xl bg-terracota px-6 py-3 font-semibold text-white transition-colors hover:bg-terracota-dark disabled:opacity-60"
+        className="botao-principal"
       >
         {aEnviar ? t('umMomento') : ehRegisto ? t('criarConta') : t('entrar')}
       </button>
@@ -124,7 +133,7 @@ export function FormularioEntrada({ modo, voltar }: { modo: 'entrar' | 'registar
         {ehRegisto ? t('jaTemConta') : t('aindaNaoTemConta')}
         <Link
           href={`/conta/${ehRegisto ? 'entrar' : 'registar'}?voltar=${encodeURIComponent(voltar)}`}
-          className="underline hover:text-ink"
+          className="inline-flex min-h-11 items-center underline hover:text-ink sm:min-h-0"
         >
           {ehRegisto ? t('entrar') : t('criarConta')}
         </Link>

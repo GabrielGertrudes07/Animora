@@ -77,8 +77,8 @@ export async function Catalogo({
 
   const comFiltros = Boolean(
     filtros.marca?.length ||
-      filtros.precoMin !== undefined ||
-      Object.keys(filtros.atributos ?? {}).length > 0,
+    filtros.precoMin !== undefined ||
+    Object.keys(filtros.atributos ?? {}).length > 0,
   )
 
   // Limpar a pesquisa tira só a pesquisa: os filtros que a pessoa escolheu
@@ -86,14 +86,16 @@ export async function Catalogo({
   const semPesquisa = filtersToQuery({ ...filtros, q: undefined })
 
   return (
-    <main id="conteudo" className="mx-auto max-w-7xl px-6 py-10">
-      <h1 className="text-4xl text-ink">{titulo}</h1>
+    <main id="conteudo" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
+      <h1 className="text-titulo text-ink">{titulo}</h1>
       {descricao ? (
-        <p className="mt-3 max-w-2xl leading-relaxed text-ink-muted">{descricao}</p>
+        <p className="mt-2 max-w-2xl leading-relaxed text-ink-muted sm:mt-3">{descricao}</p>
       ) : null}
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
-        <p className="text-ink-muted">{t('contagemProdutos', { count: produtos.length })}</p>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3 sm:mt-6 sm:pb-4">
+        <p className="text-sm text-ink-muted sm:text-base">
+          {t('contagemProdutos', { count: produtos.length })}
+        </p>
         <OrdenarPor filtrosAtuais={filtros} />
       </div>
 
@@ -118,7 +120,7 @@ export async function Catalogo({
               >
                 <Link
                   href={semPesquisa ? `${caminho}?${semPesquisa}` : caminho}
-                  className="inline-block rounded-lg bg-terracota px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-terracota-dark"
+                  className="botao-principal botao-principal-pequeno"
                 >
                   {t('limparPesquisa')}
                 </Link>
@@ -133,7 +135,7 @@ export async function Catalogo({
               <EstadoVazio ilustracao="tigela" titulo={vazio.titulo} texto={vazio.texto} />
             )
           ) : (
-            <CascataProdutos className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            <CascataProdutos className="grid grid-cols-2 gap-3 sm:gap-6 xl:grid-cols-3">
               {produtos.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

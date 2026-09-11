@@ -15,7 +15,7 @@ import { useMotion } from './useMotion'
 export function Entrada({
   children,
   className,
-  y = 20,
+  y = 12,
 }: {
   children: ReactNode
   className?: string
@@ -25,7 +25,7 @@ export function Entrada({
     gsap.from(Array.from(el.children), {
       opacity: 0,
       y,
-      duration: 0.65,
+      duration: 0.42,
       ease: 'power3.out',
       stagger: 0.08,
       clearProps: 'transform,opacity',

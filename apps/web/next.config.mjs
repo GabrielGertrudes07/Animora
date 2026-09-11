@@ -10,6 +10,11 @@ const nextConfig = {
   images: {
     remotePatterns: [
       { protocol: api.protocol.replace(':', ''), hostname: api.hostname, port: api.port },
+      // Desenvolvimento local pode manter a API em 3000, 3003 ou 3010
+      // conforme o serviço que já estiver usando a porta padrão.
+      { protocol: 'http', hostname: 'localhost', port: '3000' },
+      { protocol: 'http', hostname: 'localhost', port: '3003' },
+      { protocol: 'http', hostname: 'localhost', port: '3010' },
       // Fotografia de referência para o hero/marketing enquanto não há
       // fotografia própria de produto — ver apps/web/src/lib/fotosMarketing.ts.
       { protocol: 'https', hostname: 'images.unsplash.com' },

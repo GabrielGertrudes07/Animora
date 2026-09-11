@@ -40,7 +40,7 @@ export function AdicionarAoCarrinho({
         window.setTimeout(() => setFeito(false), 2000)
       }}
       aria-label={t('adicionarAria', { etiqueta })}
-      className="rounded-lg bg-terracota px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-terracota-dark"
+      className="botao-principal min-h-11 px-5 py-2 text-base sm:min-h-0 sm:px-4 sm:text-sm"
     >
       {feito ? t('noCarrinho') : t('adicionar')}
     </button>

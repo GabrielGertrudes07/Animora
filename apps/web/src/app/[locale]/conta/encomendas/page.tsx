@@ -34,7 +34,7 @@ export default async function EncomendasPage({ params }: Props) {
       <Link href="/conta" className="text-sm text-ink-muted underline hover:text-ink">
         {t('minhaConta')}
       </Link>
-      <h1 className="mt-2 text-3xl font-bold text-ink">{t('titulo')}</h1>
+      <h1 className="mt-2 text-titulo text-ink">{t('titulo')}</h1>
 
       {encomendas.length === 0 ? (
         <div className="mt-8">

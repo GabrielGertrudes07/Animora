@@ -11,7 +11,6 @@ import { AdicionarAoCarrinho } from '../../../../components/ui/AdicionarAoCarrin
 import { BotaoFavorito } from '../../../../components/ui/BotaoFavorito'
 import { Icon } from '../../../../components/icons/sprite'
 import { Entrada } from '../../../../components/motion/Entrada'
-import { Reveal } from '../../../../components/motion/Reveal'
 
 type Props = { params: Promise<{ locale: string; slug: string }> }
 
@@ -78,7 +77,7 @@ export default async function ProdutoPage({ params }: Props) {
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sage">
             {p.brand.name}
           </p>
-          <h1 className="mt-2 text-4xl leading-tight text-ink">{p.title}</h1>
+          <h1 className="mt-2 text-balance text-4xl leading-tight text-ink">{p.title}</h1>
           <Price cents={preco.cents} old={preco.old} desde={preco.desde} className="mt-5 block" />
 
           <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-muted">
@@ -100,7 +99,7 @@ export default async function ProdutoPage({ params }: Props) {
               return (
                 <li
                   key={v.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line px-3 py-2 text-sm text-ink"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-campo border border-line px-3 py-2 text-sm text-ink"
                 >
                   <span>
                     {opcoes}
@@ -134,15 +133,15 @@ export default async function ProdutoPage({ params }: Props) {
       </Entrada>
 
       {descricaoHtml ? (
-        <Reveal className="mt-12 max-w-3xl border-t border-line pt-8">
+        <section className="mt-12 max-w-3xl border-t border-line pt-8">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
             {t('descricao')}
           </h2>
           <div
-            className="mt-3 space-y-4 text-ink [&_a]:text-terracota [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_strong]:font-semibold [&_ul]:list-disc"
+            className="mt-3 space-y-4 text-ink [&_a]:text-terracota [&_a]:underline [&_a]:decoration-terracota/40 [&_a:hover]:decoration-terracota [&_li]:ml-5 [&_ol]:list-decimal [&_strong]:font-semibold [&_ul]:list-disc"
             dangerouslySetInnerHTML={{ __html: descricaoHtml }}
           />
-        </Reveal>
+        </section>
       ) : null}
     </main>
   )

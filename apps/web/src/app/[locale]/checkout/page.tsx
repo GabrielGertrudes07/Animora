@@ -39,7 +39,7 @@ export default async function CheckoutPage({ params }: Props) {
 
   return (
     <main id="conteudo" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold text-ink">{t('titulo')}</h1>
+      <h1 className="text-titulo text-ink">{t('titulo')}</h1>
       <p className="mt-2 text-ink-muted">{cliente.email}</p>
 
       <div className="mt-8">

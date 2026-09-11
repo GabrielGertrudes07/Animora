@@ -37,7 +37,7 @@ export function BotaoFavorito({ productId }: { productId: number }) {
     return (
       <Link
         href="/conta/entrar"
-        className="inline-flex items-center gap-2 text-sm font-medium text-ink-muted underline transition-colors hover:text-ink"
+        className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-ink-muted underline transition-colors hover:text-ink sm:min-h-0"
       >
         <Icon name="heart" className="h-4 w-4" />
         {t('entrarParaGuardar')}
@@ -60,7 +60,7 @@ export function BotaoFavorito({ productId }: { productId: number }) {
             }
           })
         }}
-        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+        className={`inline-flex min-h-11 items-center gap-2 rounded-campo border px-3 py-2 text-sm font-medium transition-colors sm:min-h-0 ${
           favorito
             ? 'border-terracota bg-terracota/10 text-terracota-dark'
             : 'border-line text-ink-muted hover:text-ink'

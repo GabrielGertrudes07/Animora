@@ -54,7 +54,7 @@ export default async function EncomendaPage({ params, searchParams }: Props) {
         </p>
       ) : null}
 
-      <h1 className="mt-4 text-3xl font-bold text-ink">{encomenda.numero}</h1>
+      <h1 className="mt-4 text-titulo text-ink">{encomenda.numero}</h1>
       <p className="mt-1 text-ink-muted">
         {dataLegivel(encomenda.criadaEm, locale)} · {estadoLegivel(encomenda.estado, tEstados)}
       </p>

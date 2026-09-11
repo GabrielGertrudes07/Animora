@@ -22,7 +22,7 @@ const DESENHOS = {
   /** Tigela vazia — carrinho sem nada, catálogo sem produtos. */
   tigela: (
     <>
-      <path d="M32 66h76l-9 30a12 12 0 0 1-11.5 9H52.5A12 12 0 0 1 41 96Z" className="fill-cream" />
+      <path d="M32 66h76l-9 30a12 12 0 0 1-11.5 9H52.5A12 12 0 0 1 41 96Z" className="fill-papel" />
       <ellipse cx="70" cy="66" rx="38" ry="10" className="fill-white" />
       <ellipse cx="70" cy="66" rx="26" ry="6" className="stroke-terracota/50" />
       <ellipse cx="70" cy="30" rx="8" ry="6.5" className="fill-terracota/25 stroke-terracota" />
@@ -44,7 +44,7 @@ const DESENHOS = {
     <>
       <path
         d="M70 104C34 82 22 64 30 48c6-12 22-15 32-6 3 3 6 7 8 11 2-4 5-8 8-11 10-9 26-6 32 6 8 16-4 34-40 56Z"
-        className="fill-cream"
+        className="fill-papel"
       />
       <ellipse cx="70" cy="62" rx="10" ry="8" className="fill-terracota/25 stroke-terracota" />
       <circle cx="58" cy="48" r="4" className="fill-terracota/25 stroke-terracota" />
@@ -56,7 +56,7 @@ const DESENHOS = {
   caixa: (
     <>
       <path d="M28 50h84v54a6 6 0 0 1-6 6H34a6 6 0 0 1-6-6Z" className="fill-white" />
-      <path d="M22 30h96v20H22Z" className="fill-cream" />
+      <path d="M22 30h96v20H22Z" className="fill-papel" />
       <path d="M70 50V30" />
       <ellipse cx="70" cy="78" rx="9" ry="7" className="fill-terracota/25 stroke-terracota" />
       <circle cx="59" cy="66" r="3.6" className="fill-terracota/25 stroke-terracota" />

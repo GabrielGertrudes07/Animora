@@ -36,17 +36,26 @@ export async function ProductCard({ product }: { product: PublicProduct }) {
   return (
     <article
       data-cartao
-      className="group relative overflow-hidden rounded-card border border-line bg-white shadow-sm transition-shadow hover:shadow-md"
+      // Hairline em repouso, sem sombra: um cartão que já flutua parado não
+      // tem para onde subir no hover. A elevação chega só quando o rato chega.
+      className="group relative overflow-hidden rounded-card border border-line bg-white transition-shadow duration-200 ease-loja hover:shadow-md"
     >
       <Link href={`/produto/${product.slug}`} className="block">
-        <div className="relative aspect-square overflow-hidden bg-cream">
+        {/* 4:5 e não quadrado: o quadrado lê como grelha de marketplace, a
+            vertical lê como editorial — e é a mesma proporção das cenas de
+            categoria, o que faz a página inteira bater a compasso. */}
+        <div className="relative aspect-[4/5] overflow-hidden bg-papel">
           {img ? (
             <Image
               src={mediaUrl(img.url)}
               alt={img.alt}
               width={img.width ?? 600}
               height={img.height ?? 600}
-              className="h-full w-full object-cover"
+              // A escala no hover é CSS e não GSAP: é uma transição de uma
+              // propriedade, disparada por `:hover` do cartão. Passava por um
+              // ouvinte delegado no contentor da grelha, que existia só para
+              // isto. `1.03` e não `1.06` — a imagem aproxima-se, não salta.
+              className="h-full w-full object-cover transition-transform duration-500 ease-loja group-hover:scale-[1.03]"
             />
           ) : (
             // Sem fotografia, uma pata em marca de água — não um retângulo
@@ -55,23 +64,32 @@ export async function ProductCard({ product }: { product: PublicProduct }) {
               <Icon name="paw" className="h-16 w-16" />
             </span>
           )}
-          {desconto ? (
-            <span className="absolute left-3 top-3 rounded-full bg-promo px-3 py-1 text-xs font-bold text-white shadow-sm">
-              -{desconto}%
-            </span>
-          ) : null}
+          {/*
+            Um sinal por cartão. O desconto em floresta e não em vermelho: o
+            vermelho puro é a cor do saldo de fim de estação, e destaca-se pior
+            sobre fotografia clara do que este verde quase preto.
+
+            Um produto esgotado não anuncia desconto — daí o `else`, e não dois
+            distintivos a dividir os cantos de cima.
+          */}
           {stockTotal === 0 ? (
-            <span className="absolute right-3 top-3 rounded-full bg-ink/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cream">
+            <span className="absolute right-3 top-3 rounded-full bg-floresta px-3 py-1 text-eyebrow font-semibold uppercase text-papel">
               {t('esgotado')}
+            </span>
+          ) : desconto ? (
+            <span className="absolute left-3 top-3 rounded-full bg-floresta px-3 py-1 text-xs font-bold tabular-nums text-papel">
+              -{desconto}%
             </span>
           ) : null}
         </div>
 
         <div className="flex flex-col gap-1.5 p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sage">
+          <p className="text-eyebrow font-semibold uppercase text-ink-muted">
             {product.brand.name}
           </p>
-          <h3 className="text-lg font-semibold leading-snug text-ink">{product.title}</h3>
+          <h3 className="text-base font-semibold leading-snug text-ink sm:text-lg">
+            {product.title}
+          </h3>
           <Estrelas resumo={avaliacao} />
           <Price cents={preco.cents} old={preco.old} desde={preco.desde} className="mt-2 block" />
           {stockTotal > 0 ? (

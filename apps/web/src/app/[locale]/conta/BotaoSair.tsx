@@ -28,7 +28,7 @@ export function BotaoSair() {
           router.refresh()
         })
       }}
-      className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+      className="rounded-campo border border-line px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
     >
       {t('sair')}
     </button>

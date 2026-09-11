@@ -39,23 +39,36 @@ export async function AprovadoPorQuemManda() {
   ]
 
   return (
-    <section className="bg-ink px-6 py-16 text-white sm:py-20">
+    <section className="chao-floresta px-6 py-secao">
       <div className="mx-auto max-w-7xl">
-        <h2 className="text-3xl sm:text-4xl">{t('titulo')}</h2>
-        <p className="mt-3 max-w-xl text-white/70">{t('texto')}</p>
+        <h2 className="text-titulo">{t('titulo')}</h2>
+        <p className="mt-3 max-w-xl text-papel/70">{t('texto')}</p>
 
         <ul className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-4">
           {testemunhos.map((tst) => (
             <li
               key={tst.assinatura}
-              className="overflow-hidden rounded-card border border-white/10 bg-white/5"
+              // Sobre floresta, um cartão distingue-se do chão pela sua
+              // própria superfície — um branco a 5,5% — e por um aro hairline.
+              // Não por sombra: uma sombra preta sobre um fundo quase preto não
+              // se vê, e o aro dourado que aqui estava era a peça que mais
+              // atraiçoava a gama.
+              className="overflow-hidden rounded-card bg-white/[0.055] ring-1 ring-inset ring-white/10"
             >
               <div className="relative aspect-square">
                 <Image src={tst.src} alt={tst.alt} fill sizes="25vw" className="object-cover" />
+                {/* Um véu ténue puxa as quatro fotografias para a mesma luz —
+                    hoje são de fontes diferentes e cada uma traz o seu fundo de
+                    estúdio. É um remendo, e desaparece quando os quatro
+                    retratos vierem do mesmo lote (ver o briefing de arte). */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(13,35,5,0.12),rgba(10,26,3,0.45))]"
+                />
               </div>
               <div className="p-4">
-                <p className="text-sm font-semibold leading-snug">{tst.fala}</p>
-                <p className="mt-2 text-xs text-white/60">{tst.assinatura}</p>
+                <p className="text-sm font-semibold leading-snug text-papel">{tst.fala}</p>
+                <p className="mt-2 text-xs text-papel/55">{tst.assinatura}</p>
               </div>
             </li>
           ))}
