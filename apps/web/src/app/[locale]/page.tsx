@@ -231,13 +231,12 @@ export default async function Home({ params }: Props) {
 
       <AprovadoPorQuemManda />
 
-      {/* As marcas encostam ao bloco escuro dos testemunhos e continuam nele
-          até ao rodapé: no fim a página fecha numa clareira só, em vez de
-          alternar escuro / tira branca / escuro. Com o fio dourado fora do
-          `.chao-floresta`, já não há costura entre faixas encostadas. */}
+      {/* Fase estrutural v1: fundo neutro. O bloco escuro contínuo com os
+          testemunhos e o rodapé (`.chao-floresta`) volta na fase de
+          criativos — não foi removido, só desligado aqui. */}
       {marcas.length > 0 ? (
-        <section className="chao-floresta px-6 pb-4 pt-14 text-center">
-          <p className="mx-auto max-w-7xl text-eyebrow font-semibold uppercase text-papel/50">
+        <section className="border-t border-line px-6 pb-4 pt-14 text-center">
+          <p className="mx-auto max-w-7xl text-eyebrow font-semibold uppercase text-ink-muted/70">
             {t('marcasEmQueConfiamos')}
           </p>
           <ul className="mx-auto mt-6 flex max-w-7xl flex-wrap justify-center gap-x-8 gap-y-3">
@@ -245,7 +244,7 @@ export default async function Home({ params }: Props) {
               <li key={m.slug}>
                 <Link
                   href={`/produtos?marca=${m.slug}`}
-                  className="font-display text-lg font-semibold text-papel/70 transition-colors hover:text-papel"
+                  className="font-display text-lg font-semibold text-ink-muted transition-colors hover:text-ink"
                 >
                   {m.nome}
                 </Link>

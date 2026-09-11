@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import gsap from 'gsap'
 import { useTranslations } from 'next-intl'
 import { Link } from '../../i18n/navigation'
 import { useMotion } from '../motion/useMotion'
 import { Icon } from '../icons/sprite'
+import { MediaPlaceholder } from '../ui/MediaPlaceholder'
 
 /**
  * Uma camada de animal por cima da fotografia — recorte com alpha, posicionado
@@ -123,7 +123,13 @@ export function CarrosselCampanhas({ slides }: { slides: SlideCampanha[] }) {
           0,
         )
         .from(slide.querySelectorAll('[data-linha]'), { yPercent: 110, duration: 0.6, stagger: 0.07 }, 0.12)
-        .from(
+
+      // Fase estrutural v1: sem camada de animal, `animais`/`sombras` vêm
+      // vazios — o GSAP avisa no console ao animar uma NodeList vazia, daí a
+      // guarda. As duas timelines voltam assim que os `<Image data-pet-*>`
+      // voltarem a ser renderizados.
+      if (animais.length > 0) {
+        entrada.from(
           animais,
           {
             yPercent: 7,
@@ -135,11 +141,14 @@ export function CarrosselCampanhas({ slides }: { slides: SlideCampanha[] }) {
           },
           0.3,
         )
-        .from(
+      }
+      if (sombras.length > 0) {
+        entrada.from(
           sombras,
           { scale: 1.14, opacity: 0.45, duration: 0.75, ease: 'power4.out', stagger: 0.09 },
           0.3,
         )
+      }
 
       /**
        * Repouso: os animais respiram e a sombra respira ao contrário. Uma
@@ -211,44 +220,16 @@ export function CarrosselCampanhas({ slides }: { slides: SlideCampanha[] }) {
               className="grid w-full shrink-0 grid-cols-1 sm:grid-cols-[minmax(0,36%)_1fr]"
             >
               {/* Em telemóvel a fotografia vem primeiro; em ecrã largo passa
-                  para a direita. Uma ordem por CSS, sem duplicar marcação. */}
-              <div className="relative order-first aspect-[16/10] overflow-hidden sm:order-last sm:aspect-[1.92/1]">
-                <Image
-                  data-foto
-                  src={slide.fotografia}
-                  alt={slide.alt}
-                  fill
-                  priority={indice === 0}
-                  sizes="(min-width: 640px) 64vw, 100vw"
-                  className="object-cover"
-                />
-                {slide.pets?.map((pet) => (
-                  <span key={pet.animal} data-pet className={`absolute ${pet.classe}`}>
-                    {/* A sombra por baixo e num ficheiro próprio: fica ancorada
-                        ao chão quando o animal ganhar movimento. */}
-                    {pet.sombra ? (
-                      <Image
-                        data-pet-sombra
-                        src={pet.sombra}
-                        alt=""
-                        aria-hidden
-                        width={pet.largura}
-                        height={pet.altura}
-                        className="absolute inset-0 h-full w-full object-contain"
-                      />
-                    ) : null}
-                    <Image
-                      data-pet-animal
-                      style={{ transformOrigin: pet.apoio ?? 'bottom center' }}
-                      src={pet.animal}
-                      alt=""
-                      aria-hidden
-                      width={pet.largura}
-                      height={pet.altura}
-                      className="relative h-full w-full object-contain"
-                    />
-                  </span>
-                ))}
+                  para a direita. Uma ordem por CSS, sem duplicar marcação.
+                  Fase estrutural v1: mídia editorial neutra — sem fotografia
+                  nem animal composto (ver `slide.fotografia`/`slide.pets`,
+                  preservados para a fase de criativos). `data-foto` continua
+                  no contentor para o gesto de revelação por `clipPath`. */}
+              <div
+                data-foto
+                className="relative order-first aspect-[16/10] overflow-hidden sm:order-last sm:aspect-[1.92/1]"
+              >
+                <MediaPlaceholder ratio="16/10" type="hero" label={slide.alt} fill />
               </div>
 
               <div className="chao-floresta flex flex-col justify-center gap-4 px-6 pb-20 pt-10 sm:px-10 sm:pb-24 sm:pt-12">

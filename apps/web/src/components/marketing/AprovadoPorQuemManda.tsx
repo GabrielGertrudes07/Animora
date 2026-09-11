@@ -1,6 +1,6 @@
-import Image from 'next/image'
 import { getTranslations } from 'next-intl/server'
 import { FOTOS_MARKETING } from '../../lib/fotosMarketing'
+import { MediaPlaceholder } from '../ui/MediaPlaceholder'
 
 /**
  * Voz da marca, não avaliação de cliente — daí as citações serem assinadas
@@ -56,15 +56,9 @@ export async function AprovadoPorQuemManda() {
               className="overflow-hidden rounded-card bg-white/[0.055] ring-1 ring-inset ring-white/10"
             >
               <div className="relative aspect-square">
-                <Image src={tst.src} alt={tst.alt} fill sizes="25vw" className="object-cover" />
-                {/* Um véu ténue puxa as quatro fotografias para a mesma luz —
-                    hoje são de fontes diferentes e cada uma traz o seu fundo de
-                    estúdio. É um remendo, e desaparece quando os quatro
-                    retratos vierem do mesmo lote (ver o briefing de arte). */}
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(13,35,5,0.12),rgba(10,26,3,0.45))]"
-                />
+                {/* Fase estrutural v1: sem fotografia (`tst.src`/`tst.alt`
+                    preservados para a fase de criativos). */}
+                <MediaPlaceholder ratio="1/1" type="testimonial" fill />
               </div>
               <div className="p-4">
                 <p className="text-sm font-semibold leading-snug text-papel">{tst.fala}</p>
