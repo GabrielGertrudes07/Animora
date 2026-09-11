@@ -502,7 +502,102 @@ mas não é uma descrição editorial por categoria. Adicionar isso pede um
 campo novo na coleção (mudança de `apps/api`, fora do escopo de uma fase
 que só toca `apps/web`).
 
+**Exceção adaptativa aprovada e registada no plano** (`docs/superpowers/plans/2026-09-11-animora-structural-v1-execucao.md`,
+Fase 5): 1024px mantém 3 colunas de propósito — 1440px: 4; 1920px: 5.
+
+### Fase 6 — PDP estrutural (concluída, 2026-09-11)
+
+**Arquivos alterados** (3 modificados, 3 novos):
+- `produto/[slug]/page.tsx` — breadcrumb real (Início / categoria real /
+  produto, com `line-clamp-1` para título longo); avaliação real via
+  `Estrelas`/`getAvaliacaoProduto` (reaproveitados do `ProductCard`);
+  desconto real ao lado do preço (mesmo cálculo do `ProductCard`);
+  seletor de quantidade em cada linha de variante
+  (`AdicionarAoCarrinho.comQuantidade`, já existia desde a Fase 3);
+  recomendações reais (produtos da mesma categoria do produto atual,
+  excluindo-o, via `pesquisarProdutos` já existente).
+- `GaleriaProduto.tsx` (novo) — pronta para várias fotografias reais por
+  produto; deduplicada por `url`. Fallback com ícone de pata quando não
+  há nenhuma imagem, simetria com o `ProductCard`.
+- `CtaStickyMobile.tsx` (novo) — barra fixa só em mobile, só quando
+  `#area-compra` sai da viewport (`IntersectionObserver`, sem animação).
+  Produto de variante única repete a ação do CTA principal; com várias
+  variantes, rola de volta às opções em vez de adivinhar uma escolha.
+- `app/[locale]/not-found.tsx` (novo) — antes caía no 404 genérico do
+  Next, sem a paleta nem o idioma da loja.
+
+**Achados registados como limitação de cobertura, não bugs (verificados
+com dado real, não assumidos):**
+- **Avaliação nunca aparece em nenhum produto testado** — confirmado
+  `SELECT count(*) FROM reviews WHERE estado='aprovada'` → 0 em toda a
+  base semeada. O código está correto (mesma integração já usada e
+  provada no `ProductCard`); simplesmente não há avaliação real para
+  mostrar ainda, em produto nenhum da loja.
+- **Galeria nunca mostra miniaturas** — confirmado via SQL:
+  `primaryImage` e o único item de `gallery` apontam sempre para a
+  mesma imagem (`media.id` idêntico) em todos os 42 produtos. O
+  componente já dedupllica por `url` e está pronto para várias
+  fotografias reais; hoje não há mais de uma por produto.
+- **Nenhum produto sem imagem** — mesma situação já registada na Fase 3
+  para o `ProductCard`; o fallback (ícone de pata) existe e é o mesmo,
+  mas não pôde ser demonstrado com dado real.
+- **"Trocas" (devolução) sem dado real** — só o "envio grátis acima de
+  X€" (real, `ENVIO_GRATIS_ACIMA_DE`) permanece na ficha. Não existe
+  política de devolução em lugar nenhum do código ou da spec — inventar
+  um prazo específico seria fabricar dado operacional. Registado, não
+  preenchido.
+- **`produto inexistente` responde HTTP 200, não 404 — característica
+  pré-existente da infraestrutura, não desta fase.** Confirmado que
+  isto já acontecia antes de qualquer mudança da Fase 6: até uma rota
+  totalmente aleatória e nunca definida (`/isso-e-totalmente-aleatorio-000`)
+  responde 200. A causa provável é o middleware do `next-intl`
+  reescrevendo toda a árvore de rotas; corrigi-lo tocaria
+  `middleware.ts`/configuração de i18n partilhada por todo o site, fora
+  do escopo de uma fase de PDP. O conteúdo renderizado está correto (o
+  novo `not-found.tsx`, com a marca e o idioma certos) — só o código de
+  estado HTTP está errado.
+
+**Verificações:**
+
+| Verificação | Resultado |
+|---|---|
+| `pnpm --filter @animora/web typecheck` | ✅ 0 erros |
+| `pnpm --filter @animora/web test` | ✅ 13 arquivos, 149 testes |
+| `pnpm --filter @animora/web build` | ✅ 125 páginas |
+| `git diff --check` | ✅ sem erros de espaço em branco |
+| `pnpm --filter @animora/web lint` / `pnpm format:check` | não disponíveis (ver Fase 1) |
+
+**QA visual/interação** (Playwright, 390/768/1024/1440/1920, pt/de, com
+produtos reais — `kit-viagem-patas-pro` variante única,
+`coleira-ajustavel-trela-certa-classic` 9 variantes,
+`arranhador-miau-torre` com desconto real, `comedouro-elevado-miau-duplo`
+esgotado, `petiscos-liofilizados-miau-gato-figado` título de 52 carateres):
+- Breadcrumb, número de linhas de variante, distintivo de desconto e
+  seletor de quantidade corretos nos 5 casos; nenhum erro de console.
+- Recomendações reais renderizadas nos 5 casos (categoria real do
+  produto, produto atual excluído) — confirmado por medição de DOM, não
+  só pela existência do elemento: cartões abaixo da dobra nascem a
+  `opacity:0` (cascata do `CascataProdutos`, `ScrollTrigger`) e só
+  revelam com rolagem de verdade — comportamento correto, não vazio;
+  com `prefers-reduced-motion: reduce` aparecem em `opacity:1` desde o
+  primeiro render, sem depender de rolagem.
+- CTA fixo mobile: some no desktop (1440px, confirmado `display`
+  computado); em mobile aparece assim que `#area-compra` sai da
+  viewport — inclusive já ao carregar, quando a área de compra nasce
+  abaixo da dobra num produto com título mais alto (medido via
+  `getBoundingClientRect`, não presumido); some ao rolar de volta
+  quando a área volta a caber na tela; texto correto por caso ("preço +
+  Adicionar" para variante única, "preço + Ver opções" para múltiplas).
+- Clique real: aumentar quantidade duas vezes e adicionar incrementou o
+  carrinho em 3 unidades (não em 1) — confirma que a quantidade
+  escolhida chega mesmo ao `useCarrinho`.
+- Teclado: link "Início" do breadcrumb e botão "Diminuir quantidade"
+  focáveis e identificados corretamente.
+- `/de`: breadcrumb, "Opções disponíveis"/"Verfügbare Optionen" e
+  "Também pode interessar"/"Das könnte dir auch gefallen" corretos.
+- Nenhum overflow horizontal em nenhuma das 5 larguras.
+
 ### Próximo passo
 
-Fase 6 — PDP — aguardando aprovação de escopo antes de qualquer
-implementação.
+Fase 7 — Validação integrada — aguardando aprovação de escopo antes de
+qualquer implementação.

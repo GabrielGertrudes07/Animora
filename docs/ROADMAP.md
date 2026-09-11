@@ -49,8 +49,8 @@ arte nova, antes de qualquer trabalho de criativos.
 | 3 | Átomos de comércio (`ProductCard`) | ✅ Concluída (2026-09-11) |
 | 4 | Home estrutural | ✅ Concluída (2026-09-11) |
 | 5 | PLP | ✅ Concluída (2026-09-11) |
-| 6 | PDP | 🔜 Escopo em preparação para revisão — implementação não iniciada |
-| 7 | Validação integrada | ⏳ Pendente |
+| 6 | PDP | ✅ Concluída (2026-09-11) |
+| 7 | Validação integrada | 🔜 Escopo em preparação para revisão — implementação não iniciada |
 | — | Fase posterior: criativos e motion (retoma "Clareira e Balcão") | ⏳ Bloqueada até aprovação explícita após a Fase 7 |
 
 Detalhes de cada fase concluída (arquivos, verificações, limitações) em
