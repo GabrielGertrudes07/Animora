@@ -38,16 +38,18 @@ export default async function Home({ params }: Props) {
     .slice(0, 4)
 
   /**
-   * "Mais vendidos": produtos reais, não os primeiros N do catálogo com um
-   * título emprestado. A loja regista vendas reais (`orders.linhas.variante`
-   * referencia a variante), mas essa agregação hoje só existe no lado admin
-   * (`packages/core/relatorios`) e a coleção `orders` não tem leitura pública
-   * — expor uma agregação real ao storefront pede um novo endpoint na API,
-   * fora do escopo desta fase estrutural. Esta secção mostra produtos reais,
-   * sem repetir os das Ofertas, mas **não é uma classificação por vendas** —
-   * registado como limitação no gate, não escondido.
+   * "Em destaque" — chamava-se "Mais vendidos", renomeado porque não é (e
+   * nunca foi) uma classificação por vendas: produtos reais, sem repetir os
+   * das Ofertas, mas escolhidos aqui, não ordenados por unidades vendidas.
+   *
+   * A loja regista vendas reais (`orders.linhas.variante` referencia a
+   * variante), mas essa agregação hoje só existe no lado admin
+   * (`packages/core/relatorios`) e a coleção `orders` não tem leitura
+   * pública — expor uma agregação real ao storefront pede um novo endpoint
+   * na API. Pendência registada para uma fase futura, não recalculada aqui
+   * no frontend nem inventada no seeder.
    */
-  const maisVendidos = todos.filter((p) => !ofertas.some((o) => o.id === p.id)).slice(0, 4)
+  const emDestaque = todos.filter((p) => !ofertas.some((o) => o.id === p.id)).slice(0, 4)
 
   const marcas = marcasDisponiveis(todos)
 
@@ -66,11 +68,11 @@ export default async function Home({ params }: Props) {
       <EscolhaSeuAnimal categorias={categorias} contagens={contagens} />
       <ComprarPorNecessidade categorias={categorias} />
 
-      {maisVendidos.length > 0 ? (
+      {emDestaque.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-          <h2 className="text-titulo text-ink">{t('maisVendidos')}</h2>
+          <h2 className="text-titulo text-ink">{t('emDestaque')}</h2>
           <CascataProdutos className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
-            {maisVendidos.map((p) => (
+            {emDestaque.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </CascataProdutos>

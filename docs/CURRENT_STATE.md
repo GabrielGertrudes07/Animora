@@ -304,7 +304,7 @@ registado no seeder (Fase 0/1) permanece, sem mudança.
 
 **Ordem final** (a mesma que o usuário definiu; header/rodapé ficam no
 `layout.tsx`, fora da página): Hero → Escolhe o teu animal → Compra por
-necessidade → Mais vendidos → Campanha → Ofertas da semana → Destaques por
+necessidade → Em destaque → Campanha → Ofertas da semana → Destaques por
 categoria → segunda campanha/editorial → Aprovado por quem manda → Marcas
 → Benefícios.
 
@@ -349,41 +349,51 @@ do carrossel antigo):
 **Removidos da composição, não apagados**: `CarrosselCampanhas.tsx`
 (carrossel de 4 slides com animais compostos — a direção "Clareira e
 Balcão"), `ProvaSocial.tsx` (conteúdo absorvido acima) e o bloco antigo
-"Escolhas da casa" (a nova spec não lista essa secção; "Mais vendidos" +
+"Escolhas da casa" (a nova spec não lista essa secção; "Em destaque" +
 "Ofertas da semana" + "Destaques por categoria" já são três vitrines reais
 de produto). Nenhum arquivo foi deletado.
 
-**Ruling registrado — "Mais vendidos" não é uma classificação por
-vendas.** A loja regista vendas reais (`orders.linhas[].variante`
-referencia a variante vendida), mas essa agregação só existe hoje no lado
-admin (`packages/core/relatorios`, dashboard com trava comercial) e a
-coleção `orders` não tem leitura pública (`access.read: proprioOuStaff`).
-Expor um "mais vendidos" real ao storefront pede um novo endpoint público
-de agregação na API — uma mudança de backend fora do escopo desta fase
-(que só tocou `apps/web`). A secção mostra produtos reais e não repete os
-de "Ofertas", mas a ordem não reflete vendas de verdade — registado aqui
-em vez de rotulado silenciosamente como se fosse. Duas saídas possíveis
-para uma fase futura: (a) construir o endpoint de agregação real, ou
-(b) renomear a secção para refletir curadoria em vez de vendas.
+**Ruling registrado e já corrigido — a secção não é (nem se chama) uma
+classificação por vendas.** Na primeira entrega desta fase a secção
+chamava-se "Mais vendidos" mostrando produtos reais mas sem ordená-los por
+vendas de verdade — revisão pedida pelo usuário: renomeada para **"Em
+destaque"** (pt) / **"Empfehlungen"** (de) em `messages/{pt,de}.json` (chave
+`Home.emDestaque`, antes `Home.maisVendidos`) e na variável/comentário de
+`page.tsx`. Nenhum dado foi recalculado no frontend nem o seeder foi
+tocado — só o nome mudou, o critério de seleção continua o mesmo (produtos
+reais, sem repetir os de "Ofertas").
 
-**Verificações:**
+A pendência de fundo permanece registada para uma fase futura: a loja
+regista vendas reais (`orders.linhas[].variante` referencia a variante
+vendida), mas essa agregação só existe hoje no lado admin
+(`packages/core/relatorios`, dashboard com trava comercial) e a coleção
+`orders` não tem leitura pública (`access.read: proprioOuStaff`). Expor um
+"mais vendidos" real ao storefront pede um novo endpoint público de
+agregação na API — uma mudança de backend, fora do escopo de qualquer fase
+que só toque `apps/web`. Só quando esse endpoint existir uma secção
+chamada "Mais vendidos" voltaria a ser honesta.
+
+**Verificações** (re-executadas depois do rename "Mais vendidos" → "Em
+destaque"/"Empfehlungen", mesmos resultados):
 
 | Verificação | Resultado |
 |---|---|
 | `pnpm --filter @animora/web typecheck` | ✅ 0 erros |
-| `pnpm --filter @animora/web test` | ✅ 13 arquivos, 149 testes |
+| `pnpm --filter @animora/web test` | ✅ 13 arquivos, 149 testes (inclui a simetria pt/de) |
 | `pnpm --filter @animora/web build` | ✅ 125 páginas |
 | `git diff --check` | ✅ sem erros de espaço em branco |
 | `pnpm --filter @animora/web lint` / `pnpm format:check` | não disponíveis (ver Fase 1) |
 
-**QA visual/interação** (Playwright, 390/768/1440/1920, pt e de):
+**QA visual/interação** (Playwright, 390/768/1440/1920, pt e de —
+screenshots recapturados depois do rename):
 - Nenhum overflow horizontal, imagem quebrada ou erro/aviso de console na
   Home em nenhuma das 4 larguras (o único aviso encontrado — prioridade de
   imagem LCP — é pré-existente na PLP, fora do escopo desta fase).
 - Ordem do Hero confirmada por medição de DOM, não só visual: no mobile a
   mídia nasce acima do texto (`top` menor), invertendo em `md+`.
 - `/de` renderiza todos os headings da nova ordem traduzidos, sem chave
-  em falta e sem erro de console.
+  em falta e sem erro de console — "Empfehlungen" confirmado na posição
+  correta (4ª secção); "Em destaque" confirmado igualmente em `/pt`.
 - `prefers-reduced-motion: reduce`: `<h1>`, cartão de categoria e cartão
   de produto todos com `opacity:1` — visíveis de imediato, motion
   existente (`Entrada`, `PalcoCategorias`, `CascataProdutos`) preservado
