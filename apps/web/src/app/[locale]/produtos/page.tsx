@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { lerFiltros } from '../../../modules/catalog'
 import { Catalogo } from '../../../components/catalog/Catalogo'
+import { alternatesFor } from '../../../lib/seo'
 
 type Props = {
   params: Promise<{ locale: string }>
@@ -11,7 +12,13 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'ProdutosPage' })
-  return { title: t('metaTitulo'), description: t('metaDescricao') }
+  return {
+    title: t('metaTitulo'),
+    description: t('metaDescricao'),
+    // Canónica em `/produtos` sem query — uma pesquisa ou filtro é a mesma
+    // página de conteúdo, só um recorte dela.
+    alternates: alternatesFor('/produtos', locale),
+  }
 }
 
 /**
@@ -47,6 +54,7 @@ export default async function ProdutosPage({ params, searchParams }: Props) {
       titulo={q ? t('resultadosPara', { q }) : t('todosOsProdutos')}
       descricao={q ? t('descricaoComPesquisa') : t('descricaoSemPesquisa')}
       caminho="/produtos"
+      locale={locale}
       filtros={filtros}
       atributosAtivos={atributosAtivos}
       vazio={{ titulo: t('vazioTitulo'), texto: t('vazioTexto') }}

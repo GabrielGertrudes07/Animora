@@ -21,6 +21,8 @@ import { Entrada } from '../../../../components/motion/Entrada'
 import { CascataProdutos } from '../../../../components/motion/CascataProdutos'
 import { GaleriaProduto } from '../../../../components/produto/GaleriaProduto'
 import { AreaCompra } from '../../../../components/produto/AreaCompra'
+import { JsonLd } from '../../../../components/seo/JsonLd'
+import { absoluteUrl, alternatesFor, centsToDecimalString } from '../../../../lib/seo'
 
 type Props = { params: Promise<{ locale: string; slug: string }> }
 
@@ -49,6 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // normalmente, como nas outras páginas.
     title: p.metaTitle ? { absolute: p.metaTitle } : p.title,
     description: p.metaDescription ?? t('metaDescricao', { titulo: p.title, marca: p.brand.name }),
+    alternates: alternatesFor(`/produto/${slug}`, locale),
     openGraph: {
       title: p.metaTitle ?? p.title,
       description: p.metaDescription ?? p.title,
@@ -98,8 +101,54 @@ export default async function ProdutoPage({ params }: Props) {
   )
   const imagens = Array.from(new Map(imagensBrutas.map((img) => [img.url, img])).values())
 
+  const disponivel = p.variants.some((v) => v.stock > 0)
+  const produtoJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: p.title,
+    ...(imagens[0] ? { image: [mediaUrl(imagens[0].url)] } : {}),
+    description: p.metaDescription ?? t('metaDescricao', { titulo: p.title, marca: p.brand.name }),
+    brand: { '@type': 'Brand', name: p.brand.name },
+    // Um `sku` só faz sentido quando há uma variante só — com várias, cada
+    // uma tem o seu, e não há um "sku do produto" para escrever aqui.
+    ...(p.variants.length === 1 ? { sku: p.variants[0]!.sku } : {}),
+    offers: {
+      '@type': 'Offer',
+      url: absoluteUrl(`/produto/${slug}`, locale),
+      priceCurrency: 'EUR',
+      price: centsToDecimalString(preco.cents),
+      availability: disponivel ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    },
+    // Sem avaliação real (0 aprovadas hoje), nada aqui — um `aggregateRating`
+    // sem avaliações por trás é exatamente a "nota inventada" que a doutrina
+    // do módulo de avaliações proíbe.
+    ...(avaliacao.media !== null
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: (avaliacao.media / 10).toFixed(1),
+            reviewCount: avaliacao.total,
+          },
+        }
+      : {}),
+  }
+
+  const migalhasJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { name: t('inicio'), url: absoluteUrl('/', locale) },
+      ...(categoriaPrincipal
+        ? [{ name: categoriaPrincipal.name, url: absoluteUrl(`/${categoriaPrincipal.slug}`, locale) }]
+        : []),
+      { name: p.title, url: absoluteUrl(`/produto/${slug}`, locale) },
+    ].map((item, i) => ({ '@type': 'ListItem', position: i + 1, name: item.name, item: item.url })),
+  }
+
   return (
     <main id="conteudo" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+      <JsonLd data={produtoJsonLd} />
+      <JsonLd data={migalhasJsonLd} />
       <nav aria-label={t('breadcrumbAria')} className="text-sm text-ink-muted">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>

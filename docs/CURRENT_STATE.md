@@ -844,8 +844,58 @@ conteúdo real esperado, sem sobreposição nem corte. `pnpm test` (149/149)
 e `pnpm build` (125 páginas) continuam verdes depois da mudança —
 esperado, é só CSS gerado pelo Tailwind, nenhuma lógica tocada.
 
+## SEO técnico
+
+Frente escolhida pelo usuário entre as melhorias pendentes (não fazia parte
+da revisão nem do plano estrutural). O site não tinha `sitemap.xml`,
+`robots.txt`, dados estruturados, `canonical` nem `hreflang` — confirmado
+antes de começar, nada disto existia.
+
+- **`lib/seo.ts`** (novo, testado): `SITE_URL` a partir de
+  `NEXT_PUBLIC_SITE_URL`, com um placeholder documentado (`https://animora.exemplo.pt`)
+  enquanto não há domínio real. `localizedPathname`/`absoluteUrl`/`alternatesFor`
+  são puros — não reusam `getPathname` do next-intl de propósito, para
+  serem testáveis sem o runtime do Next. `centsToDecimalString` para o
+  formato que o `Offer.price` do schema.org exige.
+- **`app/sitemap.ts`**: Home, `/produtos`, as 10 categorias e os 42 produtos,
+  pt e de — 108 URLs. Sem `lastModified` fabricado: o catálogo não expõe
+  data de atualização.
+- **`app/robots.ts`**: bloqueia `/checkout`, `/carrinho`, `/conta` (e os
+  equivalentes `/de/...`) nos dois idiomas; aponta para o sitemap.
+- **`alternates` (canónica + hreflang pt/de/x-default)**: adicionado ao
+  `generateMetadata` já existente em `layout.tsx`, `[categoria]`,
+  `produto/[slug]` e `produtos` — a canónica de categoria/produtos ignora
+  filtros/pesquisa de propósito (mesma página de conteúdo aos olhos de um
+  motor de busca).
+- **`robots: {index:false}`**: adicionado às 7 páginas privadas/transacionais
+  que já tinham `generateMetadata` (checkout, conta e as 5 subpáginas de
+  conta) — sem valor de indexação.
+- **JSON-LD** (`components/seo/JsonLd.tsx`, escapa `<` antes de injetar):
+  `Organization`+`WebSite` (com `SearchAction` real, `/produtos?q=`) na
+  Home; `Product` (nome, imagem, marca, preço, disponibilidade real, `sku`
+  só quando há variante única) e `BreadcrumbList` na PDP; `BreadcrumbList`
+  em `Catalogo.tsx` (PLP e categoria, mesmo componente). Sem
+  `aggregateRating`: 0 avaliações aprovadas hoje, e um `aggregateRating`
+  sem avaliação por trás seria a mesma nota inventada que o módulo de
+  avaliações já proíbe — entra sozinho quando `avaliacao.media` deixar de
+  ser `null`.
+
+**Verificado** com o build de produção (`next start`): `robots.txt` e
+`sitemap.xml` corretos (108 URLs, contagem batendo com 10 categorias × 42
+produtos reais); `<link rel="canonical"/alternate>` corretos em Home, PDP,
+categoria e `/produtos`; `<meta name="robots" content="noindex, nofollow">`
+confirmado em `/checkout` e `/conta/entrar`; JSON-LD de `Product` e
+`BreadcrumbList` inspecionado num produto real (preço, disponibilidade,
+sku e migalhas corretos, sem `aggregateRating`).
+
+**Verificações:** `pnpm --filter @animora/web typecheck` (0 erros),
+`pnpm --filter @animora/web test` (155/155 — 6 novos em `seo.test.ts`),
+`pnpm --filter @animora/web build` (127 páginas, as 2 a mais são
+`/robots.txt` e `/sitemap.xml`), `git diff --check` (sem erros).
+
 ### Próximo passo
 
-Aguardar decisão do usuário sobre iniciar a fase de criativos, ou tratar
-R07/R08/R09/R10/R11 (deixados de fora desta rodada corretiva) antes
-disso.
+Aguardar decisão do usuário sobre iniciar a fase de criativos, tratar
+R07/R08/R09/R10/R11 (deixados de fora da rodada corretiva anterior), ou
+seguir para outra frente de melhoria já levantada (UX/acessibilidade
+pendente, performance real, densidade/descoberta na home).

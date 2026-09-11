@@ -16,12 +16,15 @@ import { CascataProdutos } from '../motion/CascataProdutos'
 import { FiltrosCatalogo } from './FiltrosCatalogo'
 import { OrdenarPor } from './OrdenarPor'
 import { MostrarMais } from './MostrarMais'
+import { JsonLd } from '../seo/JsonLd'
+import { absoluteUrl } from '../../lib/seo'
 
 type Props = {
   titulo: string
   descricao?: string
   /** O endereço desta página, sem query string — para os links que limpam. */
   caminho: string
+  locale: string
   /** Ausente em `/produtos`: a loja inteira. Presente em `/[categoria]`. */
   categoriaId?: number
   /**
@@ -50,6 +53,7 @@ export async function Catalogo({
   titulo,
   descricao,
   caminho,
+  locale,
   categoriaId,
   filtros,
   atributosAtivos,
@@ -93,8 +97,28 @@ export async function Catalogo({
   // continuam lá.
   const semPesquisa = filtersToQuery({ ...filtros, q: undefined })
 
+  // Espelha exatamente o <nav> visual logo abaixo — mesmos três níveis,
+  // mesma condição para o meio (`categoriaId`), só com URL absoluta.
+  const migalhas = [
+    { name: t('inicio'), url: absoluteUrl('/', locale) },
+    ...(categoriaId ? [{ name: t('todosOsProdutos'), url: absoluteUrl('/produtos', locale) }] : []),
+    { name: titulo, url: absoluteUrl(caminho, locale) },
+  ]
+
   return (
     <main id="conteudo" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: migalhas.map((m, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            name: m.name,
+            item: m.url,
+          })),
+        }}
+      />
       <nav aria-label={t('breadcrumbAria')} className="text-sm text-ink-muted">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>

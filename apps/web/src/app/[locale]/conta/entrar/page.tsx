@@ -15,7 +15,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'EntrarPage' })
-  return { title: t('metaTitulo') }
+  return { title: t('metaTitulo'), robots: { index: false, follow: false } }
 }
 
 export default async function EntrarPage({ params, searchParams }: Props) {

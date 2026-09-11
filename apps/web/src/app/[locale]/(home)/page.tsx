@@ -9,6 +9,8 @@ import { SecaoCampanha } from '../../../components/marketing/SecaoCampanha'
 import { DestaquesPorCategoria } from '../../../components/marketing/DestaquesPorCategoria'
 import { AprovadoPorQuemManda } from '../../../components/marketing/AprovadoPorQuemManda'
 import { Beneficios } from '../../../components/marketing/Beneficios'
+import { JsonLd } from '../../../components/seo/JsonLd'
+import { SITE_URL } from '../../../lib/seo'
 
 type Props = { params: Promise<{ locale: string }> }
 
@@ -63,6 +65,22 @@ export default async function Home({ params }: Props) {
 
   return (
     <main id="conteudo">
+      <JsonLd
+        data={[
+          { '@context': 'https://schema.org', '@type': 'Organization', name: 'Animora', url: SITE_URL },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Animora',
+            url: SITE_URL,
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: `${SITE_URL}/produtos?q={search_term_string}`,
+              'query-input': 'required name=search_term_string',
+            },
+          },
+        ]}
+      />
       <Hero />
 
       <EscolhaSeuAnimal categorias={categorias} contagens={contagens} />

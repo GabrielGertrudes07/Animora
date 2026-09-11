@@ -8,6 +8,7 @@ import { routing } from '../../i18n/routing'
 import { Header } from '../../components/layout/Header'
 import { Footer } from '../../components/layout/Footer'
 import { CarrinhoProvider } from '../../modules/cart'
+import { SITE_URL, alternatesFor } from '../../lib/seo'
 
 /**
  * As duas famílias da loja, auto-alojadas por `next/font` — sem pedido a
@@ -44,8 +45,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: 'Home' })
 
   return {
+    metadataBase: new URL(SITE_URL),
     title: { default: t('metaTitulo'), template: '%s · Animora' },
     description: t('metaDescricao'),
+    alternates: alternatesFor('/', locale),
   }
 }
 

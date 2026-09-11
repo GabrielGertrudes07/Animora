@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getCategoryBySlug, lerFiltros, listCategories } from '../../../modules/catalog'
 import { Catalogo } from '../../../components/catalog/Catalogo'
+import { alternatesFor } from '../../../lib/seo'
 
 type Props = {
   params: Promise<{ locale: string; categoria: string }>
@@ -24,6 +25,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: cat.name,
     description: t('metaDescricao', { categoria: cat.name }),
+    // Canónica na categoria "limpa", sem os filtros/ordenação da query —
+    // são a mesma página de conteúdo aos olhos de um motor de busca.
+    alternates: alternatesFor(`/${cat.slug}`, locale),
   }
 }
 
@@ -45,6 +49,7 @@ export default async function CategoriaPage({ params, searchParams }: Props) {
     <Catalogo
       titulo={cat.name}
       caminho={`/${cat.slug}`}
+      locale={locale}
       categoriaId={cat.id}
       filtros={filtros}
       atributosAtivos={atributosAtivos}
