@@ -26,7 +26,17 @@ export function SeletorIdioma() {
           type="button"
           disabled={locale === (params.locale as string | undefined)}
           aria-label={t('trocarPara', { idioma: NOME[locale]! })}
-          onClick={() => router.replace(pathname, { locale })}
+          onClick={() => {
+            // `usePathname` (next-intl) exclui a query string de propósito —
+            // sem isto, trocar de idioma a meio de uma busca ou de filtros
+            // aplicados voltava à PLP "limpa". Lida do `window` (só ao
+            // clicar, não `useSearchParams`) para não forçar toda página que
+            // usa este componente — todas, via `Header` — a sair da geração
+            // estática por causa de um seletor que só precisa da query
+            // string no instante do clique.
+            const query = window.location.search
+            router.replace(query ? `${pathname}${query}` : pathname, { locale })
+          }}
           className="flex min-h-11 min-w-11 items-center justify-center rounded-campo px-2 py-1 transition-colors hover:text-ink sm:min-h-0 sm:min-w-0 disabled:font-semibold disabled:text-terracota disabled:hover:text-terracota"
         >
           {t(locale as 'pt' | 'de')}

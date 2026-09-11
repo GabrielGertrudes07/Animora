@@ -64,6 +64,8 @@ export function FormularioCheckout({
 
   const [linhas, setLinhas] = useState<LinhaCarrinho[]>([])
   const [aCarregar, setACarregar] = useState(true)
+  const [erroAoCarregar, setErroAoCarregar] = useState(false)
+  const [tentativa, setTentativa] = useState(0)
   const [escolhida, setEscolhida] = useState<number>(moradas.length > 0 ? 0 : NOVA)
   const [nova, setNova] = useState<Morada>({ ...MORADA_VAZIA, nomeDestinatario: nome })
   const [guardar, setGuardar] = useState(true)
@@ -77,16 +79,26 @@ export function FormularioCheckout({
     if (!pronto) return
     let atual = true
 
-    void carregarLinhas(JSON.parse(chave) as typeof itens).then((r) => {
-      if (!atual) return
-      setLinhas(r.linhas)
-      setACarregar(false)
-    })
+    setACarregar(true)
+    setErroAoCarregar(false)
+    carregarLinhas(JSON.parse(chave) as typeof itens)
+      .then((r) => {
+        if (!atual) return
+        setLinhas(r.linhas)
+        setACarregar(false)
+      })
+      .catch(() => {
+        // Sem isto, uma falha de rede deixava o checkout preso em "a
+        // carregar o carrinho" para sempre, sem erro nenhum visível.
+        if (!atual) return
+        setACarregar(false)
+        setErroAoCarregar(true)
+      })
 
     return () => {
       atual = false
     }
-  }, [chave, pronto])
+  }, [chave, pronto, tentativa])
 
   const totais = totaisDoCarrinho(linhas)
   const moradaEscolhida = escolhida === NOVA ? nova : (moradas[escolhida] ?? nova)
@@ -97,34 +109,57 @@ export function FormularioCheckout({
     setErro('')
     setSemStock([])
 
-    if (escolhida === NOVA && guardar) {
-      // Se falhar, o erro é do código postal e a compra também falharia —
-      // dizê-lo aqui poupa uma recusa mais adiante com a mesma causa.
-      const g = await guardarMorada(nova)
-      if (!g.ok) {
-        setErro(g.erro)
-        setAEnviar(false)
+    try {
+      if (escolhida === NOVA && guardar) {
+        // Se falhar, o erro é do código postal e a compra também falharia —
+        // dizê-lo aqui poupa uma recusa mais adiante com a mesma causa.
+        const g = await guardarMorada(nova)
+        if (!g.ok) {
+          setErro(g.erro)
+          setAEnviar(false)
+          return
+        }
+      }
+
+      const r = await comprar(itens, moradaEscolhida)
+
+      if (r.ok) {
+        // Só depois do 201. Esvaziar antes deixava alguém sem carrinho e sem
+        // encomenda se o servidor recusasse.
+        esvaziar()
+        router.push(`/conta/encomendas/${r.encomenda.id}?novo=1`)
         return
       }
+
+      setErro(r.erro)
+      setSemStock(r.semStock ?? [])
+      setAEnviar(false)
+    } catch {
+      // Sem isto, uma falha de rede a meio de `guardarMorada`/`comprar`
+      // (não uma recusa do servidor, uma exceção) deixava o botão preso em
+      // "A confirmar…" para sempre, sem erro nenhum visível.
+      setErro(t('erroDeRede'))
+      setAEnviar(false)
     }
-
-    const r = await comprar(itens, moradaEscolhida)
-
-    if (r.ok) {
-      // Só depois do 201. Esvaziar antes deixava alguém sem carrinho e sem
-      // encomenda se o servidor recusasse.
-      esvaziar()
-      router.push(`/conta/encomendas/${r.encomenda.id}?novo=1`)
-      return
-    }
-
-    setErro(r.erro)
-    setSemStock(r.semStock ?? [])
-    setAEnviar(false)
   }
 
   if (!pronto || aCarregar) {
     return <p className="text-ink-muted">{t('aCarregar')}</p>
+  }
+
+  if (erroAoCarregar) {
+    return (
+      <div role="alert" className="rounded-card bg-white p-8 text-center shadow-sm">
+        <p className="text-ink">{t('erroAoCarregar')}</p>
+        <button
+          type="button"
+          onClick={() => setTentativa((n) => n + 1)}
+          className="botao-principal mt-6"
+        >
+          {t('tentarNovamente')}
+        </button>
+      </div>
+    )
   }
 
   if (linhas.length === 0) {

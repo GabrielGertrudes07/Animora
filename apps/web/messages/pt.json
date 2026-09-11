@@ -108,6 +108,8 @@
     "titulo": "Carrinho",
     "itensCaidos": "{count, plural, one {Um artigo deixou de estar à venda e foi retirado do carrinho.} other {# artigos deixaram de estar à venda e foram retirados do carrinho.}}",
     "aCarregar": "A carregar o carrinho…",
+    "erroAoCarregar": "Não foi possível carregar o carrinho. Verifica a ligação e tenta outra vez.",
+    "tentarNovamente": "Tentar novamente",
     "vazioTitulo": "O carrinho está vazio",
     "vazioTexto": "A tigela ainda está por encher. Vê tudo o que há à venda ou escolhe uma categoria no cabeçalho.",
     "verProdutos": "Ver produtos",
@@ -127,6 +129,9 @@
   },
   "FormularioCheckout": {
     "aCarregar": "A carregar o carrinho…",
+    "erroAoCarregar": "Não foi possível carregar o carrinho. Verifica a ligação e tenta outra vez.",
+    "tentarNovamente": "Tentar novamente",
+    "erroDeRede": "Falha de ligação ao confirmar a encomenda. O carrinho ficou como estava — tenta outra vez.",
     "moradaEnvio": "Morada de envio",
     "escolherMorada": "Escolha a morada",
     "usarOutraMorada": "Usar outra morada",

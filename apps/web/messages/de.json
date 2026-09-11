@@ -108,6 +108,8 @@
     "titulo": "Warenkorb",
     "itensCaidos": "{count, plural, one {Ein Artikel ist nicht mehr verfügbar und wurde aus dem Warenkorb entfernt.} other {# Artikel sind nicht mehr verfügbar und wurden aus dem Warenkorb entfernt.}}",
     "aCarregar": "Warenkorb wird geladen…",
+    "erroAoCarregar": "Der Warenkorb konnte nicht geladen werden. Prüfe die Verbindung und versuche es erneut.",
+    "tentarNovamente": "Erneut versuchen",
     "vazioTitulo": "Der Warenkorb ist leer",
     "vazioTexto": "Der Napf ist noch leer. Sieh dir alles an, was es gibt, oder wähle eine Kategorie im Header.",
     "verProdutos": "Produkte ansehen",
@@ -127,6 +129,9 @@
   },
   "FormularioCheckout": {
     "aCarregar": "Warenkorb wird geladen…",
+    "erroAoCarregar": "Der Warenkorb konnte nicht geladen werden. Prüfe die Verbindung und versuche es erneut.",
+    "tentarNovamente": "Erneut versuchen",
+    "erroDeRede": "Verbindungsfehler beim Bestätigen der Bestellung. Der Warenkorb ist unverändert geblieben — versuche es erneut.",
     "moradaEnvio": "Lieferadresse",
     "escolherMorada": "Adresse auswählen",
     "usarOutraMorada": "Andere Adresse verwenden",

@@ -205,6 +205,13 @@ export function FiltrosCatalogo(props: Props) {
   const semNadaParaFiltrar = !props.bounds && props.marcas.length === 0 && atributos.length === 0
   if (semNadaParaFiltrar) return null
 
+  // Os campos de `CamposFiltro` são não controlados (`defaultChecked`,
+  // `defaultValue`): só leem `filtrosAtuais` no mount. Uma navegação que muda
+  // os filtros (ex.: "Limpar", ou voltar no histórico) troca a prop mas não
+  // remonta o formulário sozinha — os campos ficavam com o estado visual
+  // antigo. A `key` força o remount exatamente quando o valor muda.
+  const chaveFormulario = JSON.stringify(filtrosAtuais)
+
   function aplicar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setAplicando(true)
@@ -280,7 +287,7 @@ export function FiltrosCatalogo(props: Props) {
     <>
       {/* Desktop: barra lateral sempre visível, nunca atrás de um botão. */}
       <aside className="hidden w-64 shrink-0 lg:block">
-        <form onSubmit={aplicar}>
+        <form key={chaveFormulario} onSubmit={aplicar}>
           <CamposFiltro {...props} t={t} />
           <div className="mt-4 flex items-center gap-3">
             <button
@@ -324,7 +331,7 @@ export function FiltrosCatalogo(props: Props) {
         aria-label={t('filtrosAria')}
         className="m-0 max-h-[85vh] w-full max-w-full rounded-t-card border-t border-line bg-papel p-0 shadow-md backdrop:bg-ink/40 lg:hidden [&[open]]:fixed [&[open]]:inset-x-0 [&[open]]:bottom-0 [&[open]]:top-auto"
       >
-        <form onSubmit={aplicar} className="flex max-h-[85vh] flex-col">
+        <form key={chaveFormulario} onSubmit={aplicar} className="flex max-h-[85vh] flex-col">
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
             <h2 className="text-base font-semibold text-ink">{t('filtros')}</h2>
             <button

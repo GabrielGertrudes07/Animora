@@ -30,7 +30,9 @@ export default function CarrinhoPage() {
   const { itens, pronto, alterarQty, remover } = useCarrinho()
   const [linhas, setLinhas] = useState<LinhaCarrinho[]>([])
   const [aCarregar, setACarregar] = useState(true)
+  const [erroAoCarregar, setErroAoCarregar] = useState(false)
   const [caidos, setCaidos] = useState(0)
+  const [tentativa, setTentativa] = useState(0)
   const t = useTranslations('CarrinhoPage')
 
   // `itens` é um array novo a cada render, e um efeito que dependa dele
@@ -43,20 +45,30 @@ export default function CarrinhoPage() {
     let atual = true
 
     setACarregar(true)
-    void carregarLinhas(JSON.parse(chave) as typeof itens).then((r) => {
-      if (!atual) return
-      setLinhas(r.linhas)
-      setACarregar(false)
-      // Artigos que saíram do catálogo entretanto: retirados aqui, e dito.
-      // Deixá-los ficar dava um 400 no checkout sem explicação nenhuma.
-      setCaidos(r.indisponiveis.length)
-      for (const id of r.indisponiveis) remover(id)
-    })
+    setErroAoCarregar(false)
+    carregarLinhas(JSON.parse(chave) as typeof itens)
+      .then((r) => {
+        if (!atual) return
+        setLinhas(r.linhas)
+        setACarregar(false)
+        // Artigos que saíram do catálogo entretanto: retirados aqui, e dito.
+        // Deixá-los ficar dava um 400 no checkout sem explicação nenhuma.
+        setCaidos(r.indisponiveis.length)
+        for (const id of r.indisponiveis) remover(id)
+      })
+      .catch(() => {
+        // Sem isto, uma falha de rede deixava `aCarregar` preso em `true`
+        // para sempre — a mensagem "a carregar" nunca resolvia, sem erro
+        // nenhum visível nem forma de repetir sem recarregar a página.
+        if (!atual) return
+        setACarregar(false)
+        setErroAoCarregar(true)
+      })
 
     return () => {
       atual = false
     }
-  }, [chave, pronto, remover])
+  }, [chave, pronto, remover, tentativa])
 
   const totais = totaisDoCarrinho(linhas)
 
@@ -72,6 +84,20 @@ export default function CarrinhoPage() {
 
       {!pronto || aCarregar ? (
         <p className="mt-8 text-ink-muted">{t('aCarregar')}</p>
+      ) : erroAoCarregar ? (
+        <div
+          role="alert"
+          className="mt-8 rounded-campo border border-terracota bg-terracota/10 px-4 py-3 text-sm text-ink"
+        >
+          <p>{t('erroAoCarregar')}</p>
+          <button
+            type="button"
+            onClick={() => setTentativa((n) => n + 1)}
+            className="botao-principal botao-principal-pequeno mt-3"
+          >
+            {t('tentarNovamente')}
+          </button>
+        </div>
       ) : linhas.length === 0 ? (
         <div className="mt-8">
           <EstadoVazio ilustracao="tigela" titulo={t('vazioTitulo')} texto={t('vazioTexto')}>

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 
-import { useCarrinho } from '../../modules/cart'
+import { QTY_MAX, useCarrinho } from '../../modules/cart'
 
 /**
  * O botão de acrescentar uma variante ao carrinho.
@@ -18,6 +18,8 @@ export function AdicionarAoCarrinho({
   esgotado,
   etiqueta,
   comQuantidade = false,
+  quantidade: quantidadeControlada,
+  aoMudarQuantidade,
 }: {
   variantId: number
   esgotado: boolean
@@ -25,11 +27,24 @@ export function AdicionarAoCarrinho({
   etiqueta: string
   /** Mostra um seletor de quantidade (−/+) antes do botão. */
   comQuantidade?: boolean
+  /**
+   * Quantidade controlada por quem usa este componente. Ausente por
+   * omissão — o seletor guarda o próprio estado, como sempre guardou. Só
+   * faz sentido passar os dois juntos: serve para duas instâncias deste
+   * componente (ex.: a área de compra principal e o CTA fixo mobile, para a
+   * mesma variante) partilharem o mesmo número, em vez de cada uma ter o
+   * seu — que foi como "escolher 3 e o CTA fixo adicionar 1" acontecia.
+   */
+  quantidade?: number
+  aoMudarQuantidade?: (q: number) => void
 }) {
   const { acrescentar } = useCarrinho()
   const [feito, setFeito] = useState(false)
-  const [quantidade, setQuantidade] = useState(1)
+  const [quantidadeInterna, setQuantidadeInterna] = useState(1)
   const t = useTranslations('AdicionarAoCarrinho')
+
+  const quantidade = quantidadeControlada ?? quantidadeInterna
+  const definirQuantidade = aoMudarQuantidade ?? setQuantidadeInterna
 
   if (esgotado) {
     return <span className="text-sm font-medium text-ink-muted">{t('esgotado')}</span>
@@ -53,7 +68,7 @@ export function AdicionarAoCarrinho({
           <button
             type="button"
             aria-label={t('diminuir')}
-            onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
+            onClick={() => definirQuantidade(Math.max(1, quantidade - 1))}
             className="flex h-11 w-11 items-center justify-center text-ink-muted transition-colors hover:text-ink sm:h-9 sm:w-9"
           >
             −
@@ -64,7 +79,10 @@ export function AdicionarAoCarrinho({
           <button
             type="button"
             aria-label={t('aumentar')}
-            onClick={() => setQuantidade((q) => q + 1)}
+            // Teto no próprio seletor: sem isto, o `+` produzia uma quantidade
+            // que `acrescentar` recusa (exceção não tratada) em vez de saturar
+            // como a soma de duas linhas já satura em `QTY_MAX`.
+            onClick={() => definirQuantidade(Math.min(QTY_MAX, quantidade + 1))}
             className="flex h-11 w-11 items-center justify-center text-ink-muted transition-colors hover:text-ink sm:h-9 sm:w-9"
           >
             +

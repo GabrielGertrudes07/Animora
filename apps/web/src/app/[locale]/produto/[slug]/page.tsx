@@ -14,14 +14,13 @@ import { descriptionToHtml } from '../../../../lib/richtext'
 import { Link } from '../../../../i18n/navigation'
 import { Price } from '../../../../components/ui/Price'
 import { Estrelas } from '../../../../components/ui/Estrelas'
-import { AdicionarAoCarrinho } from '../../../../components/ui/AdicionarAoCarrinho'
 import { BotaoFavorito } from '../../../../components/ui/BotaoFavorito'
 import { ProductCard } from '../../../../components/ui/ProductCard'
 import { Icon } from '../../../../components/icons/sprite'
 import { Entrada } from '../../../../components/motion/Entrada'
 import { CascataProdutos } from '../../../../components/motion/CascataProdutos'
 import { GaleriaProduto } from '../../../../components/produto/GaleriaProduto'
-import { CtaStickyMobile } from '../../../../components/produto/CtaStickyMobile'
+import { AreaCompra } from '../../../../components/produto/AreaCompra'
 
 type Props = { params: Promise<{ locale: string; slug: string }> }
 
@@ -62,7 +61,11 @@ export default async function ProdutoPage({ params }: Props) {
   const { locale, slug } = await params
   setRequestLocale(locale)
 
-  const [p, t] = await Promise.all([getProductBySlug(slug), getTranslations('ProdutoPage')])
+  const [p, t, tPreco] = await Promise.all([
+    getProductBySlug(slug),
+    getTranslations('ProdutoPage'),
+    getTranslations('Price'),
+  ])
   if (!p) notFound()
 
   const preco = precoDeMostra(p.variants)
@@ -72,10 +75,12 @@ export default async function ProdutoPage({ params }: Props) {
       : null
   const descricaoHtml = descriptionToHtml(p.description)
   const categoriaPrincipal = p.categories[0] ?? null
-  // Produto sem opções reais: pode ir direto ao carrinho a partir do CTA
-  // fixo em mobile. Com mais de uma variante, escolher é a única entrada —
-  // o CTA fixo rola de volta às opções em vez de adivinhar qual.
-  const unica = p.variants.length === 1 ? p.variants[0] : null
+  // O CTA fixo mostra o mesmo prefixo "desde" que o preço principal quando
+  // as variantes têm preços diferentes — sem isto, o CTA fixo mostrava um
+  // preço sem qualificador nenhum, como se fosse o único da ficha.
+  const precoLabelCta = preco.desde
+    ? `${tPreco('desde')} ${formatEuros(preco.cents)}`
+    : formatEuros(preco.cents)
 
   const [avaliacao, recomendados] = await Promise.all([
     getAvaliacaoProduto(p.id),
@@ -138,49 +143,17 @@ export default async function ProdutoPage({ params }: Props) {
             ) : null}
           </div>
 
-          <div id="area-compra" className="mt-8">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
-              {t('opcoesDisponiveis')}
-            </h2>
-            {/*
-              Quando os preços divergem, cada opção mostra o seu. É aqui que o
-              engano acontecia: o preço mais baixo em cima e a lista logo por
-              baixo, a começar por uma opção que custa outra coisa. Não é um
-              seletor — é a lista que já existia, a dizer o preço de cada linha.
-            */}
-            <ul className="mt-3 flex flex-col gap-2">
-              {p.variants.map((v) => {
-                const opcoes =
-                  Object.entries(v.combination)
-                    .map(([k, val]) => `${k}: ${val}`)
-                    .join(' · ') || t('padrao')
-
-                return (
-                  <li
-                    key={v.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-campo border border-line px-3 py-2 text-sm text-ink"
-                  >
-                    <span>
-                      {opcoes}
-                      {preco.desde ? (
-                        <span className="ml-2 font-semibold">{formatEuros(v.priceCents)}</span>
-                      ) : null}
-                      <span className="ml-2 text-ink-muted">
-                        {v.stock > 0 ? t('emStock', { count: v.stock }) : t('esgotado')}
-                      </span>
-                    </span>
-                    {/* Só o id e dois valores simples atravessam para o cliente. */}
-                    <AdicionarAoCarrinho
-                      variantId={v.id}
-                      esgotado={v.stock < 1}
-                      etiqueta={`${p.title} — ${opcoes}`}
-                      comQuantidade
-                    />
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
+          {/* Só ids e valores simples atravessam para o cliente. */}
+          <AreaCompra
+            variantes={p.variants.map((v) => ({
+              id: v.id,
+              combination: v.combination,
+              precoLabel: preco.desde ? formatEuros(v.priceCents) : null,
+              stock: v.stock,
+            }))}
+            tituloProduto={p.title}
+            precoLabelCta={precoLabelCta}
+          />
 
           <div className="mt-8">
             <BotaoFavorito productId={p.id} />
@@ -215,11 +188,6 @@ export default async function ProdutoPage({ params }: Props) {
           </CascataProdutos>
         </section>
       ) : null}
-
-      <CtaStickyMobile
-        precoLabel={formatEuros(preco.cents)}
-        unica={unica ? { variantId: unica.id, esgotado: unica.stock < 1, etiqueta: p.title } : null}
-      />
     </main>
   )
 }
