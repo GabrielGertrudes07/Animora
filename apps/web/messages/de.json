@@ -231,15 +231,49 @@
   "Home": {
     "metaTitulo": "Animora — Pflege für dein Tier",
     "metaDescricao": "Futter, Zubehör, Pflege und Training für Hunde, Katzen, Vögel und Kleintiere.",
+    "maisVendidos": "Meistverkauft",
     "ofertasDaSemana": "Angebote dieser Woche",
     "escolhasDaCasa": "Unsere Favoriten",
     "verTodosOsProdutos": "Alle Produkte ansehen",
-    "marcasEmQueConfiamos": "Marken, denen wir vertrauen"
+    "marcasEmQueConfiamos": "Marken, denen wir vertrauen",
+    "campanha1Titulo": "Neuigkeiten unterwegs",
+    "campanha1Texto": "Wir bereiten die nächsten Kampagnen des Shops vor. In der Zwischenzeit ist der ganze Katalog nur einen Klick entfernt.",
+    "campanha1Cta": "Alle Produkte ansehen",
+    "campanha2Titulo": "Lerne den Shop kennen",
+    "campanha2Texto": "Futter, Zubehör, Pflege und Training — nach Kategorie geordnet, mit immer aktuellem Bestand und Preis.",
+    "campanha2Cta": "Kategorien entdecken"
   },
-  "CategoriasVisuais": {
+  "EscolhaSeuAnimal": {
     "titulo": "Wähle dein Tier",
     "texto": "Jedes Tier hat sein eigenes Regal — und seinen eigenen Weg, dein Taschengeld zu verputzen.",
     "produtos": "{count, plural, =0 {0 Produkte} one {1 Produkt} other {# Produkte}}"
+  },
+  "ComprarPorNecessidade": {
+    "titulo": "Nach Bedarf einkaufen",
+    "texto": "Kein bestimmtes Tier im Kopf? Diese Kategorien decken den Rest ab."
+  },
+  "DestaquesPorCategoria": {
+    "titulo": "Highlights nach Kategorie",
+    "verCategoria": "Kategorie ansehen"
+  },
+  "Hero": {
+    "eyebrow": "Animora",
+    "titulo": "Alles, was dein Tier braucht, an einem Ort",
+    "texto": "Futter, Zubehör, Pflege und Training für Hunde, Katzen, Vögel und Kleintiere — mit immer echtem Bestand und Preis.",
+    "cta": "Alle Produkte ansehen"
+  },
+  "Beneficios": {
+    "envioTitulo": "Gratisversand ab {valor}",
+    "envioTexto": "Immer, nicht nur bei Angeboten.",
+    "dadosTitulo": "Konto und Daten geschützt",
+    "dadosTexto": "Deine Sitzung und deine Adressen bleiben bei dir.",
+    "filtrosTitulo": "Filter für dein Tier gemacht",
+    "filtrosTexto": "Zieltier, Größe und Altersstufe — nicht nur Kategorie."
+  },
+  "ErroPagina": {
+    "titulo": "Etwas ist schiefgelaufen",
+    "texto": "Diese Seite konnte nicht geladen werden. Versuch es noch einmal.",
+    "tentarNovamente": "Noch einmal versuchen"
   },
   "AprovadoPorQuemManda": {
     "titulo": "Von den Chefs persönlich abgesegnet",

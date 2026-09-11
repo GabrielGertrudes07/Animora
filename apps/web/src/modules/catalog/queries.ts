@@ -247,13 +247,19 @@ export async function lerFiltros(
   }
 }
 
-/** Para a navegação do cabeçalho — categorias reais, nunca escritas à mão. */
-export async function listCategories(): Promise<{ name: string; slug: string }[]> {
-  const res = await apiGet<Paginated<{ name: string; slug: string }>>(
+/**
+ * Para a navegação do cabeçalho e para quem precisar do `id` — categorias
+ * reais, nunca escritas à mão. `id` já vinha na resposta da API e ficava por
+ * usar; passa a viajar porque a home estrutural precisa dele para pedir os
+ * produtos de cada categoria (`pesquisarProdutos` pede `categoriaId`, não
+ * slug) sem uma segunda chamada por categoria.
+ */
+export async function listCategories(): Promise<{ id: number; name: string; slug: string }[]> {
+  const res = await apiGet<Paginated<{ id: number; name: string; slug: string }>>(
     `/api/categories?limit=${NO_LIMIT}&depth=0`,
   )
   return res.docs
-    .map((d) => ({ name: d.name, slug: d.slug }))
+    .map((d) => ({ id: d.id, name: d.name, slug: d.slug }))
     .sort((a, b) => a.name.localeCompare(b.name, 'pt'))
 }
 

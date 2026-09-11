@@ -12,22 +12,26 @@ import { MediaPlaceholder } from '../ui/MediaPlaceholder'
  * criativos; é só a troca de `<MediaPlaceholder>` por `<Image>` que os
  * traz de volta, sem mudar o resto do cartão.
  *
- * Uma categoria que não esteja aqui (as "por necessidade": Alimentação,
- * Higiene, ...) cai automaticamente na fiada de pills abaixo — é o retrocesso
- * seguro para uma categoria nova que ainda não tenha cena, não um erro.
+ * Antes era um componente só, com a fiada de pills encostada ao fim sem
+ * título — a home estrutural pede "escolha o teu animal" e "compra por
+ * necessidade" como duas secções, não uma com um apêndice. Continuam num
+ * ficheiro só porque partilham o mesmo par categorias/contagens e o mesmo
+ * critério de partição (`COM_CENA`).
  */
 const COM_CENA = new Set(['caes', 'gatos', 'passaros', 'roedores', 'aquario'])
 
-export async function CategoriasVisuais({
+type Categoria = { id: number; name: string; slug: string }
+
+export async function EscolhaSeuAnimal({
   categorias,
   contagens,
 }: {
-  categorias: { name: string; slug: string }[]
+  categorias: Categoria[]
   contagens: Record<string, number>
 }) {
-  const t = await getTranslations('CategoriasVisuais')
+  const t = await getTranslations('EscolhaSeuAnimal')
   const animais = categorias.filter((c) => COM_CENA.has(c.slug))
-  const porNecessidade = categorias.filter((c) => !COM_CENA.has(c.slug))
+  if (animais.length === 0) return null
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
@@ -59,21 +63,33 @@ export async function CategoriasVisuais({
           </li>
         ))}
       </PalcoCategorias>
+    </section>
+  )
+}
 
-      {porNecessidade.length > 0 ? (
-        <ul className="mt-5 flex flex-wrap gap-2">
-          {porNecessidade.map((c) => (
-            <li key={c.slug}>
-              <Link
-                href={`/${c.slug}`}
-                className="block rounded-full border border-line px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:border-terracota hover:text-ink"
-              >
-                {c.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+/** As categorias sem cena própria (Alimentação, Higiene, ...) — mesmo dado, secção com nome próprio. */
+export async function ComprarPorNecessidade({ categorias }: { categorias: Categoria[] }) {
+  const t = await getTranslations('ComprarPorNecessidade')
+  const porNecessidade = categorias.filter((c) => !COM_CENA.has(c.slug))
+  if (porNecessidade.length === 0) return null
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
+      <h2 className="text-titulo">{t('titulo')}</h2>
+      <p className="mt-3 max-w-leitura text-ink-muted">{t('texto')}</p>
+
+      <ul className="mt-6 flex flex-wrap gap-2">
+        {porNecessidade.map((c) => (
+          <li key={c.slug}>
+            <Link
+              href={`/${c.slug}`}
+              className="block rounded-full border border-line px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:border-terracota hover:text-ink"
+            >
+              {c.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }

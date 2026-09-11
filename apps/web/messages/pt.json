@@ -231,15 +231,49 @@
   "Home": {
     "metaTitulo": "Animora — cuidados para o teu animal",
     "metaDescricao": "Alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.",
+    "maisVendidos": "Mais vendidos",
     "ofertasDaSemana": "Ofertas desta semana",
     "escolhasDaCasa": "Escolhas da casa",
     "verTodosOsProdutos": "Ver todos os produtos",
-    "marcasEmQueConfiamos": "Marcas em que confiamos"
+    "marcasEmQueConfiamos": "Marcas em que confiamos",
+    "campanha1Titulo": "Novidades a caminho",
+    "campanha1Texto": "Estamos a preparar as próximas campanhas da loja. Enquanto isso, o catálogo inteiro está à distância de um clique.",
+    "campanha1Cta": "Ver todos os produtos",
+    "campanha2Titulo": "Conhece a loja",
+    "campanha2Texto": "Alimentação, acessórios, higiene e treino — organizados por categoria, com stock e preço sempre atualizados.",
+    "campanha2Cta": "Explorar categorias"
   },
-  "CategoriasVisuais": {
+  "EscolhaSeuAnimal": {
     "titulo": "Escolhe o teu animal",
     "texto": "Cada bicho tem prateleira própria — e um jeito diferente de fazer render a mesada.",
     "produtos": "{count, plural, =0 {0 produtos} one {1 produto} other {# produtos}}"
+  },
+  "ComprarPorNecessidade": {
+    "titulo": "Compra por necessidade",
+    "texto": "Sem animal certo em mente? Estas categorias cobrem o resto."
+  },
+  "DestaquesPorCategoria": {
+    "titulo": "Destaques por categoria",
+    "verCategoria": "Ver categoria"
+  },
+  "Hero": {
+    "eyebrow": "Animora",
+    "titulo": "Tudo o que o teu animal precisa, num só sítio",
+    "texto": "Alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais — com stock e preço sempre reais.",
+    "cta": "Ver todos os produtos"
+  },
+  "Beneficios": {
+    "envioTitulo": "Envio grátis acima de {valor}",
+    "envioTexto": "Sempre, não só em promoção.",
+    "dadosTitulo": "Conta e dados protegidos",
+    "dadosTexto": "A tua sessão e as tuas moradas ficam só contigo.",
+    "filtrosTitulo": "Filtros pensados para o teu animal",
+    "filtrosTexto": "Animal de destino, porte e faixa etária — não só categoria."
+  },
+  "ErroPagina": {
+    "titulo": "Algo correu mal",
+    "texto": "Não foi possível carregar esta página. Tenta outra vez.",
+    "tentarNovamente": "Tentar novamente"
   },
   "AprovadoPorQuemManda": {
     "titulo": "Aprovado por quem manda",

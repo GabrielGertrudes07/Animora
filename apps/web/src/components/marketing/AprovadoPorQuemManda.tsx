@@ -1,15 +1,27 @@
 import { getTranslations } from 'next-intl/server'
 import { FOTOS_MARKETING } from '../../lib/fotosMarketing'
+import { getAvaliacaoLoja } from '../../modules/catalog'
 import { MediaPlaceholder } from '../ui/MediaPlaceholder'
+import { Estrelas } from '../ui/Estrelas'
 
 /**
  * Voz da marca, não avaliação de cliente — daí as citações serem assinadas
  * por um animal, com nome e idade, e não por "cliente verificado". A
  * especificação da loja proíbe avaliação inventada (`Reviews.ts`, "avaliações
  * não se inventam"); isto não pretende ser uma, é humor de marca.
+ *
+ * A média real da loja (antes um bloco à parte, `ProvaSocial`) entra aqui por
+ * cima — a spec da home estrutural não lista uma secção própria para ela, e
+ * separá-la do bloco de confiança da marca era o que a partia ao meio.
+ *
+ * Fase estrutural v1: fundo neutro (não é mais `chao-floresta`) — não
+ * reativa a direção "Clareira e Balcão".
  */
 export async function AprovadoPorQuemManda() {
-  const t = await getTranslations('AprovadoPorQuemManda')
+  const [t, avaliacaoLoja] = await Promise.all([
+    getTranslations('AprovadoPorQuemManda'),
+    getAvaliacaoLoja(),
+  ])
 
   const testemunhos = [
     {
@@ -39,35 +51,31 @@ export async function AprovadoPorQuemManda() {
   ]
 
   return (
-    <section className="chao-floresta px-6 py-secao">
-      <div className="mx-auto max-w-7xl">
-        <h2 className="text-titulo">{t('titulo')}</h2>
-        <p className="mt-3 max-w-xl text-papel/70">{t('texto')}</p>
+    <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
+      <h2 className="text-titulo text-ink">{t('titulo')}</h2>
+      <p className="mt-3 max-w-xl text-ink-muted">{t('texto')}</p>
 
-        <ul className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-4">
-          {testemunhos.map((tst) => (
-            <li
-              key={tst.assinatura}
-              // Sobre floresta, um cartão distingue-se do chão pela sua
-              // própria superfície — um branco a 5,5% — e por um aro hairline.
-              // Não por sombra: uma sombra preta sobre um fundo quase preto não
-              // se vê, e o aro dourado que aqui estava era a peça que mais
-              // atraiçoava a gama.
-              className="overflow-hidden rounded-card bg-white/[0.055] ring-1 ring-inset ring-white/10"
-            >
-              <div className="relative aspect-square">
-                {/* Fase estrutural v1: sem fotografia (`tst.src`/`tst.alt`
-                    preservados para a fase de criativos). */}
-                <MediaPlaceholder ratio="1/1" type="testimonial" fill />
-              </div>
-              <div className="p-4">
-                <p className="text-sm font-semibold leading-snug text-papel">{tst.fala}</p>
-                <p className="mt-2 text-xs text-papel/55">{tst.assinatura}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {avaliacaoLoja.media !== null ? (
+        <div className="mt-5 flex items-center gap-2">
+          <Estrelas resumo={avaliacaoLoja} className="text-base" />
+        </div>
+      ) : null}
+
+      <ul className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-4">
+        {testemunhos.map((tst) => (
+          <li key={tst.assinatura} className="overflow-hidden rounded-card border border-line bg-white">
+            <div className="relative aspect-square">
+              {/* Fase estrutural v1: sem fotografia (`tst.src`/`tst.alt`
+                  preservados para a fase de criativos). */}
+              <MediaPlaceholder ratio="1/1" type="testimonial" fill />
+            </div>
+            <div className="p-4">
+              <p className="text-sm font-semibold leading-snug text-ink">{tst.fala}</p>
+              <p className="mt-2 text-xs text-ink-muted">{tst.assinatura}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }
