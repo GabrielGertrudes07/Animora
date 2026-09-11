@@ -79,6 +79,16 @@ demonstração), screenshots em 390/768/1440/1920px de Home/PLP/PDP.
 Achado central: o WIP da §2 ia na direção oposta ao que esta fase exige —
 resolvido pela decisão do usuário em §3.
 
+**Correção (2026-09-11, antes da Fase 2):** a matriz original da Fase 0
+classificou `Header.tsx` e `BarraMobile.tsx` como "Refatorar — paleta
+clareira". Isso estava **errado**. Leitura direta do código ao preparar a
+Fase 2 mostrou que os dois já usam a paleta neutra do balcão (`bg-papel`,
+`text-ink`/`text-ink-muted`, `border-line`), sem nenhum `chao-floresta` — o
+próprio `Header.tsx` documenta em comentário que a barra de aviso já tinha
+sido convertida de floresta para "uma linha em papel". Nenhuma refatoração
+de paleta é necessária nesses dois arquivos; corrigido aqui para a Fase 2
+não repetir o engano.
+
 ### Fase 1 — Sistema estrutural e `MediaPlaceholder` (concluída, 2026-09-11)
 
 **Arquivos alterados** (não commitados ainda — aguardando este documento
@@ -133,8 +143,22 @@ imagem quebrada, sem erro ou aviso de console em nenhuma.
 - PLP em 1440px mostra 3 colunas; o plano pede 4 no desktop e 5 no wide —
   gap para as Fases 3/5.
 
-### Próximo passo
+### Fase 2 — Shell global (escopo aprovado 2026-09-11, execução em andamento)
 
-Fase 2 — Shell global (Header, barra de anúncio, mega menu, navegação
-mobile) — escopo em preparação para revisão do usuário, implementação
-**não iniciada**.
+Escopo aprovado pelo usuário:
+1. Refinar a navegação desktop existente, mantendo categorias reais e sem
+   dropdown.
+2. Tornar a busca desktop mais protagonista, respeitando o equilíbrio do
+   header em 1024/1440/1920px.
+3. Extrair a função pura de estado ativo da `BarraMobile` e criar testes.
+4. Validar teclado, foco, Escape, clique fora, toque, safe areas e
+   navegação mobile.
+5. Preservar logo, slogan, idioma, conta, carrinho, dialogs nativos e
+   tokens neutros já existentes.
+6. Não adicionar subcategorias fictícias nem alterar o seeder nesta fase.
+
+"Mega menu com subcategorias" fica registrado como trabalho futuro: o
+modelo de dados já suporta hierarquia (`categories.parent`), mas nenhuma
+das 10 categorias semeadas tem `parent` preenchido hoje (verificado via
+`SELECT count(*) FROM categories WHERE parent_id IS NOT NULL` → 0) —
+construir um dropdown agora não teria dado real para mostrar.
