@@ -210,7 +210,97 @@ o modelo de dados já suporta hierarquia (`categories.parent`), mas nenhuma
 das 10 categorias semeadas tem `parent` preenchido hoje (verificado via
 `SELECT count(*) FROM categories WHERE parent_id IS NOT NULL` → 0).
 
+### Fase 3 — Átomos de comércio (concluída, 2026-09-11)
+
+**Auditoria prévia** (ProductCard e componentes relacionados): preço,
+desconto, marca/nome/avaliação e estado de estoque já estavam corretos e
+reutilizáveis. Faltavam wishlist e adicionar-ao-carrinho no cartão (só
+existiam na ficha de produto), e a grade de PLP/Home parava em 3 colunas.
+
+**Arquivos alterados** (7 arquivos, 138 inserções / 31 remoções):
+- `ProductCard.tsx` — `BotaoFavorito` (compacto) e `AdicionarAoCarrinho`
+  (com quantidade) movidos para **fora** do `<Link>` do cartão: um botão
+  dentro de uma âncora quebra o foco por teclado e a leitura por leitor de
+  ecrã — violação real que a auditoria não tinha ainda encontrado porque
+  os dois componentes simplesmente não existiam no cartão antes. Distintivo
+  de esgotado passou de `right-3` para `left-3` (o canto direito agora é do
+  favorito). Título ganhou `line-clamp-2`.
+- `BotaoFavorito.tsx` — novo modo `compacto` (botão redondo só com ícone,
+  44×44px); modo de texto original preservado e inalterado na ficha de
+  produto.
+- `AdicionarAoCarrinho.tsx` — novo modo `comQuantidade` (seletor −/+ antes
+  do botão); no cartão só aparece quando `product.variants.length === 1`
+  (variante única implícita, spec-animora.md §4.1) — com mais de uma
+  variante, a escolha continua exigindo a ficha de produto. Empilha
+  verticalmente abaixo de `md` (o mesmo ponto em que a grelha passa a 3
+  colunas): lado a lado, os dois controlos não cabem nos ~170px de um
+  cartão de 2 colunas em mobile — achado real de um teste de QA, corrigido.
+- `Catalogo.tsx` (PLP) e a seção de ofertas em `page.tsx` (home) —
+  `grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5`, substituindo
+  grades que paravam em 3 colunas. A seção "escolhas da casa" da home
+  (2 colunas, contentor estreito de propósito) foi preservada — é uma
+  pausa editorial deliberada, não a grade de catálogo.
+- `messages/{pt,de}.json` — chaves `diminuir`/`aumentar` no namespace
+  `AdicionarAoCarrinho`.
+
+**Verificações:**
+
+| Verificação | Resultado |
+|---|---|
+| `pnpm --filter @animora/web typecheck` | ✅ 0 erros |
+| `pnpm --filter @animora/web test` | ✅ 13 arquivos, 149 testes (sem mudança — nenhuma lógica nova pura o bastante para justificar teste próprio; a extração/dedução do "produto com variante única" é uma linha) |
+| `pnpm --filter @animora/web build` | ✅ 125 páginas |
+| `git diff --check` | ✅ sem erros de espaço em branco |
+| `pnpm --filter @animora/web lint` / `pnpm format:check` | não disponíveis (ver Fase 1) |
+
+**QA visual/interação** (Playwright, contra os 42 produtos reais do
+seeder — nenhum dado fictício criado):
+- Grade de colunas medida via `getComputedStyle().gridTemplateColumns`:
+  390px→2, 768px→3, 1440px→4, 1920px→5, idêntico em Home (ofertas) e PLP.
+- **Desconto real + adicionar juntos**: `arranhador-miau-torre` (variante
+  única, 34,90€/39,90€, badge "-13%" e botão "Adicionar" no mesmo cartão).
+- **Esgotado**: `comedouro-elevado-miau-duplo` — distintivo "ESGOTADO",
+  texto "Sem stock de momento" uma vez só (a duplicação com o texto interno
+  do `AdicionarAoCarrinho` foi encontrada e corrigida: o bloco de
+  adicionar deixa de renderizar quando a variante única está sem stock).
+- **Título longo**: `petiscos-liofilizados-miau-gato-figado` (52
+  carateres) — `scrollHeight` (112px) maior que `clientHeight` (56px)
+  confirma o clamp de 2 linhas ativo, sem esticar o cartão.
+- **Variante única vs. múltipla**: `kit-viagem-patas-pro` (1 variante)
+  mostra o controlo de adicionar; `coleira-ajustavel-trela-certa-classic`
+  (9 variantes) não mostra — só liga para a ficha, como a spec pede.
+- **Teclado**: a partir do link do cartão, Tab percorre favorito → diminuir
+  → aumentar → adicionar, nesta ordem, em todos os casos testados.
+- **Toque (390px real)**: favorito 44×44, diminuir/aumentar 44×44 (após
+  correção — nasceram 44×36, um achado de QA), adicionar 44×131.
+- **Clique real**: "Adicionar" em `kit-viagem-patas-pro` incrementou o
+  contador do carrinho de 0 para 1 (`useCarrinho` real, sem mock).
+- **Regressão na ficha de produto**: `AdicionarAoCarrinho`/`BotaoFavorito`
+  sem `compacto`/`comQuantidade` continuam iguais — confirmado visualmente
+  em `racao-frangoso-cao-adulto-frango-arroz`.
+- Nenhum overflow horizontal, imagem quebrada ou erro de console em 16
+  combinações de página × largura (Home/PLP/PLP-categoria/PDP ×
+  390/768/1440/1920).
+
+**Limitação de cobertura (não um bloqueio):** nenhum dos 42 produtos
+semeados está sem imagem (`SELECT count(*) FROM products WHERE
+primary_image_id IS NULL AND NOT EXISTS (galeria)` → 0), então o estado
+"imagem ausente" não pôde ser demonstrado com dado real — verificado só
+por leitura de código (o `img ? <Image/> : <ícone de pata>` já existia
+antes desta fase e não foi alterado).
+
+**Sobre "recomendações":** não existe hoje nenhuma seção de recomendações
+no código (`grep` por "recomenda"/"relacionad" não encontra nada) — é
+trabalho da Fase 6 (PDP) no próprio plano. `ProductCard` recebe só
+`product: PublicProduct`, sem acoplamento a Home ou PLP, então já está
+pronto para ser reutilizado ali sem alteração quando essa fase chegar.
+
+**Nenhum bloqueio novo sobre o gradiente do seeder**: o cartão trata a
+imagem do produto (real ou gerada pelo seeder) da mesma forma em ambos os
+casos — nada nesta fase precisou decidir sobre isso. O bloqueio já
+registado no seeder (Fase 0/1) permanece, sem mudança.
+
 ### Próximo passo
 
-Fase 3 — Átomos de comércio (`ProductCard`) — aguardando aprovação de
-escopo antes de qualquer implementação.
+Fase 4 — Home estrutural — aguardando aprovação de escopo antes de
+qualquer implementação.
