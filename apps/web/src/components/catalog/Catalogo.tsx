@@ -5,6 +5,7 @@ import {
   filtersToQuery,
   precoBounds,
   marcasDisponiveis,
+  listSubcategories,
   type AttributeDef,
   type CatalogFilters,
 } from '../../modules/catalog'
@@ -14,6 +15,7 @@ import { EstadoVazio } from '../ui/EstadoVazio'
 import { CascataProdutos } from '../motion/CascataProdutos'
 import { FiltrosCatalogo } from './FiltrosCatalogo'
 import { OrdenarPor } from './OrdenarPor'
+import { MostrarMais } from './MostrarMais'
 
 type Props = {
   titulo: string
@@ -66,14 +68,20 @@ export async function Catalogo({
   // as marcas das rações, não as do catálogo inteiro. Um filtro que devolveria
   // zero resultados nunca é oferecido — é a regra do `computeAttributeFacets`,
   // e a pesquisa não a suspende.
-  const [todos, produtos] = await Promise.all([
+  const [todos, produtos, subcategorias] = await Promise.all([
     pesquisarProdutos(q, { ordem: 'relevancia' }, categoriaId),
     pesquisarProdutos(q, filtros, categoriaId, atributosAtivos),
+    categoriaId ? listSubcategories(categoriaId) : Promise.resolve([]),
   ])
 
   const facetas = computeAttributeFacets(todos, atributosAtivos)
   const bounds = precoBounds(todos)
   const marcas = marcasDisponiveis(todos)
+
+  // Sem `descricao` explícita (a página de categoria não passa uma — a
+  // coleção `categories` não tem campo de descrição hoje), uma frase
+  // genérica com o nome real da categoria — nunca inventada por produto.
+  const descricaoFinal = descricao ?? (categoriaId ? t('descricaoCategoriaGenerica', { categoria: titulo }) : undefined)
 
   const comFiltros = Boolean(
     filtros.marca?.length ||
@@ -87,9 +95,50 @@ export async function Catalogo({
 
   return (
     <main id="conteudo" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
-      <h1 className="text-titulo text-ink">{titulo}</h1>
-      {descricao ? (
-        <p className="mt-2 max-w-2xl leading-relaxed text-ink-muted sm:mt-3">{descricao}</p>
+      <nav aria-label={t('breadcrumbAria')} className="text-sm text-ink-muted">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <Link href="/" className="hover:text-ink hover:underline">
+              {t('inicio')}
+            </Link>
+          </li>
+          {categoriaId ? (
+            <li className="flex items-center gap-1.5">
+              <span aria-hidden="true">/</span>
+              <Link href="/produtos" className="hover:text-ink hover:underline">
+                {t('todosOsProdutos')}
+              </Link>
+            </li>
+          ) : null}
+          <li className="flex items-center gap-1.5">
+            <span aria-hidden="true">/</span>
+            <span aria-current="page" className="font-medium text-ink">
+              {titulo}
+            </span>
+          </li>
+        </ol>
+      </nav>
+
+      <h1 className="mt-3 text-titulo text-ink">{titulo}</h1>
+      {descricaoFinal ? (
+        <p className="mt-2 max-w-2xl leading-relaxed text-ink-muted sm:mt-3">{descricaoFinal}</p>
+      ) : null}
+
+      {subcategorias.length > 0 ? (
+        <nav aria-label={t('subcategoriasTitulo')} className="mt-4">
+          <ul className="flex flex-wrap gap-2">
+            {subcategorias.map((s) => (
+              <li key={s.slug}>
+                <Link
+                  href={`/${s.slug}`}
+                  className="block rounded-full border border-line px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:border-terracota hover:text-ink"
+                >
+                  {s.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       ) : null}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3 sm:mt-6 sm:pb-4">
@@ -135,10 +184,18 @@ export async function Catalogo({
               <EstadoVazio ilustracao="tigela" titulo={vazio.titulo} texto={vazio.texto} />
             )
           ) : (
-            <CascataProdutos className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
-              {produtos.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
+            // A barra de filtros (`w-64` + `gap-8`, ~288px) só existe a partir
+            // de `lg` — por isso o degrau de 4 colunas espera por `xl`, não
+            // `lg`: em 1024px com a barra presente, a grelha tem só ~688px
+            // reais, e 4 colunas aí cabiam a 152px cada, estreito demais para
+            // o cartão (o seletor de quantidade + botão ficava cortado — visto
+            // e corrigido nesta fase). Em `xl` (1280px) já há espaço de sobra.
+            <CascataProdutos className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+              <MostrarMais>
+                {produtos.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </MostrarMais>
             </CascataProdutos>
           )}
         </div>

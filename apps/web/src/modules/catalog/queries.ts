@@ -277,3 +277,20 @@ export async function getCategoryBySlug(
   const doc = res.docs[0]
   return doc ? { id: doc.id, name: doc.name, slug: doc.slug } : null
 }
+
+/**
+ * Categorias filhas de `categoriaId` (`categories.parent`) — reais, nunca
+ * inventadas. Hoje nenhuma categoria semeada tem `parent` preenchido, então
+ * isto devolve sempre `[]`; o caminho fica pronto para o dia em que o
+ * catálogo ganhar uma hierarquia de verdade, sem precisar de outra função.
+ */
+export async function listSubcategories(
+  categoriaId: number,
+): Promise<{ id: number; name: string; slug: string }[]> {
+  const res = await apiGet<Paginated<{ id: number; name: string; slug: string }>>(
+    `/api/categories?limit=${NO_LIMIT}&depth=0&where[parent][equals]=${categoriaId}`,
+  )
+  return res.docs
+    .map((d) => ({ id: d.id, name: d.name, slug: d.slug }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt'))
+}

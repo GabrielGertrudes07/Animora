@@ -47,7 +47,15 @@
     "semResultadosTexto": "Versuch es mit einem kürzeren Wort — dem Produktnamen, der Marke oder dem Tier.",
     "limparPesquisa": "Suche löschen",
     "semFiltrosTitulo": "Kein Produkt entspricht den Filtern",
-    "semFiltrosTexto": "Versuch, die Preisspanne zu erweitern oder eine Marke abzuwählen."
+    "semFiltrosTexto": "Versuch, die Preisspanne zu erweitern oder eine Marke abzuwählen.",
+    "breadcrumbAria": "Navigationspfad",
+    "inicio": "Start",
+    "todosOsProdutos": "Alle Produkte",
+    "subcategoriasTitulo": "Unterkategorien",
+    "descricaoCategoriaGenerica": "Echte Produkte aus {categoria}, mit immer aktuellem Bestand und Preis."
+  },
+  "MostrarMais": {
+    "mostrarMais": "Mehr anzeigen ({restantes})"
   },
   "ProdutosPage": {
     "metaTitulo": "Alle Produkte",

@@ -47,7 +47,15 @@
     "semResultadosTexto": "Experimenta uma palavra mais curta — o nome do produto, a marca ou o animal.",
     "limparPesquisa": "Limpar a pesquisa",
     "semFiltrosTitulo": "Nenhum produto corresponde aos filtros",
-    "semFiltrosTexto": "Experimenta alargar o preço ou tirar uma das marcas escolhidas."
+    "semFiltrosTexto": "Experimenta alargar o preço ou tirar uma das marcas escolhidas.",
+    "breadcrumbAria": "Caminho de navegação",
+    "inicio": "Início",
+    "todosOsProdutos": "Todos os produtos",
+    "subcategoriasTitulo": "Subcategorias",
+    "descricaoCategoriaGenerica": "Produtos reais de {categoria}, com stock e preço sempre atualizados."
+  },
+  "MostrarMais": {
+    "mostrarMais": "Mostrar mais ({restantes})"
   },
   "ProdutosPage": {
     "metaTitulo": "Todos os produtos",

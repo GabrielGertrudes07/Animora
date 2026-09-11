@@ -36,11 +36,18 @@ export function AdicionarAoCarrinho({
   }
 
   return (
-    // Empilhado no cartão estreito (2 colunas em mobile): seletor de
-    // quantidade + botão lado a lado não cabem em ~170px de largura. A partir
-    // de `md` (o mesmo ponto em que a grelha do cartão passa a 3 colunas) o
-    // cartão já tem espaço e os dois voltam a ficar na mesma linha.
-    <div className="flex flex-col gap-2 md:flex-row md:items-center">
+    // Sempre empilhado quando há seletor de quantidade — não só em mobile.
+    // `ProductCard` vive em grelhas de largura muito variável (2 a 5
+    // colunas, com ou sem a barra de filtros da PLP ao lado), e o cartão
+    // mais estreito de qualquer uma delas (~150-220px) nunca sobra espaço
+    // para o seletor e o botão lado a lado sem cortar o botão — visto e
+    // corrigido nesta fase (achado de QA na PLP em 1024/1440/1920px, onde a
+    // barra de filtros reduz a grelha). Um `md:flex-row` baseado no
+    // viewport não resolve: a mesma largura de ecrã tem cartões largos na
+    // home e estreitos na PLP. Sem consulta de contentor (`@container`) no
+    // Tailwind desta versão, empilhar sempre é o que garante nunca cortar,
+    // ao custo de um pouco de altura extra nos cartões mais largos.
+    <div className="flex flex-col gap-2">
       {comQuantidade ? (
         <div className="flex items-center self-start rounded-full border border-line">
           <button
@@ -73,7 +80,7 @@ export function AdicionarAoCarrinho({
         }}
         aria-label={t('adicionarAria', { etiqueta })}
         className={`botao-principal min-h-11 px-5 py-2 text-base sm:min-h-0 sm:px-4 sm:text-sm ${
-          comQuantidade ? 'w-full md:w-auto md:flex-1' : ''
+          comQuantidade ? 'w-full' : ''
         }`}
       >
         {feito ? t('noCarrinho') : t('adicionar')}
