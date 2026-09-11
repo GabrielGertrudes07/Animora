@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { useTranslations } from 'next-intl'
-import { useCarrinho } from '../../modules/cart/CarrinhoProvider'
+import { useCarrinho } from '../../modules/cart'
 import { Link, usePathname, getPathname } from '../../i18n/navigation'
 import { useLocale } from 'next-intl'
 import { Icon, type IconName } from '../icons/sprite'

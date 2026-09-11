@@ -7,7 +7,7 @@ import '../../styles/globals.css'
 import { routing } from '../../i18n/routing'
 import { Header } from '../../components/layout/Header'
 import { Footer } from '../../components/layout/Footer'
-import { CarrinhoProvider } from '../../modules/cart/CarrinhoProvider'
+import { CarrinhoProvider } from '../../modules/cart'
 
 /**
  * As duas famílias da loja, auto-alojadas por `next/font` — sem pedido a

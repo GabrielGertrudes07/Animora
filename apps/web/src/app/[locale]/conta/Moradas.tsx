@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from '../../../i18n/navigation'
 
-import { apagarMorada, guardarMorada } from '../../../modules/account/acoes'
+import { apagarMorada, guardarMorada } from '../../../modules/account'
 import type { Morada } from '../../../modules/account/sessao'
 
 const VAZIA: Morada = {

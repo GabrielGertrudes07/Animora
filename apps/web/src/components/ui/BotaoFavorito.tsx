@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '../../i18n/navigation'
 
-import { alternarFavorito, ehFavorito } from '../../modules/account/acoes'
+import { alternarFavorito, ehFavorito } from '../../modules/account'
 import { Icon } from '../icons/sprite'
 
 /**

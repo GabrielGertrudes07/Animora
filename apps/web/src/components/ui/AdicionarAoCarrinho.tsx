@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 
-import { useCarrinho } from '../../modules/cart/CarrinhoProvider'
+import { useCarrinho } from '../../modules/cart'
 
 /**
  * O botão de acrescentar uma variante ao carrinho.

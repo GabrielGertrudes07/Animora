@@ -5,11 +5,16 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { formatEuros } from '@animora/core'
 
-import { guardarMorada } from '../../../modules/account/acoes'
+import { guardarMorada } from '../../../modules/account'
 import type { Morada } from '../../../modules/account/sessao'
-import { carregarLinhas, comprar, type FaltaStock } from '../../../modules/cart/acoes'
-import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
-import { totaisDoCarrinho, type LinhaCarrinho } from '../../../modules/cart/carrinho'
+import {
+  carregarLinhas,
+  comprar,
+  useCarrinho,
+  totaisDoCarrinho,
+  type FaltaStock,
+  type LinhaCarrinho,
+} from '../../../modules/cart'
 import { Link, useRouter } from '../../../i18n/navigation'
 import { Totais } from '../../../components/ui/Totais'
 

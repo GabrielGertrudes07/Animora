@@ -5,9 +5,13 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { formatEuros } from '@animora/core'
 
-import { carregarLinhas } from '../../../modules/cart/acoes'
-import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
-import { QTY_MAX, totaisDoCarrinho, type LinhaCarrinho } from '../../../modules/cart/carrinho'
+import {
+  carregarLinhas,
+  useCarrinho,
+  QTY_MAX,
+  totaisDoCarrinho,
+  type LinhaCarrinho,
+} from '../../../modules/cart'
 import { Link } from '../../../i18n/navigation'
 import { Totais } from '../../../components/ui/Totais'
 import { EstadoVazio } from '../../../components/ui/EstadoVazio'

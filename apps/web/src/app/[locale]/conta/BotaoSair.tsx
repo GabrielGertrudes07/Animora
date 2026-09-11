@@ -3,8 +3,8 @@
 import { useTranslations } from 'next-intl'
 import { useRouter } from '../../../i18n/navigation'
 
-import { sair } from '../../../modules/account/acoes'
-import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
+import { sair } from '../../../modules/account'
+import { useCarrinho } from '../../../modules/cart'
 
 /**
  * Sair.

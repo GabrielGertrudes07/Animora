@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link, useRouter } from '../../../i18n/navigation'
 
-import { entrar, registar } from '../../../modules/account/acoes'
-import { useCarrinho } from '../../../modules/cart/CarrinhoProvider'
+import { entrar, registar } from '../../../modules/account'
+import { useCarrinho } from '../../../modules/cart'
 
 /**
  * Entrar e registar — o mesmo formulário, com um campo a mais no registo.

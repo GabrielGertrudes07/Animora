@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 
-import { useCarrinho } from '../../modules/cart/CarrinhoProvider'
+import { useCarrinho } from '../../modules/cart'
 import { Link } from '../../i18n/navigation'
 import { Icon } from '../icons/sprite'
 

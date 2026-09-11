@@ -14,3 +14,5 @@ export {
 export type { ItemCarrinho, LinhaCarrinho } from './carrinho'
 export { CarrinhoProvider, useCarrinho } from './CarrinhoProvider'
 export type { ResolucaoCarrinho } from './linhas'
+export { carregarLinhas, comprar } from './acoes'
+export type { FaltaStock, EncomendaCriada, ResultadoCompra } from './acoes'
