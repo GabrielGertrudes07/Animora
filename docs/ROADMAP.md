@@ -50,9 +50,10 @@ arte nova, antes de qualquer trabalho de criativos.
 | 4 | Home estrutural | ✅ Concluída (2026-09-11) |
 | 5 | PLP | ✅ Concluída (2026-09-11) |
 | 6 | PDP | ✅ Concluída (2026-09-11) |
-| 7 | Validação integrada | 🔜 Escopo em preparação para revisão — implementação não iniciada |
-| — | Fase posterior: criativos e motion (retoma "Clareira e Balcão") | ⏳ Bloqueada até aprovação explícita após a Fase 7 |
+| 7 | Validação integrada | ✅ Concluída (2026-09-11) |
+| — | Fase posterior: criativos e motion (retoma "Clareira e Balcão") | 🔜 Desbloqueada — aguardando decisão do usuário para iniciar |
 
 Detalhes de cada fase concluída (arquivos, verificações, limitações) em
-`docs/CURRENT_STATE.md`. Cada fase para no seu próprio gate — a próxima só
-começa com revisão e aprovação explícitas do usuário.
+`docs/CURRENT_STATE.md`. Decisões arquiteturais não óbvias (a partir da
+Fase 7) em `docs/DECISIONS.md`. Cada fase para no seu próprio gate — a
+próxima só começa com revisão e aprovação explícitas do usuário.

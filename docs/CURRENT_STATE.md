@@ -597,7 +597,132 @@ esgotado, `petiscos-liofilizados-miau-gato-figado` título de 52 carateres):
   "Também pode interessar"/"Das könnte dir auch gefallen" corretos.
 - Nenhum overflow horizontal em nenhuma das 5 larguras.
 
+### Fase 7 — Validação integrada (concluída, 2026-09-11)
+
+**Bug real corrigido — rota inexistente respondia HTTP 200, não 404.**
+Causa raiz identificada (não só contornada): qualquer `loading.tsx`
+ancestral de uma rota que chama `notFound()` trava o código de estado em
+200 (o Next começa a transmitir a resposta assim que a fronteira
+`<Suspense>` monta o `fallback`, antes de o `notFound()` resolver —
+comportamento documentado do App Router, `vercel/next.js` discussions
+#76501/#70170). O `app/[locale]/loading.tsx` da Fase 4 era exatamente
+esse ancestral, cobrindo `/[categoria]` e `/produto/[slug]` por herança.
+Corrigido: a home passou a viver em `app/[locale]/(home)/` (grupo de
+rota, sem mudar a URL), levando o `loading.tsx` junto; `/produtos`
+(nunca chama `notFound()`) ganhou o seu próprio `loading.tsx` local.
+Confirmado antes da correção que até uma rota aleatória e nunca definida
+respondia 200 (prova de que o problema era estrutural); confirmado
+depois, em dev **e em produção** (`next build` + `next start`), que
+produto inexistente, categoria inexistente e qualquer rota aleatória
+respondem 404 de verdade, com o conteúdo do `not-found.tsx` (marca e
+idioma corretos) preservado. Ver `docs/DECISIONS.md` D01.
+
+**Achado do audit de fronteiras, corrigido — 12 imports cruzavam
+`modules/cart`/`modules/account` direto para arquivo interno.**
+`modules/account/index.ts` (novo) e `modules/cart/index.ts` (estendido
+com `carregarLinhas`/`comprar`) passam a cobrir a superfície realmente
+usada por quem importa de fora do módulo. **Efeito colateral real
+encontrado e corrigido no mesmo commit, não só teorizado**: barrilar
+`modules/account/sessao.ts` (servidor-só, usa `next/headers`, sem `'use
+server'`) junto de `modules/account/acoes.ts` (`'use server'`, seguro
+para Client Component) quebrou o `BotaoFavorito` em runtime real (`You're
+importing a component that needs "next/headers"`) assim que o barril
+ficou completo — confirmado rodando o app, não assumido. Corrigido:
+`sessao.ts` e `encomendas.ts` voltam a ser importados diretamente pelas
+Server Components que já os liam (não é violação de fronteira — é a
+superfície real do módulo, que tem duas audiências). `modules/cart`
+não tinha esse problema (`cart/acoes.ts` também tem `'use server'`),
+confirmado, não presumido. Ver `docs/DECISIONS.md` D02.
+
+**Navegação real Home → PLP → PDP → Carrinho**: confirmada com cliques
+reais (não simulados por URL), usando seletores por `href` para evitar
+ambiguidade entre Header/BarraMobile/tiles. Item adicionado na PDP
+aparece no `/carrinho` com preço, subtotal, portes e total corretos
+(conferido lendo o conteúdo real da página, não só a contagem do ícone).
+
+**Consistência do carrinho** entre quick-add (Home/PLP) e adicionar pela
+PDP: contagem idêntica nos dois pontos de entrada, incrementa
+corretamente com a quantidade escolhida — mesmo carrinho, mesma fonte
+(`useCarrinho`/`localStorage`), sem duplicação nem dessincronia.
+
+**Cleanup de animação**: 9 navegações reais com rolagem completa em
+sequência (Home ↔ PLP ↔ categoria ↔ PDP ↔ carrinho) sem nenhum aviso de
+GSAP/`ScrollTrigger` acumulado — o `gsap.context().revert()` do
+`useMotion` limpa corretamente a cada desmontagem.
+
+**Links mortos**: zero `href="#"` ou `href=""` em Home, PLP, PDP e
+carrinho.
+
+**Loading pós-reestruturação**: Home e `/produtos` continuam mostrando o
+esqueleto sob API lenta (confirmado com a resposta atrasada
+artificialmente); `/[categoria]` e `/produto/[slug]` deixaram de ter
+esqueleto de rota (era o preço da correção do 404 — ver acima) e
+carregam direto; ainda rápido o bastante na prática (ver Lighthouse
+abaixo) para não incomodar.
+
+**Verificação do impacto do teste da API, antes de decidir não o
+rodar**: `apps/api/src/integracao.test.ts` tem um `beforeEach` em
+`describe('dashboard', …)` que roda
+`payload.delete({ collection: 'orders', where: { id: { exists: true } } })`
+— apaga **toda** a tabela `orders`, não só encomendas de teste,
+confirmado lendo o código-fonte da suite, não pelo README. Rodar
+`pnpm --filter @animora/api test` (ou `pnpm -r test` na raiz) apagaria as
+20 encomendas de demonstração do seeder. Nenhum item do escopo desta
+fase depende da suíte da API (todos são de storefront/frontend) —
+**decisão: não rodar**, para preservar os dados de demonstração. Reversível
+(`pnpm seed` recria o catálogo e as encomendas), mas sem necessidade que
+justifique o custo.
+
+**Verificações:**
+
+| Verificação | Resultado |
+|---|---|
+| `pnpm --filter @animora/web typecheck` | ✅ 0 erros |
+| `pnpm --filter @animora/web test` | ✅ 13 arquivos, 149 testes |
+| `pnpm --filter @animora/web build` | ✅ 125 páginas |
+| `git diff --check` | ✅ sem erros de espaço em branco |
+| `pnpm --filter @animora/api test` / `pnpm -r test` | **não executados** — ver justificativa acima |
+| `pnpm --filter @animora/web lint` / `pnpm format:check` | não disponíveis (ver Fase 1) |
+
+**QA visual/interação** (Playwright, 375/390/430/768/1024/1440/1920, pt/de):
+- Home, `/produtos`, `/caes`, PDP e `/carrinho` — 35 combinações
+  rota×largura, **zero overflow horizontal, zero erro de console**.
+- `prefers-reduced-motion`: PLP confirmado (Home/PDP já confirmados nas
+  Fases 4/6) — cartões em `opacity:1` sem depender de rolagem.
+- Simetria pt/de reconfirmada nas rotas centrais; teste automático de
+  paridade de chaves (`i18n/messages.test.ts`) continua verde.
+- Estados já documentados como limitação de cobertura (não bugs, dado
+  real ausente) **permanecem intactos, não alterados**: avaliação nunca
+  aparece (0 reviews aprovadas na base), galeria sem miniaturas
+  (`primaryImage` = único item de `gallery` em todos os produtos),
+  "trocas" sem política real, nenhum produto sem imagem.
+
+**Performance básica (Lighthouse, build de produção, `next start`):**
+
+| Página | Performance | LCP | CLS | TBT |
+|---|---|---|---|---|
+| Home | 94/100 | 3,0 s | 0 | 0 ms |
+| PLP (`/produtos`) | 91/100 | 3,5 s | 0 | 0 ms |
+| PDP | 95/100 | 3,0 s | 0 | 0 ms |
+
+CLS e TBT em zero nas três — nenhum salto de layout, nenhum JS
+bloqueando a thread principal. O LCP mais alto que o ideal repete o
+achado já registado desde a Fase 3/5 (aviso do Next/Image sugerindo
+`priority` na imagem acima da dobra) — não é uma regressão desta fase,
+não foi corrigido aqui (fora do escopo de "validação", é uma otimização
+de uma fase futura de performance dedicada).
+
+### Marco: fim da fase estrutural v1
+
+Fases 0 a 7 do plano estrutural (`docs/superpowers/plans/2026-09-11-animora-structural-v1-execucao.md`)
+estão concluídas. O storefront tem Home, PLP e PDP estruturalmente
+validados, com `MediaPlaceholder` neutro em todo espaço editorial, sem
+nenhuma direção de arte nova. A fase de criativos e motion (retomando "A
+Clareira e o Balcão", preservada no checkpoint `1ac1d5b`) só começa com
+aprovação explícita do usuário — não iniciada nesta sessão.
+
 ### Próximo passo
 
-Fase 7 — Validação integrada — aguardando aprovação de escopo antes de
-qualquer implementação.
+Aguardando decisão do usuário: iniciar a fase de criativos, ou abrir uma
+nova fase estrutural (ex.: dashboard/admin, checkout completo) antes
+disso.
