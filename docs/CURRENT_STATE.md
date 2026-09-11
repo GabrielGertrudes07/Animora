@@ -300,7 +300,104 @@ imagem do produto (real ou gerada pelo seeder) da mesma forma em ambos os
 casos — nada nesta fase precisou decidir sobre isso. O bloqueio já
 registado no seeder (Fase 0/1) permanece, sem mudança.
 
+### Fase 4 — Home estrutural (concluída, 2026-09-11)
+
+**Ordem final** (a mesma que o usuário definiu; header/rodapé ficam no
+`layout.tsx`, fora da página): Hero → Escolhe o teu animal → Compra por
+necessidade → Mais vendidos → Campanha → Ofertas da semana → Destaques por
+categoria → segunda campanha/editorial → Aprovado por quem manda → Marcas
+→ Benefícios.
+
+**Arquivos alterados** (6 modificados, 6 novos; 221 inserções / 246
+remoções — `page.tsx` ficou mais curto porque perdeu os dados dos 4 slides
+do carrossel antigo):
+- `Hero.tsx` (novo) — `MediaPlaceholder ratio="16/7" type="hero"`, ~38%
+  texto / 62% mídia em `md+` (a proporção da própria spec estrutural);
+  mobile empilha com a mídia primeiro. Único `<h1>` da página — não havia
+  nenhum antes.
+- `SecaoCampanha.tsx` (novo) — reaproveitado duas vezes (`type="campaign"`
+  e `type="editorial"`), com `inverter` para as duas não ficarem
+  espelhadas uma da outra em ecrã largo. Copy propositalmente genérica:
+  nenhuma campanha real foi decidida ainda.
+- `CategoriasVisuais.tsx` — dividido em `EscolhaSeuAnimal` (a cena com
+  `PalcoCategorias`, motion preservado) e `ComprarPorNecessidade` (a fiada
+  de pills, agora com o seu próprio heading em vez de ser um apêndice sem
+  nome).
+- `DestaquesPorCategoria.tsx` (novo) — produtos **reais por categoria**
+  (as 3 primeiras de `listCategories`), não um recorte genérico do
+  catálogo com um título de categoria emprestado.
+- `Beneficios.tsx` (novo) — 3 factos verificáveis hoje (envio grátis a
+  partir do valor real de `ENVIO_GRATIS_ACIMA_DE`, conta/dados
+  protegidos, filtros por animal/porte) — "pagamento seguro" ficou de fora
+  de propósito: o checkout ainda não liga a um processador real. Empilha
+  em mobile, 3 colunas a partir de `sm` — composição própria, não o mesmo
+  grid encolhido.
+- `AprovadoPorQuemManda.tsx` — perde `chao-floresta` (fundo neutro, não
+  reativa "Clareira e Balcão") e ganha a média real de avaliações da loja
+  (antes uma secção `ProvaSocial` à parte — a spec da home estrutural não
+  lista uma secção própria para ela, e separá-la do bloco de confiança da
+  marca era o que o partia ao meio).
+- `modules/catalog/queries.ts` — `listCategories()` passa a devolver
+  também `id` (já vinha da API da Payload e ficava por usar) — necessário
+  para `DestaquesPorCategoria` pedir produtos por categoria sem uma
+  chamada extra por categoria.
+- `app/[locale]/loading.tsx` (novo) — esqueleto com os mesmos tons
+  neutros do `MediaPlaceholder`, não uma identidade visual nova.
+- `app/[locale]/error.tsx` (novo) — limite de erro com mensagem real e
+  botão de tentar novamente, em pt/de.
+
+**Removidos da composição, não apagados**: `CarrosselCampanhas.tsx`
+(carrossel de 4 slides com animais compostos — a direção "Clareira e
+Balcão"), `ProvaSocial.tsx` (conteúdo absorvido acima) e o bloco antigo
+"Escolhas da casa" (a nova spec não lista essa secção; "Mais vendidos" +
+"Ofertas da semana" + "Destaques por categoria" já são três vitrines reais
+de produto). Nenhum arquivo foi deletado.
+
+**Ruling registrado — "Mais vendidos" não é uma classificação por
+vendas.** A loja regista vendas reais (`orders.linhas[].variante`
+referencia a variante vendida), mas essa agregação só existe hoje no lado
+admin (`packages/core/relatorios`, dashboard com trava comercial) e a
+coleção `orders` não tem leitura pública (`access.read: proprioOuStaff`).
+Expor um "mais vendidos" real ao storefront pede um novo endpoint público
+de agregação na API — uma mudança de backend fora do escopo desta fase
+(que só tocou `apps/web`). A secção mostra produtos reais e não repete os
+de "Ofertas", mas a ordem não reflete vendas de verdade — registado aqui
+em vez de rotulado silenciosamente como se fosse. Duas saídas possíveis
+para uma fase futura: (a) construir o endpoint de agregação real, ou
+(b) renomear a secção para refletir curadoria em vez de vendas.
+
+**Verificações:**
+
+| Verificação | Resultado |
+|---|---|
+| `pnpm --filter @animora/web typecheck` | ✅ 0 erros |
+| `pnpm --filter @animora/web test` | ✅ 13 arquivos, 149 testes |
+| `pnpm --filter @animora/web build` | ✅ 125 páginas |
+| `git diff --check` | ✅ sem erros de espaço em branco |
+| `pnpm --filter @animora/web lint` / `pnpm format:check` | não disponíveis (ver Fase 1) |
+
+**QA visual/interação** (Playwright, 390/768/1440/1920, pt e de):
+- Nenhum overflow horizontal, imagem quebrada ou erro/aviso de console na
+  Home em nenhuma das 4 larguras (o único aviso encontrado — prioridade de
+  imagem LCP — é pré-existente na PLP, fora do escopo desta fase).
+- Ordem do Hero confirmada por medição de DOM, não só visual: no mobile a
+  mídia nasce acima do texto (`top` menor), invertendo em `md+`.
+- `/de` renderiza todos os headings da nova ordem traduzidos, sem chave
+  em falta e sem erro de console.
+- `prefers-reduced-motion: reduce`: `<h1>`, cartão de categoria e cartão
+  de produto todos com `opacity:1` — visíveis de imediato, motion
+  existente (`Entrada`, `PalcoCategorias`, `CascataProdutos`) preservado
+  sem prejudicar a estrutura.
+- Simetria pt/de verificada pelo teste automático (`i18n/messages.test.ts`)
+  e visualmente nos headings de `/de`.
+
+**Estados loading/erro/vazio:** `loading.tsx` (esqueleto) e `error.tsx`
+(mensagem + tentar novamente) novos para o segmento `[locale]`; as
+secções de produto/categoria/marca já tinham guarda de vazio
+(`.length > 0 ? secção : null`) — estendida às duas secções novas.
+
 ### Próximo passo
 
-Fase 4 — Home estrutural — aguardando aprovação de escopo antes de
-qualquer implementação.
+Fase 5 — PLP — aguardando aprovação de escopo antes de qualquer
+implementação. **Não avançar automaticamente** (instrução explícita do
+usuário para esta fase).
