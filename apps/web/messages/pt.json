@@ -305,12 +305,27 @@
   "ProdutoPage": {
     "metaTituloIndisponivel": "Produto não encontrado",
     "metaDescricao": "{titulo} da marca {marca}, na Animora.",
+    "breadcrumbAria": "Caminho de navegação",
+    "inicio": "Início",
     "opcoesDisponiveis": "Opções disponíveis",
     "padrao": "Padrão",
     "emStock": "{count} em stock",
     "esgotado": "esgotado",
     "envioGratis": "Envio grátis acima de {valor}",
-    "descricao": "Descrição"
+    "descricao": "Descrição",
+    "recomendacoesTitulo": "Também pode interessar"
+  },
+  "GaleriaProduto": {
+    "verImagem": "Ver imagem {indice} de {total} de {produto}"
+  },
+  "CtaStickyMobile": {
+    "ariaLabel": "Comprar",
+    "verOpcoes": "Ver opções"
+  },
+  "NaoEncontrado": {
+    "titulo": "Página não encontrada",
+    "texto": "O que procuravas não existe ou foi movido.",
+    "voltar": "Ver todos os produtos"
   },
   "BarraMobile": {
     "navegacaoAria": "Navegação principal",

@@ -1,16 +1,27 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { getProductBySlug, listAllSlugs, precoDeMostra } from '../../../../modules/catalog'
+import {
+  getProductBySlug,
+  listAllSlugs,
+  precoDeMostra,
+  getAvaliacaoProduto,
+  pesquisarProdutos,
+} from '../../../../modules/catalog'
 import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
 import { mediaUrl } from '../../../../lib/api'
 import { descriptionToHtml } from '../../../../lib/richtext'
+import { Link } from '../../../../i18n/navigation'
 import { Price } from '../../../../components/ui/Price'
+import { Estrelas } from '../../../../components/ui/Estrelas'
 import { AdicionarAoCarrinho } from '../../../../components/ui/AdicionarAoCarrinho'
 import { BotaoFavorito } from '../../../../components/ui/BotaoFavorito'
+import { ProductCard } from '../../../../components/ui/ProductCard'
 import { Icon } from '../../../../components/icons/sprite'
 import { Entrada } from '../../../../components/motion/Entrada'
+import { CascataProdutos } from '../../../../components/motion/CascataProdutos'
+import { GaleriaProduto } from '../../../../components/produto/GaleriaProduto'
+import { CtaStickyMobile } from '../../../../components/produto/CtaStickyMobile'
 
 type Props = { params: Promise<{ locale: string; slug: string }> }
 
@@ -28,7 +39,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // `shareImage` primeiro: é uma imagem carregada de propósito para partilha
   // (1200×630 e afins). Sem ela, sai a fotografia quadrada do catálogo, que é
   // o que estava a acontecer — o campo existia no Payload e nunca era lido.
-  // A ficha em si continua a mostrar a `primaryImage`; isto é só o Open Graph.
+  // A ficha em si continua a mostrar a `primaryImage`, que é a fotografia do
+  // catálogo. Isto é só o Open Graph.
   const img = p.shareImage ?? p.primaryImage ?? p.gallery[0]?.image ?? null
 
   return {
@@ -54,72 +66,121 @@ export default async function ProdutoPage({ params }: Props) {
   if (!p) notFound()
 
   const preco = precoDeMostra(p.variants)
-  const img = p.primaryImage ?? p.gallery[0]?.image ?? null
+  const desconto =
+    preco.old && preco.old > preco.cents
+      ? Math.round(((preco.old - preco.cents) / preco.old) * 100)
+      : null
   const descricaoHtml = descriptionToHtml(p.description)
+  const categoriaPrincipal = p.categories[0] ?? null
+  // Produto sem opções reais: pode ir direto ao carrinho a partir do CTA
+  // fixo em mobile. Com mais de uma variante, escolher é a única entrada —
+  // o CTA fixo rola de volta às opções em vez de adivinhar qual.
+  const unica = p.variants.length === 1 ? p.variants[0] : null
+
+  const [avaliacao, recomendados] = await Promise.all([
+    getAvaliacaoProduto(p.id),
+    categoriaPrincipal
+      ? pesquisarProdutos('', { ordem: 'relevancia' }, categoriaPrincipal.id)
+      : Promise.resolve([]),
+  ])
+  const recomendadosReais = recomendados.filter((r) => r.id !== p.id).slice(0, 4)
+
+  // `primaryImage` e o (único, hoje) item de `gallery` apontam sempre para a
+  // mesma fotografia nos dados semeados — deduplicado por `url` para a
+  // galeria nunca mostrar a mesma imagem duas vezes como se fossem outra.
+  const imagensBrutas = [p.primaryImage, ...p.gallery.map((g) => g.image)].filter(
+    (img): img is NonNullable<typeof img> => img !== null && img !== undefined,
+  )
+  const imagens = Array.from(new Map(imagensBrutas.map((img) => [img.url, img])).values())
 
   return (
-    <main id="conteudo" className="mx-auto max-w-6xl px-6 py-10">
-      <Entrada className="grid gap-10 md:grid-cols-2">
-        <div className="overflow-hidden rounded-card bg-white shadow-sm">
-          {img ? (
-            <Image
-              src={mediaUrl(img.url)}
-              alt={img.alt}
-              width={img.width ?? 800}
-              height={img.height ?? 800}
-              className="h-full w-full object-cover"
-              priority
-            />
+    <main id="conteudo" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+      <nav aria-label={t('breadcrumbAria')} className="text-sm text-ink-muted">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <Link href="/" className="hover:text-ink hover:underline">
+              {t('inicio')}
+            </Link>
+          </li>
+          {categoriaPrincipal ? (
+            <li className="flex items-center gap-1.5">
+              <span aria-hidden="true">/</span>
+              <Link href={`/${categoriaPrincipal.slug}`} className="hover:text-ink hover:underline">
+                {categoriaPrincipal.name}
+              </Link>
+            </li>
           ) : null}
-        </div>
+          <li className="flex min-w-0 items-center gap-1.5">
+            <span aria-hidden="true">/</span>
+            <span aria-current="page" className="line-clamp-1 font-medium text-ink">
+              {p.title}
+            </span>
+          </li>
+        </ol>
+      </nav>
+
+      <Entrada className="mt-4 grid gap-10 md:grid-cols-2">
+        <GaleriaProduto imagens={imagens} tituloProduto={p.title} />
 
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sage">
             {p.brand.name}
           </p>
           <h1 className="mt-2 text-balance text-4xl leading-tight text-ink">{p.title}</h1>
-          <Price cents={preco.cents} old={preco.old} desde={preco.desde} className="mt-5 block" />
+          <Estrelas resumo={avaliacao} className="mt-3" />
 
-          <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-muted">
-            {t('opcoesDisponiveis')}
-          </h2>
-          {/*
-            Quando os preços divergem, cada opção mostra o seu. É aqui que o
-            engano acontecia: o preço mais baixo em cima e a lista logo por
-            baixo, a começar por uma opção que custa outra coisa. Não é um
-            seletor — é a lista que já existia, a dizer o preço de cada linha.
-          */}
-          <ul className="mt-3 flex flex-col gap-2">
-            {p.variants.map((v) => {
-              const opcoes =
-                Object.entries(v.combination)
-                  .map(([k, val]) => `${k}: ${val}`)
-                  .join(' · ') || t('padrao')
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Price cents={preco.cents} old={preco.old} desde={preco.desde} />
+            {desconto ? (
+              <span className="rounded-full bg-floresta px-3 py-1 text-xs font-bold tabular-nums text-papel">
+                -{desconto}%
+              </span>
+            ) : null}
+          </div>
 
-              return (
-                <li
-                  key={v.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-campo border border-line px-3 py-2 text-sm text-ink"
-                >
-                  <span>
-                    {opcoes}
-                    {preco.desde ? (
-                      <span className="ml-2 font-semibold">{formatEuros(v.priceCents)}</span>
-                    ) : null}
-                    <span className="ml-2 text-ink-muted">
-                      {v.stock > 0 ? t('emStock', { count: v.stock }) : t('esgotado')}
+          <div id="area-compra" className="mt-8">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
+              {t('opcoesDisponiveis')}
+            </h2>
+            {/*
+              Quando os preços divergem, cada opção mostra o seu. É aqui que o
+              engano acontecia: o preço mais baixo em cima e a lista logo por
+              baixo, a começar por uma opção que custa outra coisa. Não é um
+              seletor — é a lista que já existia, a dizer o preço de cada linha.
+            */}
+            <ul className="mt-3 flex flex-col gap-2">
+              {p.variants.map((v) => {
+                const opcoes =
+                  Object.entries(v.combination)
+                    .map(([k, val]) => `${k}: ${val}`)
+                    .join(' · ') || t('padrao')
+
+                return (
+                  <li
+                    key={v.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-campo border border-line px-3 py-2 text-sm text-ink"
+                  >
+                    <span>
+                      {opcoes}
+                      {preco.desde ? (
+                        <span className="ml-2 font-semibold">{formatEuros(v.priceCents)}</span>
+                      ) : null}
+                      <span className="ml-2 text-ink-muted">
+                        {v.stock > 0 ? t('emStock', { count: v.stock }) : t('esgotado')}
+                      </span>
                     </span>
-                  </span>
-                  {/* Só o id e dois valores simples atravessam para o cliente. */}
-                  <AdicionarAoCarrinho
-                    variantId={v.id}
-                    esgotado={v.stock < 1}
-                    etiqueta={`${p.title} — ${opcoes}`}
-                  />
-                </li>
-              )
-            })}
-          </ul>
+                    {/* Só o id e dois valores simples atravessam para o cliente. */}
+                    <AdicionarAoCarrinho
+                      variantId={v.id}
+                      esgotado={v.stock < 1}
+                      etiqueta={`${p.title} — ${opcoes}`}
+                      comQuantidade
+                    />
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
 
           <div className="mt-8">
             <BotaoFavorito productId={p.id} />
@@ -143,6 +204,22 @@ export default async function ProdutoPage({ params }: Props) {
           />
         </section>
       ) : null}
+
+      {recomendadosReais.length > 0 ? (
+        <section className="mt-12 border-t border-line pt-8">
+          <h2 className="text-titulo text-ink">{t('recomendacoesTitulo')}</h2>
+          <CascataProdutos className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
+            {recomendadosReais.map((r) => (
+              <ProductCard key={r.id} product={r} />
+            ))}
+          </CascataProdutos>
+        </section>
+      ) : null}
+
+      <CtaStickyMobile
+        precoLabel={formatEuros(preco.cents)}
+        unica={unica ? { variantId: unica.id, esgotado: unica.stock < 1, etiqueta: p.title } : null}
+      />
     </main>
   )
 }

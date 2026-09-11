@@ -305,12 +305,27 @@
   "ProdutoPage": {
     "metaTituloIndisponivel": "Produkt nicht gefunden",
     "metaDescricao": "{titulo} von der Marke {marca}, bei Animora.",
+    "breadcrumbAria": "Navigationspfad",
+    "inicio": "Start",
     "opcoesDisponiveis": "Verfügbare Optionen",
     "padrao": "Standard",
     "emStock": "{count} auf Lager",
     "esgotado": "ausverkauft",
     "envioGratis": "Kostenloser Versand ab {valor}",
-    "descricao": "Beschreibung"
+    "descricao": "Beschreibung",
+    "recomendacoesTitulo": "Das könnte dir auch gefallen"
+  },
+  "GaleriaProduto": {
+    "verImagem": "Bild {indice} von {total} von {produto} ansehen"
+  },
+  "CtaStickyMobile": {
+    "ariaLabel": "Kaufen",
+    "verOpcoes": "Optionen ansehen"
+  },
+  "NaoEncontrado": {
+    "titulo": "Seite nicht gefunden",
+    "texto": "Das Gesuchte existiert nicht mehr oder wurde verschoben.",
+    "voltar": "Alle Produkte ansehen"
   },
   "BarraMobile": {
     "navegacaoAria": "Hauptnavigation",
