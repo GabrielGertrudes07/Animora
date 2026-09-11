@@ -6,6 +6,7 @@ import { useCarrinho } from '../../modules/cart/CarrinhoProvider'
 import { Link, usePathname, getPathname } from '../../i18n/navigation'
 import { useLocale } from 'next-intl'
 import { Icon, type IconName } from '../icons/sprite'
+import { estadoNavegacaoMobile } from './estadoNavegacaoMobile'
 
 type Categoria = { slug: string; name: string }
 
@@ -30,9 +31,7 @@ export function BarraMobile({ categorias }: { categorias: Categoria[] }) {
   const folhaCategorias = useRef<HTMLDialogElement>(null)
   const folhaPesquisa = useRef<HTMLDialogElement>(null)
 
-  const naHome = caminho === '/'
-  const naConta = caminho.startsWith('/conta')
-  const noCarrinho = caminho === '/carrinho'
+  const { naHome, naConta, noCarrinho } = estadoNavegacaoMobile(caminho)
 
   return (
     <>

@@ -68,7 +68,7 @@ export async function Header() {
           <form
             action={acaoPesquisa}
             method="get"
-            className="order-3 hidden w-full items-center gap-2 sm:flex rounded-full border border-line bg-papel/60 px-4 py-2 transition-colors focus-within:border-terracota sm:order-none sm:ml-auto sm:w-auto sm:max-w-sm sm:flex-1"
+            className="order-3 hidden w-full items-center gap-2 sm:flex rounded-full border border-line bg-papel/60 px-4 py-2.5 transition-colors focus-within:border-terracota sm:order-none sm:mx-auto sm:max-w-lg sm:flex-1"
           >
             <Icon name="search" className="h-4 w-4 shrink-0 text-ink-muted" />
             <input
