@@ -48,8 +48,8 @@ arte nova, antes de qualquer trabalho de criativos.
 | 2 | Shell global (Header, barra de anúncio, navegação mobile) | ✅ Concluída (2026-09-11) |
 | 3 | Átomos de comércio (`ProductCard`) | ✅ Concluída (2026-09-11) |
 | 4 | Home estrutural | ✅ Concluída (2026-09-11) |
-| 5 | PLP | 🔜 Escopo em preparação para revisão — implementação não iniciada |
-| 6 | PDP | ⏳ Pendente |
+| 5 | PLP | ✅ Concluída (2026-09-11) |
+| 6 | PDP | 🔜 Escopo em preparação para revisão — implementação não iniciada |
 | 7 | Validação integrada | ⏳ Pendente |
 | — | Fase posterior: criativos e motion (retoma "Clareira e Balcão") | ⏳ Bloqueada até aprovação explícita após a Fase 7 |
 

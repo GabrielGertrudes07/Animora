@@ -406,8 +406,103 @@ screenshots recapturados depois do rename):
 secções de produto/categoria/marca já tinham guarda de vazio
 (`.length > 0 ? secção : null`) — estendida às duas secções novas.
 
+### Fase 5 — PLP estrutural (concluída, 2026-09-11)
+
+Escopo: breadcrumb, título/descrição de categoria, subcategorias reais,
+filtros por URL, drawer de filtros mobile, ordenação/contagem, grid
+2/3/4/5, estados loading/erro/vazio, paginação progressiva, preservação de
+parâmetros, acessibilidade. Tudo em `Catalogo.tsx`, reutilizado por
+`/produtos` e `/[categoria]` — nenhuma das duas páginas precisou mudar.
+
+**Arquivos alterados** (6 modificados, 1 novo):
+- `Catalogo.tsx` — breadcrumb real (`Início / Todos os produtos /
+  <categoria>`, com `aria-current="page"` no item atual); subcategorias
+  reais via `listSubcategories(categoriaId)`; descrição genérica com o
+  nome real da categoria quando a página não fornece uma; grid corrigido
+  (ver achado abaixo); `MostrarMais` no lugar da lista inteira de uma vez.
+- `MostrarMais.tsx` (novo) — revelação progressiva client-side (12 em 12),
+  sem paginação por URL — evita perder o estado de filtro/ordenação atual
+  por causa de um parâmetro de página.
+- `modules/catalog/{queries,index}.ts` — `listSubcategories(categoriaId)`,
+  mesmo padrão de `getCategoryBySlug` (`where[parent][equals]`). Hoje
+  devolve sempre `[]` — nenhuma categoria semeada tem `parent` (mesma
+  situação do mega menu na Fase 2) — o caminho fica pronto, não fica
+  fingido.
+- `AdicionarAoCarrinho.tsx` — ver achado de QA abaixo.
+
+**Achado de QA real (não teórico) e correção na raiz — a lacuna de 3
+colunas em desktop.** A barra de filtros (`w-64` + `gap-8`, ~288px) só
+existe a partir de `lg` (1024px). Medido com Playwright: forçar 4 colunas
+exatamente aí (`lg:grid-cols-4`, o que já estava lá desde a Fase 3) dava
+cartões de **152px**, e o bloco de quantidade+"Adicionar" (que quer
+~219px) ficava cortado — `scrollWidth` 219 contra `clientWidth` 152.
+Em 1440px (4 colunas) e 1920px (5 colunas) o mesmo corte persistia, ainda
+menor (216px e 168px respetivamente) — a Home nunca expôs isto porque não
+tem barra lateral e por isso nunca tem cartões tão estreitos.
+
+Duas mudanças, não uma, resolveram por completo (confirmado sem nenhum
+cartão em overflow em 390/768/1024/1440/1920):
+1. O degrau de 4 colunas da PLP moveu de `lg` para `xl` (1280px) — em
+   1024px a grelha continua em 3 colunas (~213px cada), que é o que cabe
+   de verdade com a barra presente. `2xl:grid-cols-5` mantido.
+2. `AdicionarAoCarrinho` em modo `comQuantidade` deixou de alternar entre
+   coluna (mobile) e linha (`md:flex-row`, 768px+) por viewport, e passa a
+   **empilhar sempre**. Um breakpoint de viewport não resolve isto: a
+   mesma largura de ecrã tem cartões largos na home (sem barra lateral) e
+   estreitos na PLP (com ela) — não há valor de `md`/`lg`/`xl` que sirva
+   para os dois ao mesmo tempo sem consulta de contentor (`@container`),
+   que não está configurada neste Tailwind. Empilhar sempre custa um
+   pouco de altura extra nos cartões largos da home; não custa nada em
+   correção.
+
+**Verificações:**
+
+| Verificação | Resultado |
+|---|---|
+| `pnpm --filter @animora/web typecheck` | ✅ 0 erros |
+| `pnpm --filter @animora/web test` | ✅ 13 arquivos, 149 testes |
+| `pnpm --filter @animora/web build` | ✅ 125 páginas |
+| `git diff --check` | ✅ sem erros de espaço em branco |
+| `pnpm --filter @animora/web lint` / `pnpm format:check` | não disponíveis (ver Fase 1) |
+
+**QA visual/interação** (Playwright, 390/768/1024/1440/1920, `/produtos` e
+`/caes`, pt e de):
+- Colunas confirmadas por `gridTemplateColumns`: 2/3/3/4/5 nas 5 larguras
+  — 1024px fica em 3 de propósito (ver achado acima), não é uma lacuna.
+- Zero cartão com `scrollWidth > clientWidth` em qualquer combinação,
+  depois da correção (antes: 10 de 12 cartões em overflow em 1024/1440/1920).
+- Breadcrumb correto nas duas rotas: "Início / Todos os produtos" em
+  `/produtos`; "Início / Todos os produtos / Cães" em `/caes`.
+  Confirmado também em `/de/caes`: "Start / Alle Produkte / Cães".
+- Subcategorias: 0 links renderizados em `/caes` — esperado, sem dado
+  real (ver achado registado abaixo).
+- "Mostrar mais": 12→24 cartões após um clique real; funciona também por
+  teclado (foco + Enter).
+- Preservação de parâmetros confirmada nos dois sentidos: ordenar em
+  `?marca=vidacao` manteve a marca (`?marca=vidacao&ordem=preco-asc`);
+  filtrar em `?ordem=preco-desc` manteve a ordenação
+  (`?marca=aquavida&ordem=preco-desc`).
+- `loading.tsx` do segmento `[locale]` confirmado em cascata para
+  `/produtos`: com a API atrasada artificialmente, o esqueleto aparece
+  durante a navegação e o conteúdo real substitui-o depois — não
+  precisou de um `loading.tsx` próprio para a PLP.
+- Folha de filtros por teclado: focar o botão "Filtros" e pressionar
+  Enter abre o `<dialog>` (confirmado num teste isolado — uma primeira
+  tentativa combinada com outro fluxo deu falso negativo por
+  interferência entre os dois, não por um problema real).
+- Nenhum erro de console em nenhuma combinação, em nenhum dos dois
+  idiomas.
+
+**Achado registado, não corrigido nesta fase — descrição real de
+categoria.** A coleção `categories` (Payload) não tem campo de descrição;
+por isso `/[categoria]` nunca teve uma frase própria por categoria. A
+frase genérica adicionada ("Produtos reais de X, com stock e preço
+sempre atualizados.") usa o nome real da categoria, não inventa dado —
+mas não é uma descrição editorial por categoria. Adicionar isso pede um
+campo novo na coleção (mudança de `apps/api`, fora do escopo de uma fase
+que só toca `apps/web`).
+
 ### Próximo passo
 
-Fase 5 — PLP — aguardando aprovação de escopo antes de qualquer
-implementação. **Não avançar automaticamente** (instrução explícita do
-usuário para esta fase).
+Fase 6 — PDP — aguardando aprovação de escopo antes de qualquer
+implementação.
