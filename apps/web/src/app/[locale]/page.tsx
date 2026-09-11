@@ -190,7 +190,7 @@ export default async function Home({ params }: Props) {
       {ofertas.length > 0 ? (
         <section id="ofertas" className="mx-auto max-w-7xl px-6 py-secao">
           <h2 className="text-titulo">{t('ofertasDaSemana')}</h2>
-          <CascataProdutos className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <CascataProdutos className="mt-8 grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
             {ofertas.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

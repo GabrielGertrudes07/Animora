@@ -6,6 +6,8 @@ import { mediaUrl } from '../../lib/api'
 import { Link } from '../../i18n/navigation'
 import { Price } from './Price'
 import { Estrelas } from './Estrelas'
+import { BotaoFavorito } from './BotaoFavorito'
+import { AdicionarAoCarrinho } from './AdicionarAoCarrinho'
 import { Icon } from '../icons/sprite'
 
 /**
@@ -32,6 +34,9 @@ export async function ProductCard({ product }: { product: PublicProduct }) {
     preco.old && preco.old > preco.cents
       ? Math.round(((preco.old - preco.cents) / preco.old) * 100)
       : null
+  // Produto sem opções reais: a variante única implícita (spec-animora.md
+  // §4.1) pode ir direto ao carrinho. Com mais de uma, a escolha é da ficha.
+  const unica = product.variants.length === 1 ? product.variants[0] : null
 
   return (
     <article
@@ -70,10 +75,11 @@ export async function ProductCard({ product }: { product: PublicProduct }) {
             sobre fotografia clara do que este verde quase preto.
 
             Um produto esgotado não anuncia desconto — daí o `else`, e não dois
-            distintivos a dividir os cantos de cima.
+            distintivos a dividir os cantos de cima. Os dois ficam à esquerda:
+            o canto direito é do botão de favorito, fora deste link.
           */}
           {stockTotal === 0 ? (
-            <span className="absolute right-3 top-3 rounded-full bg-floresta px-3 py-1 text-eyebrow font-semibold uppercase text-papel">
+            <span className="absolute left-3 top-3 rounded-full bg-floresta px-3 py-1 text-eyebrow font-semibold uppercase text-papel">
               {t('esgotado')}
             </span>
           ) : desconto ? (
@@ -83,11 +89,14 @@ export async function ProductCard({ product }: { product: PublicProduct }) {
           ) : null}
         </div>
 
-        <div className="flex flex-col gap-1.5 p-5">
+        <div className="flex flex-col gap-1.5 p-5 pb-3">
           <p className="text-eyebrow font-semibold uppercase text-ink-muted">
             {product.brand.name}
           </p>
-          <h3 className="text-base font-semibold leading-snug text-ink sm:text-lg">
+          {/* Duas linhas e reticências: um título de 50+ carateres não deve
+              esticar o cartão nem empurrar o preço para alturas diferentes na
+              mesma fiada. */}
+          <h3 className="line-clamp-2 text-base font-semibold leading-snug text-ink sm:text-lg">
             {product.title}
           </h3>
           <Estrelas resumo={avaliacao} />
@@ -99,6 +108,27 @@ export async function ProductCard({ product }: { product: PublicProduct }) {
           )}
         </div>
       </Link>
+
+      {/* Fora do `<Link>` de propósito: um botão dentro de uma ligação quebra
+          o foco por teclado e a leitura por leitor de ecrã. Posicionado sobre
+          a imagem por CSS, não por marcação. */}
+      <div className="absolute right-3 top-3 z-10">
+        <BotaoFavorito productId={product.id} compacto />
+      </div>
+
+      {/* Esgotado já foi dito pelo distintivo e pelo texto de stock acima —
+          repetir "Esgotado" aqui embaixo seria a terceira vez a dizer a
+          mesma coisa. */}
+      {unica && unica.stock > 0 ? (
+        <div className="px-5 pb-5">
+          <AdicionarAoCarrinho
+            variantId={unica.id}
+            esgotado={false}
+            etiqueta={product.title}
+            comQuantidade
+          />
+        </div>
+      ) : null}
     </article>
   )
 }

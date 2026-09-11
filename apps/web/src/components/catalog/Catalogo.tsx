@@ -135,7 +135,7 @@ export async function Catalogo({
               <EstadoVazio ilustracao="tigela" titulo={vazio.titulo} texto={vazio.texto} />
             )
           ) : (
-            <CascataProdutos className="grid grid-cols-2 gap-3 sm:gap-6 xl:grid-cols-3">
+            <CascataProdutos className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
               {produtos.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

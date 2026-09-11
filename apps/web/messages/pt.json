@@ -37,7 +37,9 @@
     "esgotado": "Esgotado",
     "adicionar": "Adicionar",
     "noCarrinho": "No carrinho",
-    "adicionarAria": "Adicionar {etiqueta} ao carrinho"
+    "adicionarAria": "Adicionar {etiqueta} ao carrinho",
+    "diminuir": "Diminuir quantidade",
+    "aumentar": "Aumentar quantidade"
   },
   "Catalogo": {
     "contagemProdutos": "{count, plural, =0 {0 produtos} one {1 produto} other {# produtos}}",
