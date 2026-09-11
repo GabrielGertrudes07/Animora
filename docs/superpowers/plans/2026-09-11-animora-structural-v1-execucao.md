@@ -211,6 +211,17 @@ footer
 
 Aceite: 2/3/4/5 colunas por faixa, sem overflow, sem reanimar toda a grid a cada filtro.
 
+**Exceção registada (comportamento adaptativo, não desvio):** com a barra
+de filtros presente (`lg`+), 1024px mantém 3 colunas em vez de 4 —
+confirmado por QA que 4 colunas nessa largura cortava o cartão
+(`ProductCard`) abaixo da sua largura mínima funcional. A regra final é:
+
+> 1024px: 3 colunas quando necessário para preservar a largura mínima
+> funcional do ProductCard; 1440px: 4; 1920px: 5.
+
+Ver `docs/CURRENT_STATE.md`, seção Fase 5, para a medição que sustenta
+esta decisão.
+
 **Gate:** revisar PLP antes de PDP.
 
 ### Fase 6 - PDP
