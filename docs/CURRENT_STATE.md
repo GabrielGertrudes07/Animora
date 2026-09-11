@@ -143,22 +143,74 @@ imagem quebrada, sem erro ou aviso de console em nenhuma.
 - PLP em 1440px mostra 3 colunas; o plano pede 4 no desktop e 5 no wide —
   gap para as Fases 3/5.
 
-### Fase 2 — Shell global (escopo aprovado 2026-09-11, execução em andamento)
+### Fase 2 — Shell global (concluída, 2026-09-11)
 
-Escopo aprovado pelo usuário:
-1. Refinar a navegação desktop existente, mantendo categorias reais e sem
-   dropdown.
-2. Tornar a busca desktop mais protagonista, respeitando o equilíbrio do
-   header em 1024/1440/1920px.
-3. Extrair a função pura de estado ativo da `BarraMobile` e criar testes.
-4. Validar teclado, foco, Escape, clique fora, toque, safe areas e
-   navegação mobile.
-5. Preservar logo, slogan, idioma, conta, carrinho, dialogs nativos e
-   tokens neutros já existentes.
-6. Não adicionar subcategorias fictícias nem alterar o seeder nesta fase.
+Escopo aprovado pelo usuário (6 itens):
 
-"Mega menu com subcategorias" fica registrado como trabalho futuro: o
-modelo de dados já suporta hierarquia (`categories.parent`), mas nenhuma
+1. **Navegação desktop existente** — mantida como estava: já é uma linha
+   real de categorias (`Header.tsx`), sem dropdown, sem dado inventado.
+   Nenhuma mudança necessária além de conviver com o novo layout da busca.
+2. **Busca desktop mais protagonista** — `Header.tsx`: o campo passou de
+   `sm:max-w-sm` ancorado à direita (384px, encostado nos ícones) para
+   `sm:max-w-lg sm:mx-auto sm:flex-1` (centrado no espaço entre logo e
+   ícones). Medido via Playwright: 389px em 1024px (38% do viewport),
+   454px em 1440px (32%) e 454px em 1920px (24%) — a largura estabiliza no
+   teto em vez de crescer sem limite. Altura do header estável em 173px
+   nos três larguras — sem desequilíbrio.
+3. **Estado ativo da `BarraMobile` extraído** —
+   `naHome`/`naConta`/`noCarrinho` (antes inline, derivados de
+   `usePathname()`) viraram a função pura
+   `estadoNavegacaoMobile(caminho)` em
+   `apps/web/src/components/layout/estadoNavegacaoMobile.ts`, com 4 testes.
+4. **Teclado/foco/Escape/clique fora/toque/safe areas** — validado via
+   Playwright, nenhum código precisou mudar:
+   - Tab order desktop (1024/1440/1920): skip-link → logo → busca →
+     idioma → conta → carrinho — idêntico nos três larguras.
+   - Alvos de toque da `BarraMobile`: 56px de altura (mínimo do plano é
+     44px) nos 5 itens.
+   - `safe-area-inset-bottom` confirmado aplicado na barra.
+   - As duas folhas (`<dialog>` nativo, categorias e pesquisa): abrir move
+     o foco para dentro do diálogo, Tab não escapa dele, Escape fecha e
+     devolve o foco ao botão que abriu, clique no backdrop real (fora da
+     caixa do próprio `<dialog>`) fecha — tudo nativo, sem uma linha de
+     JavaScript de foco escrita à mão.
+5. **Preservação** — logo, slogan, idioma, conta, carrinho, os dois
+   `<dialog>` nativos e a paleta neutra já existente: intocados.
+6. **Sem subcategoria fictícia, sem mudança no seeder** — cumprido; `git
+   diff --stat` desta fase toca só 4 arquivos.
+
+**Arquivos alterados**: `Header.tsx` (1 linha — classe do form de busca),
+`BarraMobile.tsx` (troca de 3 linhas por 1 chamada), mais os dois arquivos
+novos de `estadoNavegacaoMobile`. Diff total: 2 arquivos modificados
+(3 inserções, 4 remoções) + 2 novos.
+
+**Verificações:**
+
+| Verificação | Resultado |
+|---|---|
+| `pnpm --filter @animora/web typecheck` | ✅ 0 erros |
+| `pnpm --filter @animora/web test` | ✅ 13 arquivos, 149 testes |
+| `pnpm --filter @animora/web build` | ✅ build de produção concluído, 125 páginas |
+| `git diff --check` | ✅ sem erros de espaço em branco |
+| `pnpm --filter @animora/web lint` / `pnpm format:check` | não disponíveis neste repositório (ver Fase 1) |
+
+**QA visual/interação**: Playwright — screenshots do header em
+390/768/1440/1920 (Home/PLP/PDP, herdados da Fase 1) mais capturas
+dedicadas do header em 1024/1440/1920 e da `BarraMobile` em 390; script de
+teclado/foco cobrindo os 6 pontos do item 4 acima.
+
+**Limitação de metodologia notada e corrigida durante a QA**: a primeira
+tentativa de testar "clique fora fecha a folha" clicou 2px dentro da
+própria caixa do `<dialog>` (ainda sobre o conteúdo do cabeçalho da folha),
+não sobre o backdrop real — deu falso negativo. Corrigido clicando acima
+do topo da caixa do diálogo; o fecho por clique fora funciona corretamente.
+
+**Mega menu com subcategorias** continua registrado como trabalho futuro:
+o modelo de dados já suporta hierarquia (`categories.parent`), mas nenhuma
 das 10 categorias semeadas tem `parent` preenchido hoje (verificado via
-`SELECT count(*) FROM categories WHERE parent_id IS NOT NULL` → 0) —
-construir um dropdown agora não teria dado real para mostrar.
+`SELECT count(*) FROM categories WHERE parent_id IS NOT NULL` → 0).
+
+### Próximo passo
+
+Fase 3 — Átomos de comércio (`ProductCard`) — aguardando aprovação de
+escopo antes de qualquer implementação.

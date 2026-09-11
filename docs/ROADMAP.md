@@ -45,8 +45,8 @@ arte nova, antes de qualquer trabalho de criativos.
 |---|---|---|
 | 0 | Inventário e baseline | ✅ Concluída (2026-09-11) |
 | 1 | Sistema estrutural e `MediaPlaceholder` | ✅ Concluída (2026-09-11) |
-| 2 | Shell global (Header, barra de anúncio, navegação mobile) | 🚧 Escopo aprovado (2026-09-11), execução em andamento — ver `docs/CURRENT_STATE.md` |
-| 3 | Átomos de comércio (`ProductCard`) | ⏳ Pendente |
+| 2 | Shell global (Header, barra de anúncio, navegação mobile) | ✅ Concluída (2026-09-11) |
+| 3 | Átomos de comércio (`ProductCard`) | 🔜 Escopo em preparação para revisão — implementação não iniciada |
 | 4 | Home estrutural | ⏳ Pendente |
 | 5 | PLP | ⏳ Pendente |
 | 6 | PDP | ⏳ Pendente |
