@@ -4,13 +4,15 @@ import { PalcoCategorias } from './PalcoCategorias'
 import { MediaPlaceholder } from '../ui/MediaPlaceholder'
 
 /**
- * Categorias "de animal", uma por cartão.
+ * Categorias "de animal", um círculo por categoria (spec §7: "cada
+ * categoria usa círculo de 104–116px com placeholder de imagem, label
+ * abaixo").
  *
  * Fase estrutural v1: a cena fotográfica em `public/categorias/<slug>/`
- * (`fundo.webp` + `animal.webp`) fica de fora — o cartão usa um
+ * (`fundo.webp` + `animal.webp`) fica de fora — o círculo usa um
  * `MediaPlaceholder` neutro. Os ficheiros continuam no disco para a fase de
  * criativos; é só a troca de `<MediaPlaceholder>` por `<Image>` que os
- * traz de volta, sem mudar o resto do cartão.
+ * traz de volta, sem mudar o resto do layout.
  *
  * Antes era um componente só, com a fiada de pills encostada ao fim sem
  * título — a home estrutural pede "escolha o teu animal" e "compra por
@@ -36,27 +38,31 @@ export async function EscolhaSeuAnimal({
   return (
     <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
       <h2 className="text-titulo">{t('titulo')}</h2>
-      <p className="mt-3 max-w-leitura text-ink-muted">{t('texto')}</p>
+      <p className="mt-3 max-w-leitura text-text-muted">{t('texto')}</p>
 
-      <PalcoCategorias className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+      {/* Mobile: linha com scroll horizontal e snap por item (spec §7) — não
+          espremer 6-8 círculos num grid minúsculo. Desktop: volta a grid,
+          `overflow-visible` desliga o scroll (nada a rolar quando cabe tudo). */}
+      <PalcoCategorias className="mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:pb-0 lg:grid-cols-5">
         {animais.map((c) => (
-          <li key={c.slug} data-cartao-categoria>
+          <li key={c.slug} data-cartao-categoria className="flex w-28 shrink-0 snap-start justify-center sm:w-auto">
             <Link
               href={`/${c.slug}`}
-              className="group block overflow-hidden rounded-card active:scale-[0.98]"
+              className="group flex flex-col items-center gap-3 text-center transition-transform duration-300 ease-brand hover:-translate-y-1 focus-visible:-translate-y-1 active:scale-[0.98]"
             >
-              <span className="relative block aspect-[4/5]">
-                <span className="absolute inset-0 transition-transform duration-500 ease-loja group-hover:scale-[1.04] group-focus-visible:scale-[1.04]">
-                  <MediaPlaceholder ratio="4/5" type="category" fill />
+              {/* Círculo 112px (dentro do intervalo 104-116px da spec). A
+                  sombra só aparece no hover — em repouso o círculo é plano. */}
+              <span className="block h-28 w-28 overflow-hidden rounded-pill transition-shadow duration-300 ease-brand group-hover:shadow-card group-focus-visible:shadow-card">
+                <span className="block h-full w-full transition-transform duration-300 ease-brand group-hover:scale-[1.03] group-focus-visible:scale-[1.03]">
+                  <MediaPlaceholder ratio="1/1" type="category" />
                 </span>
+              </span>
 
-                {/* Sem fotografia por baixo, a etiqueta lê-se em tinta escura
-                    sobre o próprio placeholder em vez de branco sobre véu. */}
-                <span className="absolute bottom-3 left-3 text-ink transition-transform duration-300 ease-loja group-hover:-translate-y-1">
-                  <span className="block text-base font-bold sm:text-lg">{c.name}</span>
-                  <span className="block text-xs tabular-nums text-ink-muted">
-                    {t('produtos', { count: contagens[c.slug] ?? 0 })}
-                  </span>
+              {/* Label fora do círculo, nunca sobreposto ao placeholder. */}
+              <span>
+                <span className="block text-sm font-semibold text-text">{c.name}</span>
+                <span className="block text-xs tabular-nums text-text-muted">
+                  {t('produtos', { count: contagens[c.slug] ?? 0 })}
                 </span>
               </span>
             </Link>
@@ -76,14 +82,14 @@ export async function ComprarPorNecessidade({ categorias }: { categorias: Catego
   return (
     <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
       <h2 className="text-titulo">{t('titulo')}</h2>
-      <p className="mt-3 max-w-leitura text-ink-muted">{t('texto')}</p>
+      <p className="mt-3 max-w-leitura text-text-muted">{t('texto')}</p>
 
       <ul className="mt-6 flex flex-wrap gap-2">
         {porNecessidade.map((c) => (
           <li key={c.slug}>
             <Link
               href={`/${c.slug}`}
-              className="block rounded-full border border-line px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:border-terracota hover:text-ink"
+              className="block rounded-full border border-border px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:border-orange hover:text-teal-900"
             >
               {c.name}
             </Link>
