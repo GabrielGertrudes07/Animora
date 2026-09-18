@@ -106,6 +106,35 @@ export default {
         // troca de identidade.
         brand: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
       },
+      /**
+       * Animação do Hero em CSS puro (sem GSAP) — o padrão pedido pelo
+       * Gabriel, calcado no `Hero`/`HeroMedia` do vivapapelcor
+       * (`Vivapapelcor/web/src/app/globals.css`): uma camada entra (fade +
+       * translateY + leve rotação a partir de `--tilt`), depois flutua em
+       * loop (`--sway`). `cubic-bezier(0.445, 0.05, 0.55, 0.95)` é a curva
+       * seno usada lá para movimento contínuo — acelera/desacelera devagar,
+       * sem a sensação de "mola mecânica" que o `ease-in-out` padrão tem em
+       * loop.
+       */
+      keyframes: {
+        'hero-enter': {
+          from: { opacity: '0', transform: 'translateY(28px) scale(0.92) rotate(var(--tilt, 0deg))' },
+          to: { opacity: '1', transform: 'translateY(0) scale(1) rotate(0deg)' },
+        },
+        'hero-float': {
+          '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+          '50%': { transform: 'translateY(-6px) rotate(var(--sway, 0deg))' },
+        },
+        'hero-copy': {
+          from: { opacity: '0', transform: 'translateY(14px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'hero-enter': 'hero-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'hero-float': 'hero-float 4s cubic-bezier(0.445, 0.05, 0.55, 0.95) infinite',
+        'hero-copy': 'hero-copy 0.6s cubic-bezier(0.22, 1, 0.36, 1) both',
+      },
     },
   },
   plugins: [],
