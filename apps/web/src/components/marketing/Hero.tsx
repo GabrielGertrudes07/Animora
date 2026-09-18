@@ -229,7 +229,7 @@ export function Hero() {
       {/* Desktop/tablet — poster fiel ao canvas de referência, animado */}
       <div
         ref={palco}
-        className="relative hidden aspect-[2172/724] w-full overflow-hidden sm:block [container-type:inline-size]"
+        className="relative hidden aspect-[2172/560] w-full overflow-hidden sm:block [container-type:inline-size]"
       >
         <Image src="/banner-promo/fundo.webp" alt="" aria-hidden fill priority sizes="100vw" className="object-cover" />
 
