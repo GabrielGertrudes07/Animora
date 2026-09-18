@@ -23,7 +23,17 @@ export default {
         cream: '#FDF3EC',
         // A única cor de ação da loja: se algo é laranja, é clicável ou está
         // ativo. `hover` é o tom mais escuro — mais escrutínio, mais peso.
+        //
+        // `orange`/`orange-hover` são as cores de marca "puras" — válidas
+        // para uso decorativo (ícones, acentos, sublinhados, fundos sem
+        // texto branco por cima), mas texto branco sobre `orange.DEFAULT`
+        // dá só 2,70:1 de contraste, abaixo do 3:1 que o WCAG AA pede mesmo
+        // a texto grande (achado confirmado por cálculo, não pela alegação
+        // original da spec de que passava). Qualquer superfície que leve
+        // texto branco por cima usa `orange-deep` (`#B85800`, 4,73:1 com
+        // branco — passa AA de texto normal), não `orange`.
         orange: { DEFAULT: '#F57C00', hover: '#E96F00' },
+        'orange-deep': '#B85800',
         // Teal faz o trabalho que `ink`/`sage` faziam: estrutura, títulos e
         // apoio. Dois tons só, sem escala intermédia.
         'teal-900': '#085B6B',

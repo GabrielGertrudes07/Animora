@@ -57,23 +57,30 @@
     nada a brilhar.
   */
   /*
-    Repouso em `orange.DEFAULT`, texto branco: contraste real calculado é
-    2,70:1 (abaixo do 4,5:1 que o WCAG AA pede a texto normal — e mesmo do
-    3:1 de texto grande). Nenhuma cor de texto da paleta nova passa 4,5:1
-    sobre `#F57C00` (`text`, a mais escura, dá 4,26:1); é um défice herdado
-    dos valores fixos da spec (§5 do documento de design), não algo que esta
-    tarefa de fundação resolve inventando uma cor nova. Mantido conforme a
-    spec pede — texto branco sobre laranja chapado — com o défice registado
-    aqui para uma tarefa de acessibilidade decidir (peso/tamanho do rótulo
-    para qualificar como "texto grande", ou ajuste de tom).
+    Texto branco sobre `orange.DEFAULT` (`#F57C00`) dá só 2,70:1 de
+    contraste — abaixo do 4,5:1 que o WCAG AA pede a texto normal, e abaixo
+    até do 3:1 de texto grande (achado confirmado por cálculo, não a
+    alegação original da spec de que passava). Nenhuma cor de texto da
+    paleta nova chega a 4,5:1 sobre `orange` (`text`, a mais escura, dá só
+    4,26:1) — por isso entrou `orange-deep` (`#B85800`, 4,73:1 com branco),
+    só para esta função: repouso de qualquer superfície com texto branco.
+    `orange`/`orange-hover` continuam a existir para uso decorativo (ícones,
+    acentos, fundos sem texto por cima) onde o contraste não se aplica.
+  */
+  /*
+    Repouso em `orange-deep`, hover em `orange.DEFAULT`: o botão "ganha luz"
+    no gesto — o mesmo padrão que o sistema antigo já usava (repousava no
+    tom escuro por contraste, hover no tom claro, mais escrutinado o gesto
+    momentâneo do que o repouso, que é o que fica na tela o tempo todo), só
+    que agora com os tokens novos.
   */
   .botao-principal {
     @apply inline-block rounded-full px-6 py-3 text-center font-semibold text-white;
-    background-color: theme('colors.orange.DEFAULT');
+    background-color: theme('colors.orange-deep');
     transition: background-color 180ms var(--curva);
   }
   .botao-principal:hover {
-    background-color: theme('colors.orange.hover');
+    background-color: theme('colors.orange.DEFAULT');
   }
   /* Pressionado afunda um pixel, e mais nada. */
   .botao-principal:active {
