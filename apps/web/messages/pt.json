@@ -272,10 +272,19 @@
     "verCategoria": "Ver categoria"
   },
   "Hero": {
-    "eyebrow": "Animora",
-    "titulo": "Tudo o que o teu animal precisa, num só sítio",
-    "texto": "Alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais — com stock e preço sempre reais.",
-    "cta": "Ver todos os produtos"
+    "topBarText": "Retire na loja e ganhe <b>+5% OFF*</b> nas compras acima de R$ 199",
+    "data": "11 A 20 DE SETEMBRO",
+    "headline1": "SEMANA",
+    "headline2": "ANIMORA",
+    "subtitulo": "Mais amor para cada momento",
+    "ofertaLabel": "Ofertas até",
+    "ofertaValor": "50%",
+    "ofertaOff": "OFF",
+    "cta": "Aproveite",
+    "feature1": "Tudo para seu pet",
+    "feature2": "Entrega para todo o Brasil",
+    "feature3": "Pets mais felizes sempre",
+    "manuscrito": "Pets transformam dias comuns em dias incríveis"
   },
   "Beneficios": {
     "envioTitulo": "Envio grátis acima de {valor}",

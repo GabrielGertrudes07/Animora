@@ -63,7 +63,7 @@ Tipografia: `font-display` = Fredoka (700/800), `font-sans` = Montserrat (400–
 
 ---
 
-## Task A: Fundação — tokens, tipografia, base CSS
+## Task 1: Fundação — tokens, tipografia, base CSS
 
 **Files:**
 - Modify: `apps/web/tailwind.config.ts`
@@ -97,7 +97,7 @@ git commit -m "feat(design): tokens laranja/teal, Fredoka/Montserrat/Caveat"
 
 ---
 
-## Task B: Cliente Shopify Storefront (scaffold, sem dado real)
+## Task 2: Cliente Shopify Storefront (scaffold, sem dado real)
 
 **Files:**
 - Create: `apps/web/src/lib/shopify/client.ts`
@@ -234,7 +234,7 @@ git commit -m "feat(shopify): scaffold do cliente Storefront GraphQL, sem dado l
 
 ---
 
-## Task C: Announcement bar + Header + navegação
+## Task 3: Announcement bar + Header + navegação
 
 **Depends on:** Task A.
 
@@ -256,7 +256,7 @@ git commit -m "feat(shopify): scaffold do cliente Storefront GraphQL, sem dado l
 
 ---
 
-## Task D: Navegação mobile + Footer
+## Task 4: Navegação mobile + Footer
 
 **Depends on:** Task A.
 
@@ -273,7 +273,7 @@ git commit -m "feat(shopify): scaffold do cliente Storefront GraphQL, sem dado l
 
 ---
 
-## Task E: Hero em camadas
+## Task 5: Hero em camadas
 
 **Depends on:** Task A.
 
@@ -340,7 +340,7 @@ export async function Hero({ href, hrefSecundario }: { href: string; hrefSecunda
 
 ---
 
-## Task F: Categorias visuais
+## Task 6: Categorias visuais
 
 **Depends on:** Task A.
 
@@ -356,7 +356,7 @@ export async function Hero({ href, hrefSecundario }: { href: string; hrefSecunda
 
 ---
 
-## Task G: ProductCard + tabs de produtos
+## Task 7: ProductCard + tabs de produtos
 
 **Depends on:** Task A.
 
@@ -443,7 +443,7 @@ export function ProductTabs({ grupos }: { grupos: Grupo[] }) {
 
 ---
 
-## Task H: Banners secundários, marcas e benefícios
+## Task 8: Banners secundários, marcas e benefícios
 
 **Depends on:** Task A.
 
@@ -464,7 +464,7 @@ export function ProductTabs({ grupos }: { grupos: Grupo[] }) {
 
 ---
 
-## Task I: Testemunhos e vistos recentemente (polimento)
+## Task 9: Testemunhos e vistos recentemente (polimento)
 
 **Depends on:** Task A.
 
@@ -479,7 +479,7 @@ export function ProductTabs({ grupos }: { grupos: Grupo[] }) {
 
 ---
 
-## Task J: Integração da Home (só depois de E, F, G, H concluídas)
+## Task 10: Integração da Home (só depois de E, F, G, H concluídas)
 
 **Depends on:** Tasks A, E, F, G, H (e idealmente C, D, I para a página inteira bater a compasso, mas não é bloqueante tecnicamente).
 

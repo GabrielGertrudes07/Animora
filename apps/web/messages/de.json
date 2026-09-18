@@ -272,10 +272,19 @@
     "verCategoria": "Kategorie ansehen"
   },
   "Hero": {
-    "eyebrow": "Animora",
-    "titulo": "Alles, was dein Tier braucht, an einem Ort",
-    "texto": "Futter, Zubehör, Pflege und Training für Hunde, Katzen, Vögel und Kleintiere — mit immer echtem Bestand und Preis.",
-    "cta": "Alle Produkte ansehen"
+    "topBarText": "Im Laden abholen und <b>+5% Rabatt*</b> erhalten bei Einkäufen ab R$ 199",
+    "data": "11. BIS 20. SEPTEMBER",
+    "headline1": "WOCHE",
+    "headline2": "ANIMORA",
+    "subtitulo": "Mehr Liebe für jeden Moment",
+    "ofertaLabel": "Angebote bis zu",
+    "ofertaValor": "50%",
+    "ofertaOff": "RABATT",
+    "cta": "Jetzt sichern",
+    "feature1": "Alles für dein Tier",
+    "feature2": "Lieferung in ganz Brasilien",
+    "feature3": "Immer glücklichere Tiere",
+    "manuscrito": "Haustiere machen aus normalen Tagen unvergessliche Tage"
   },
   "Beneficios": {
     "envioTitulo": "Gratisversand ab {valor}",

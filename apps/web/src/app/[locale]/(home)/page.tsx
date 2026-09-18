@@ -4,7 +4,7 @@ import type { ResumoAvaliacoes } from '@animora/core'
 import { Link } from '../../../i18n/navigation'
 import { ProductCard } from '../../../components/ui/ProductCard'
 import { CascataProdutos } from '../../../components/motion/CascataProdutos'
-import { CarrosselCampanhas } from '../../../components/marketing/CarrosselCampanhas'
+import { Hero } from '../../../components/marketing/Hero'
 import { EscolhaSeuAnimal, ComprarPorNecessidade } from '../../../components/marketing/CategoriasVisuais'
 import { SecaoCampanha } from '../../../components/marketing/SecaoCampanha'
 import { DestaquesPorCategoria } from '../../../components/marketing/DestaquesPorCategoria'
@@ -27,19 +27,16 @@ type Props = { params: Promise<{ locale: string }> }
  * composição — não foram apagados, só pararam de ser importados aqui. Ver
  * `docs/CURRENT_STATE.md` §Fase 4.
  *
- * O herói voltou a ser `CarrosselCampanhas` (início da fase de criativos,
- * primeira imagem real na home): um slide só, cão real sobre fotografia real
- * de sala de estar — a mesma copy já escrita para "slide2" (`Header`
- * `CarrosselCampanhas`, nunca usada até agora) por já falar de cães. Ver
- * `docs/CURRENT_STATE.md` §Fase de criativos.
+ * O herói é agora o banner de campanha "Semana Animora" (`Hero`), no lugar do
+ * `CarrosselCampanhas` (cão dourado / sala de estar) — este último continua a
+ * existir para os outros slides já escritos, só parou de ser importado aqui.
  */
 export default async function Home({ params }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
 
-  const [t, tCampanha, todos, categorias] = await Promise.all([
+  const [t, todos, categorias] = await Promise.all([
     getTranslations('Home'),
-    getTranslations('CarrosselCampanhas'),
     listProducts({ ordem: 'relevancia' }),
     listCategories(),
   ])
@@ -95,43 +92,7 @@ export default async function Home({ params }: Props) {
           },
         ]}
       />
-      <CarrosselCampanhas
-        slides={[
-          {
-            id: 'cao-dourado',
-            href: '/caes',
-            hrefSecundario: '/produtos',
-            eyebrow: tCampanha('slide2Eyebrow'),
-            titulo: tCampanha('slide2Titulo'),
-            texto: tCampanha('slide2Texto'),
-            ctaPrincipal: tCampanha('slide2CtaPrincipal'),
-            ctaSecundario: tCampanha('slide2CtaSecundario'),
-            alt: tCampanha('slide2Alt'),
-            fotografia: '/banner/sala-estar.webp',
-            pets: [
-              {
-                animal: '/banner/cao-dourado.webp',
-                sombra: '/banner/cao-dourado-sombra.webp',
-                largura: 720,
-                altura: 900,
-                classe: 'bottom-[3%] left-1/2 w-[36%] -translate-x-1/2 aspect-[4/5]',
-                apoio: '50% 97%',
-              },
-            ],
-            decoracoesFundo: [
-              {
-                src: '/banner/decoracao-mancha.webp',
-                classe: 'bottom-[8%] left-1/2 w-[54%] -translate-x-1/2 aspect-[3/2] opacity-50',
-              },
-            ],
-            decoracoes: [
-              { src: '/banner/decoracao-sparkle.webp', classe: 'top-[8%] right-[7%] w-[10%] aspect-square' },
-              { src: '/banner/decoracao-folha.webp', classe: 'top-[9%] left-[6%] w-[12%] aspect-square' },
-              { src: '/banner/bolinha-tenis.webp', classe: 'bottom-[9%] left-[63%] w-[8%] aspect-square' },
-            ],
-          },
-        ]}
-      />
+      <Hero />
 
       <VistosRecentemente />
 
