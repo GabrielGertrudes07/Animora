@@ -52,8 +52,8 @@ export async function AprovadoPorQuemManda() {
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-      <h2 className="text-titulo text-ink">{t('titulo')}</h2>
-      <p className="mt-3 max-w-xl text-ink-muted">{t('texto')}</p>
+      <h2 className="text-titulo text-text">{t('titulo')}</h2>
+      <p className="mt-3 max-w-xl text-text-muted">{t('texto')}</p>
 
       {avaliacaoLoja.media !== null ? (
         <div className="mt-5 flex items-center gap-2">
@@ -63,15 +63,15 @@ export async function AprovadoPorQuemManda() {
 
       <ul className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-4">
         {testemunhos.map((tst) => (
-          <li key={tst.assinatura} className="overflow-hidden rounded-card border border-line bg-white">
+          <li key={tst.assinatura} className="overflow-hidden rounded-lg border border-border bg-white">
             <div className="relative aspect-square">
               {/* Fase estrutural v1: sem fotografia (`tst.src`/`tst.alt`
                   preservados para a fase de criativos). */}
               <MediaPlaceholder ratio="1/1" type="testimonial" fill />
             </div>
             <div className="p-4">
-              <p className="text-sm font-semibold leading-snug text-ink">{tst.fala}</p>
-              <p className="mt-2 text-xs text-ink-muted">{tst.assinatura}</p>
+              <p className="text-sm font-semibold leading-snug text-text">{tst.fala}</p>
+              <p className="mt-2 text-xs text-text-muted">{tst.assinatura}</p>
             </div>
           </li>
         ))}

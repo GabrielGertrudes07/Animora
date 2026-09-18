@@ -37,7 +37,7 @@ export function VistosRecentemente({ excluirId }: { excluirId?: number }) {
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-      <h2 className="text-titulo text-ink">{t('titulo')}</h2>
+      <h2 className="text-titulo text-text">{t('titulo')}</h2>
       <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
         {produtos.map((p) => {
           const preco = precoDeMostra(p.variants)
@@ -45,7 +45,7 @@ export function VistosRecentemente({ excluirId }: { excluirId?: number }) {
 
           return (
             <Link key={p.id} href={`/produto/${p.slug}`} className="group block">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-papel">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-cream">
                 {img ? (
                   <Image
                     src={mediaUrl(img.url)}
@@ -53,17 +53,17 @@ export function VistosRecentemente({ excluirId }: { excluirId?: number }) {
                     width={img.width ?? 600}
                     height={img.height ?? 600}
                     sizes="(min-width: 1536px) 20vw, (min-width: 768px) 33vw, 50vw"
-                    className="h-full w-full object-cover transition-transform duration-500 ease-loja group-hover:scale-[1.03]"
+                    className="h-full w-full object-cover transition-transform duration-500 ease-brand group-hover:scale-[1.03]"
                   />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center text-sage/40">
+                  <span className="flex h-full w-full items-center justify-center text-teal-700/40">
                     <Icon name="paw" className="h-16 w-16" />
                   </span>
                 )}
               </div>
-              <p className="mt-2 text-eyebrow font-semibold uppercase text-ink-muted">{p.brand.name}</p>
-              <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-ink">{p.title}</h3>
-              <p className="mt-1 text-sm font-bold tabular-nums text-ink">
+              <p className="mt-2 text-eyebrow font-semibold uppercase text-text-muted">{p.brand.name}</p>
+              <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-text">{p.title}</h3>
+              <p className="mt-1 text-sm font-bold tabular-nums text-text">
                 {preco.desde ? `${t('desde')} ` : ''}
                 {formatEuros(preco.cents)}
               </p>
