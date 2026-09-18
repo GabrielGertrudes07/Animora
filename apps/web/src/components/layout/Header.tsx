@@ -16,17 +16,28 @@ import { Icon } from '../icons/sprite'
  * próprio (`overflow-x-auto`) em vez de espremer a página inteira: a página
  * nunca ganha scroll horizontal, só esta barra.
  *
- * A barra de aviso do topo era a terceira faixa escura da página — floresta
- * com um nascer do sol em gradiente radial e um fio dourado a fechar em baixo.
- * Somada ao balcão e à fiada de categorias, dava cento e sessenta píxeis de
- * cromo antes de qualquer conteúdo. Agora é uma linha em papel: diz o que tem
- * a dizer e não disputa a atenção do herói.
+ * A barra de aviso do topo usa `orange-deep`, não `orange`: texto branco
+ * sobre `orange` dá só 2,70:1 de contraste (falha WCAG AA), sobre
+ * `orange-deep` dá 4,74:1 (passa). Em mobile mostra só a mensagem principal
+ * (envio grátis) — slogan e "dados protegidos" ficam para `sm:` para cima,
+ * por pedido explícito da spec de remover conteúdo secundário no telemóvel.
  *
  * Três factos, não três promessas: envio grátis (real, `ENVIO_GRATIS_ACIMA_DE`),
  * o slogan da loja (não é um facto, é só quem a loja é) e "conta e dados
  * protegidos" — a mesma frase já usada em `Beneficios.tsx`, nunca "apoio ao
  * cliente" ou coisa parecida, que a loja não tem hoje (ver o comentário do
  * `Footer.tsx` sobre não fingir páginas de apoio que não existem).
+ *
+ * Sem item "Ofertas" na navegação de categorias: a spec original pede-o,
+ * mas não existe categoria/rota "ofertas" nos dados reais (`listCategories`,
+ * via `/api/categories`) — só um filtro de produtos com desconto usado na
+ * home (`page.tsx`). Inventar aqui uma categoria ou rota que não existe
+ * violaria a regra de não hardcodar dado que devia vir da base. Do mesmo
+ * modo, a navegação fica em lista simples, sem mega menu de agrupamentos
+ * (Alimentação/Diversão/Cuidados/...): as categorias reais não têm
+ * hierarquia (`parent` é sempre `null` na base atual), então qualquer
+ * agrupamento visual seria inventado. Ambos ficam registados como pendência
+ * de dados, não como desvio silencioso.
  *
  * `logo-cabecalho.png` é o `logo.png` original sem a legenda alemã
  * ("Haustierbedarf") que vinha por baixo do nome — um resto de um genérico
@@ -48,24 +59,30 @@ export async function Header() {
 
   return (
     <>
-      <header className="border-b border-line bg-white">
-        <div className="border-b border-line bg-papel px-4 py-2 sm:px-6">
-          <ul className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-6 gap-y-1 text-xs font-medium text-ink-muted">
+      <header className="bg-surface">
+        {/* Barra promocional: 34-38px, orange-deep + texto branco (contraste
+            AA — ver comentário acima). Slogan e "dados protegidos" só a
+            partir de `sm`, mobile fica só com o envio grátis. */}
+        <div className="bg-orange-deep px-4 py-2 sm:px-6">
+          <ul className="mx-auto flex min-h-[34px] max-w-7xl flex-wrap items-center justify-center gap-x-6 gap-y-1 text-[13px] font-medium text-white sm:min-h-[38px] sm:text-sm">
             <li className="flex items-center gap-1.5">
               <Icon name="cart" className="h-3.5 w-3.5 shrink-0" />
               {t('barraEnvio', { valor: formatEuros(ENVIO_GRATIS_ACIMA_DE) })}
             </li>
-            <li className="flex items-center gap-1.5">
+            <li className="hidden items-center gap-1.5 sm:flex">
               <Icon name="paw" className="h-3.5 w-3.5 shrink-0" />
               {t('slogan')}
             </li>
-            <li className="flex items-center gap-1.5">
+            <li className="hidden items-center gap-1.5 sm:flex">
               <Icon name="shield" className="h-3.5 w-3.5 shrink-0" />
               {t('barraDados')}
             </li>
           </ul>
         </div>
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-6 py-4">
+
+        {/* Header principal: 64px mobile, 80px desktop (dentro do intervalo
+            76-84px pedido), border-b sutil, sem sombra. */}
+        <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center gap-4 border-b border-border px-6 py-3 sm:min-h-20 sm:py-4">
           <Link
             href="/"
             className="flex min-h-11 shrink-0 flex-col justify-center"
@@ -79,7 +96,7 @@ export async function Header() {
               className="h-9 w-auto sm:h-11"
               priority
             />
-            <span className="mt-0.5 hidden pl-1 text-xs font-medium text-ink-muted lg:block">
+            <span className="mt-0.5 hidden pl-1 text-xs font-medium text-text-muted lg:block">
               {t('slogan')}
             </span>
           </Link>
@@ -87,15 +104,15 @@ export async function Header() {
           <form
             action={acaoPesquisa}
             method="get"
-            className="order-3 hidden w-full items-center gap-2 sm:flex rounded-full border border-line bg-papel/60 px-4 py-2.5 transition-colors focus-within:border-terracota sm:order-none sm:mx-auto sm:max-w-lg sm:flex-1"
+            className="order-3 hidden w-full items-center gap-2 rounded-pill border border-border bg-cream px-4 py-2.5 transition-colors focus-within:border-orange sm:order-none sm:mx-auto sm:flex sm:max-w-lg sm:flex-1"
           >
-            <Icon name="search" className="h-4 w-4 shrink-0 text-ink-muted" />
+            <Icon name="search" className="h-4 w-4 shrink-0 text-text-muted" />
             <input
               type="search"
               name="q"
               placeholder={t('pesquisarPlaceholder')}
               aria-label={t('pesquisarAria')}
-              className="w-full min-w-0 bg-transparent text-sm text-ink placeholder:text-ink-muted focus:outline-none"
+              className="w-full min-w-0 bg-transparent text-sm text-text placeholder:text-text-muted focus:outline-none"
             />
           </form>
 
@@ -103,7 +120,7 @@ export async function Header() {
             <SeletorIdioma />
             <Link
               href="/conta"
-              className="hidden items-center gap-2 rounded-campo px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink sm:flex"
+              className="hidden min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-3 py-2 text-sm font-medium text-text-muted transition-colors hover:text-text sm:flex"
             >
               <Icon name="paw" className="h-5 w-5" />
               <span className="hidden sm:inline">{t('conta')}</span>
@@ -116,15 +133,15 @@ export async function Header() {
 
         <nav
           aria-label={t('categoriasAria')}
-          className="hidden border-t border-line sm:block"
+          className="hidden border-b border-border sm:block"
         >
-          <ul className="mx-auto flex max-w-7xl gap-1 overflow-x-auto whitespace-nowrap px-6 py-2 text-sm">
+          <ul className="mx-auto flex min-h-[42px] max-w-7xl items-center gap-1 overflow-x-auto whitespace-nowrap px-6 text-sm font-medium sm:min-h-[46px]">
             {/* Primeiro item, sempre: a loja inteira. Sem ele só se chegava a
               produtos escolhendo primeiro uma categoria. */}
             <li className="shrink-0">
               <Link
                 href="/produtos"
-                className="block rounded-campo px-3 py-1.5 font-medium text-ink transition-colors hover:bg-papel"
+                className="block rounded-sm px-3 py-1.5 text-text transition-colors hover:bg-cream"
               >
                 {t('todosOsProdutos')}
               </Link>
@@ -133,7 +150,7 @@ export async function Header() {
               <li key={c.slug} className="shrink-0">
                 <Link
                   href={`/${c.slug}`}
-                  className="block rounded-campo px-3 py-1.5 text-ink-muted transition-colors hover:bg-papel hover:text-ink"
+                  className="block rounded-sm px-3 py-1.5 text-text-muted transition-colors hover:bg-cream hover:text-text"
                 >
                   {c.name}
                 </Link>
