@@ -11,6 +11,8 @@ import { DestaquesPorCategoria } from '../../../components/marketing/DestaquesPo
 import { AprovadoPorQuemManda } from '../../../components/marketing/AprovadoPorQuemManda'
 import { Beneficios } from '../../../components/marketing/Beneficios'
 import { VistosRecentemente } from '../../../components/marketing/VistosRecentemente'
+import { ProductTabs } from '../../../components/home/ProductTabs'
+import { Marcas } from '../../../components/marketing/Marcas'
 import { JsonLd } from '../../../components/seo/JsonLd'
 import { SITE_URL } from '../../../lib/seo'
 
@@ -19,9 +21,9 @@ type Props = { params: Promise<{ locale: string }> }
 /**
  * A home estrutural (spec `docs/superpowers/plans/2026-09-11-animora-structural-v1-execucao.md`,
  * Fase 4). Ordem fixa: herói, escolha o teu animal, compra por necessidade,
- * mais vendidos, campanha, ofertas da semana, destaques por categoria,
- * segunda campanha/editorial, aprovado por quem manda, marcas, benefícios —
- * o cabeçalho e o rodapé vivem no `layout.tsx`, fora desta página.
+ * produtos (em destaque/ofertas/novidades, em abas), campanha, destaques por
+ * categoria, segunda campanha/editorial, aprovado por quem manda, marcas,
+ * benefícios — o cabeçalho e o rodapé vivem no `layout.tsx`, fora desta página.
  *
  * `ProvaSocial` como secção à parte e "escolhas da casa" continuam fora da
  * composição — não foram apagados, só pararam de ser importados aqui. Ver
@@ -59,9 +61,13 @@ export default async function Home({ params }: Props) {
    */
   const emDestaque = todos.filter((p) => !ofertas.some((o) => o.id === p.id)).slice(0, 4)
 
-  // Uma leitura em lote para os dois grupos de cartões desta página — não
-  // uma por cartão (era N+1: 8 leituras de avaliação por carga da home).
-  const avaliacoes = await getAvaliacoesEmLote([...emDestaque, ...ofertas].map((p) => p.id))
+  // "Novidades" — os 4 produtos mais recentes do catálogo, sem excluir os
+  // que já apareçam em destaque/ofertas (cada aba é independente).
+  const novidades = [...todos].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4)
+
+  // Uma leitura em lote para os três grupos de cartões desta página — não
+  // uma por cartão (era N+1: leituras de avaliação por carga da home).
+  const avaliacoes = await getAvaliacoesEmLote([...emDestaque, ...ofertas, ...novidades].map((p) => p.id))
   const SEM_AVALIACAO: ResumoAvaliacoes = { media: null, total: 0 }
 
   const marcas = marcasDisponiveis(todos)
@@ -73,6 +79,22 @@ export default async function Home({ params }: Props) {
   for (const p of todos) {
     for (const c of p.categories) contagens[c.slug] = (contagens[c.slug] ?? 0) + 1
   }
+
+  const grade = (produtos: typeof todos) => (
+    <CascataProdutos className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
+      {produtos.map((p) => (
+        <ProductCard key={p.id} product={p} avaliacao={avaliacoes.get(p.id) ?? SEM_AVALIACAO} />
+      ))}
+    </CascataProdutos>
+  )
+
+  // Só entram no seletor de abas os grupos com produtos — um grupo vazio
+  // seria uma aba sem nada lá dentro.
+  const gruposProdutos = [
+    emDestaque.length > 0 ? { chave: 'destaque', titulo: t('emDestaque'), produtos: grade(emDestaque) } : null,
+    ofertas.length > 0 ? { chave: 'ofertas', titulo: t('ofertasDaSemana'), produtos: grade(ofertas) } : null,
+    novidades.length > 0 ? { chave: 'novidades', titulo: t('novidades'), produtos: grade(novidades) } : null,
+  ].filter((g): g is NonNullable<typeof g> => g !== null)
 
   return (
     <main id="conteudo">
@@ -99,10 +121,10 @@ export default async function Home({ params }: Props) {
       <EscolhaSeuAnimal categorias={categorias} contagens={contagens} />
       <ComprarPorNecessidade categorias={categorias} />
 
-      {emDestaque.length > 0 ? (
+      {gruposProdutos.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-titulo text-ink">{t('emDestaque')}</h2>
+          <ProductTabs grupos={gruposProdutos} />
+          <div className="mt-8 text-center">
             <Link
               href="/produtos"
               className="text-sm font-semibold text-ink underline underline-offset-4 transition-colors hover:text-terracota-dark"
@@ -110,11 +132,6 @@ export default async function Home({ params }: Props) {
               {t('verTodosOsProdutos')}
             </Link>
           </div>
-          <CascataProdutos className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
-            {emDestaque.map((p) => (
-              <ProductCard key={p.id} product={p} avaliacao={avaliacoes.get(p.id) ?? SEM_AVALIACAO} />
-            ))}
-          </CascataProdutos>
         </section>
       ) : null}
 
@@ -125,25 +142,6 @@ export default async function Home({ params }: Props) {
         ctaTexto={t('campanha1Cta')}
         ctaHref="/produtos"
       />
-
-      {ofertas.length > 0 ? (
-        <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-titulo text-ink">{t('ofertasDaSemana')}</h2>
-            <Link
-              href="/produtos"
-              className="text-sm font-semibold text-ink underline underline-offset-4 transition-colors hover:text-terracota-dark"
-            >
-              {t('verTodosOsProdutos')}
-            </Link>
-          </div>
-          <CascataProdutos className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
-            {ofertas.map((p) => (
-              <ProductCard key={p.id} product={p} avaliacao={avaliacoes.get(p.id) ?? SEM_AVALIACAO} />
-            ))}
-          </CascataProdutos>
-        </section>
-      ) : null}
 
       <DestaquesPorCategoria categorias={categorias} />
 
@@ -158,25 +156,7 @@ export default async function Home({ params }: Props) {
 
       <AprovadoPorQuemManda />
 
-      {marcas.length > 0 ? (
-        <section className="border-t border-line px-4 py-secao text-center sm:px-6">
-          <p className="mx-auto max-w-7xl text-eyebrow font-semibold uppercase text-ink-muted/70">
-            {t('marcasEmQueConfiamos')}
-          </p>
-          <ul className="mx-auto mt-6 flex max-w-7xl flex-wrap justify-center gap-x-8 gap-y-3">
-            {marcas.map((m) => (
-              <li key={m.slug}>
-                <Link
-                  href={`/produtos?marca=${m.slug}`}
-                  className="font-display text-lg font-semibold text-ink-muted transition-colors hover:text-ink"
-                >
-                  {m.nome}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <Marcas marcas={marcas} />
 
       <Beneficios />
     </main>
