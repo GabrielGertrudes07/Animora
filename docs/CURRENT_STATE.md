@@ -1123,3 +1123,96 @@ de desenvolvimento serve), rodar
 `pnpm --filter @animora/api shopify:validar` e seguir
 `docs/superpowers/plans/2026-08-29-catalogo-shopify-espelho.md` a
 partir da Task 3. Não é preciso replanear nem redesenhar nada.
+
+## Identidade laranja/teal (2026-09-18)
+
+**Origem:** especificação técnica definitiva entregue pelo utilizador
+(`~/Downloads/Animora_Ecommerce_Especificacao_Tecnica.{md,docx}`),
+adaptada em `docs/superpowers/specs/2026-09-18-identidade-laranja-teal-design.md`
+e executada via `docs/superpowers/plans/2026-09-18-identidade-laranja-teal.md`
+(subagent-driven development, 9 tarefas + revisão final de todo o
+branch, sem gate de aprovação intermédio — instrução explícita do
+utilizador para esta execução). Branch: `feat/identidade-laranja-teal`.
+
+**O que mudou:**
+- Tokens Tailwind: paleta inteira substituída (`ink`/`terracota`/`sage`/
+  `papel`/`line`/`floresta` → `bg`/`surface`/`cream`/`orange`/`orange-deep`/
+  `teal-900`/`teal-700`/`aqua`/`text`/`text-muted`/`border`), tipografia
+  Bricolage Grotesque/Figtree → Fredoka/Montserrat/Caveat. Sem aliases —
+  os tokens antigos deixaram de existir em `tailwind.config.ts`. Detalhe
+  completo e regras de uso em `apps/web/DESIGN.md`.
+- Shell (barra promocional, Header, navegação mobile, `CarrinhoBotao`,
+  `SeletorIdioma`, rodapé) e Home inteira (categorias, `ProductCard`,
+  `ProductTabs` novo, banners de campanha, marcas, benefícios,
+  testemunhos, "vistos recentemente") restilizados componente a
+  componente.
+- `apps/web/src/lib/shopify/client.ts` novo: scaffold de cliente
+  Storefront GraphQL, testado (mock de `fetch`), sem nenhum componente a
+  consumi-lo — ver "Fora de âmbito" abaixo.
+
+**Decisões não óbvias (rulings tomados durante a execução, sem parar
+para aprovação — instrução explícita do utilizador):**
+- **Hero preservado.** Uma sessão paralela implementou em simultâneo,
+  neste mesmo diretório de trabalho, a campanha real "Semana Animora" em
+  `components/marketing/Hero.tsx`, a pedido direto do utilizador e com
+  assets finais entregues por ele. A tarefa que ia substituir o Hero por
+  `MediaPlaceholder` genérico foi cancelada — conteúdo comercial real e
+  já pedido tem precedência sobre a regra de placeholder da spec (essa
+  regra existe para não inventar conteúdo, não para apagar conteúdo real).
+- **Token `orange-deep` (#B85800) criado a meio da execução.** A spec
+  original pedia texto branco sobre `orange` (#F57C00); cálculo de
+  contraste WCAG deu 2,70:1, falha AA a qualquer tamanho. `orange-deep`
+  dá 4,73:1. Esta correção teve de ser reaplicada duas vezes (Task 7 e
+  a revisão final encontraram o mesmo padrão a escapar) — ver
+  `apps/web/DESIGN.md` §2, "The Orange-Deep Rule".
+- **Token `text-muted` corrigido de #6D7F82 para #647679** (revisão
+  final) — valor original da spec dava 4,13:1 sobre `bg`, abaixo do
+  4,5:1 exigido a texto normal.
+- **Sem mega-menu nem categoria "Ofertas".** Dados reais não têm
+  hierarquia de categorias (`parent` sempre `null`) nem categoria
+  "ofertas" — inventar isso teria violado a regra de não hardcodar dado
+  comercial.
+- **Rodapé sem links institucionais novos.** A spec pedia links para
+  Ajuda/Termos/Conta; mantido só o que já existia (nome, descrição, ano)
+  — o rodapé já tinha uma correção deliberada documentada contra "fingir"
+  páginas de apoio inexistentes, e essa disciplina teve prioridade.
+- **Benefícios sem "parcelamento"/"compra segura".** A spec pedia 4
+  benefícios; mantidos só os 3 reais (o checkout não liga a processador
+  de pagamento real).
+
+**Fora de âmbito, bloqueado (não esquecido):** ligar o cliente Shopify a
+dados reais (catálogo/carrinho/checkout via Storefront API, conta via
+Customer Account API, i18n de mercados `/pt-br`/`/en`/`/es`, SEO/a11y/
+performance/analytics/testes E2E da spec, substituir `MediaPlaceholder`
+por fotografia real) — sem credenciais reais da Storefront API neste
+ambiente (`apps/web/.env.example` documenta as variáveis esperadas, todas
+por preencher). Lista completa em `docs/ROADMAP.md`, secção "Identidade
+laranja/teal — pendências".
+
+**⚠️ Limitação mais visível: a loja está em duas identidades.** Este
+plano cobriu só shell + Home. A revisão final de todo o branch (modelo
+mais capaz, diff completo desde o checkpoint anterior a esta execução)
+confirmou por grep amplo: **~400 usos de tokens agora removidos em 34
+ficheiros fora da Home** — `FiltrosCatalogo.tsx`, `ilustracoes.tsx`,
+`FormularioCheckout.tsx`, `Moradas.tsx`, `carrinho/page.tsx`,
+`encomendas/[id]/page.tsx`, `FormularioEntrada.tsx`, `produto/[slug]/page.tsx`,
+e o resto do catálogo/conta/checkout. Nenhuma destas páginas rebenta —
+o Tailwind simplesmente não emite as classes removidas, e o resultado é
+degradação silenciosa (raios que desaparecem, bordas no cinzento por
+omissão, texto sem cor de marca). **Antes de qualquer trabalho novo de
+UI fora da Home, decidir com o utilizador:** abrir um plano de migração
+para PLP/PDP/carrinho/checkout/conta (mecânico — mesmo mapa de 7
+substituições de sempre, só em escala — mas ~400 ocorrências não é
+trabalho trivial), ou aceitar a coexistência por agora e documentar até
+quando.
+
+**Verificação:** `pnpm --filter @animora/web typecheck` e `test`
+(169 testes) passam. Revisão final de todo o branch encontrou 2 achados
+Critical (contraste WCAG na aba ativa de `ProductTabs`, token `text-muted`
+abaixo de AA) + 5 Important (componentes filhos de `ProductCard` com
+tokens mortos, `DestaquesPorCategoria.tsx` fora do âmbito das 9 tarefas,
+esqueleto de `loading.tsx` invisível, 3 textos abaixo de AA por opacidade,
+namespace de tradução órfão) — todos corrigidos num único commit de fix
+e verificados (ver ledger em
+`.superpowers/sdd/2026-09-18-identidade-laranja-teal/progress.md` para o
+histórico completo de decisões e achados, tarefa a tarefa).
