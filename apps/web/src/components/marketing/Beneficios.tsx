@@ -25,16 +25,16 @@ export async function Beneficios() {
       <ul className="flex flex-col gap-8 sm:grid sm:grid-cols-3 sm:gap-6">
         {ITENS.map(({ icone, chave }) => (
           <li key={chave} className="flex items-start gap-4 sm:flex-col sm:items-center sm:text-center">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line text-terracota">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-orange">
               <Icon name={icone} className="h-5 w-5" />
             </span>
             <div>
-              <p className="font-semibold text-ink">
+              <p className="font-semibold text-text">
                 {chave === 'envio'
                   ? t('envioTitulo', { valor: formatEuros(ENVIO_GRATIS_ACIMA_DE) })
                   : t(`${chave}Titulo`)}
               </p>
-              <p className="mt-1 text-sm text-ink-muted">{t(`${chave}Texto`)}</p>
+              <p className="mt-1 text-sm text-text-muted">{t(`${chave}Texto`)}</p>
             </div>
           </li>
         ))}
