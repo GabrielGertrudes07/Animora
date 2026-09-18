@@ -83,7 +83,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       <body className="pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:pb-0">
         <a
           href="#conteudo"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-campo focus:bg-ink focus:px-4 focus:py-2 focus:text-papel"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-teal-900 focus:px-4 focus:py-2 focus:text-white"
         >
           {t('saltarParaConteudo')}
         </a>
