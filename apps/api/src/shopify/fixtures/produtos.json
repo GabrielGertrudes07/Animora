@@ -1,0 +1,9 @@
+{
+  "products": {
+    "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": null
+    },
+    "nodes": []
+  }
+}

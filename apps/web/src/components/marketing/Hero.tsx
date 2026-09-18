@@ -1,9 +1,13 @@
+'use client'
+
 import type { CSSProperties } from 'react'
-import { getTranslations } from 'next-intl/server'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
+import gsap from 'gsap'
 import { Fredoka, Montserrat, Caveat } from 'next/font/google'
 import { Link } from '../../i18n/navigation'
 import { Entrada } from '../motion/Entrada'
+import { useMotion } from '../motion/useMotion'
 
 /**
  * Fontes só desta campanha — Fredoka (títulos), Montserrat (apoio) e Caveat
@@ -62,10 +66,47 @@ function posicao(xPx: number, yPx: number, extra?: CSSProperties): CSSProperties
   return { position: 'absolute', left: emX(xPx), top: emY(yPx), ...extra }
 }
 
-const FEATURES: Array<{ icone: string; aspecto: string; chave: 'feature1' | 'feature2' | 'feature3'; xPx: number }> = [
-  { icone: 'icone-pet', aspecto: '514 / 509', chave: 'feature1', xPx: 150 },
-  { icone: 'icone-entrega', aspecto: '480 / 541', chave: 'feature2', xPx: 420 },
-  { icone: 'icone-amor', aspecto: '613 / 513', chave: 'feature3', xPx: 680 },
+const FEATURES: Array<{ icone: string; aspecto: string; chave: 'feature1' | 'feature2' | 'feature3' }> = [
+  { icone: 'icone-pet', aspecto: '514 / 509', chave: 'feature1' },
+  { icone: 'icone-entrega', aspecto: '480 / 541', chave: 'feature2' },
+  { icone: 'icone-amor', aspecto: '613 / 513', chave: 'feature3' },
+]
+
+/**
+ * Os três protagonistas com peso próprio — assentam ao entrar (a mesma
+ * escolha do `CarrosselCampanhas`) e respiram devagar em repouso. `apoio` é
+ * onde cada um toca o chão, estimado a olho (o handoff não trouxe esse dado
+ * para estes recortes, só para o `CarrosselCampanhas`) — é o `transformOrigin`
+ * do gesto de assentar.
+ */
+const ANIMAIS: Array<{ id: string; leftPx: number; topPx: number; widthPct: string; aspecto: string; apoio: string }> = [
+  { id: 'cao', leftPx: 1077, topPx: 68, widthPct: '34%', aspecto: '880 / 900', apoio: '38% 96%' },
+  { id: 'gato', leftPx: 1459, topPx: 221, widthPct: '18%', aspecto: '900 / 885', apoio: '35% 97%' },
+  { id: 'bola', leftPx: 1560, topPx: 500, widthPct: '8.5%', aspecto: '900 / 890', apoio: '50% 92%' },
+]
+
+/**
+ * Os doodles do handoff (`doodles_pack.png`) recortados em peças soltas — a
+ * versão anterior usava-o como uma única camada plana (impossível de animar
+ * peça a peça) e duas dessas marcas caíam em cima de texto real; as duas
+ * ficaram de fora aqui. Posições/tamanhos medidos por recorte + `-trim` sobre
+ * o PNG original de 2172×724, convertidos para percentagem do canvas.
+ */
+/**
+ * Posições remedidas direto sobre `reference/reference_banner.png` (não sobre
+ * o `doodles_pack.png` original) — o pack é um kit solto de decorações, não
+ * a camada final: tinha peças que não aparecem em lugar nenhum do banner de
+ * referência (um coração grande atrás de "SEMANA/ANIMORA", um sparkle em
+ * cima de "Ofertas até") e outras posicionadas onde nunca estiveram na
+ * composição real. Aqui ficam só as que a referência de facto mostra, nas
+ * posições onde ela as mostra.
+ */
+const DOODLES: Array<{ id: string; leftPct: number; topPct: number; widthPct: number; aspecto: string }> = [
+  { id: 'a-sparkle-topleft', leftPct: 4.5, topPct: 18, widthPct: 6, aspecto: '252 / 242' },
+  { id: 'd-heart-navy-small', leftPct: 86, topPct: 32, widthPct: 5, aspecto: '133 / 166' },
+  { id: 'e-squiggle', leftPct: 34.35, topPct: 58, widthPct: 36.56, aspecto: '794 / 125' },
+  { id: 'f-sparkle-topright', leftPct: 78, topPct: 16, widthPct: 7, aspecto: '218 / 200' },
+  { id: 'i-sparkle-bottomright', leftPct: 86, topPct: 54, widthPct: 6, aspecto: '174 / 203' },
 ]
 
 /**
@@ -83,7 +124,17 @@ const FEATURES: Array<{ icone: string; aspecto: string; chave: 'feature1' | 'fea
  * sobrepor-se (texto, blob e recortes todos na mesma faixa de ~130px de
  * altura) — o handoff só cobre desktop. A versão de telemóvel é um layout
  * próprio, empilhado, sem nota manuscrita nem selo do logótipo (decorativos
- * secundários; a marca já está no cabeçalho).
+ * secundários; a marca já está no cabeçalho), e com uma entrada simples
+ * (`Entrada`) em vez da coreografia completa abaixo — ecrã pequeno, menos
+ * elementos, menos justificação para o peso extra de código.
+ *
+ * **A composição desktop assenta como o `CarrosselCampanhas`**: os bichos
+ * (`data-hero-animal`) entram com o mesmo gesto de peso — descem e giram a
+ * partir do ponto onde tocam o chão (`apoio`) — e respiram devagar em
+ * repouso; os doodles (`data-hero-doodle`) chegam por último, em `back.out`,
+ * e flutuam fora de fase depois. Client Component por causa do GSAP: troca
+ * `getTranslations` (servidor) por `useTranslations` (cliente) — o resto do
+ * texto continua a vir de `next-intl`, só muda de onde é lido.
  *
  * Um só `<h1>` — "SEMANA" + "ANIMORA" — porque é o único desta página.
  *
@@ -91,172 +142,307 @@ const FEATURES: Array<{ icone: string; aspecto: string; chave: 'feature1' | 'fea
  * (visível no banner de referência) pedia medir a métrica exata da fonte por
  * carácter — frágil a cada tamanho de ecrã, e o handoff não o exige em texto.
  */
-export async function Hero() {
-  const t = await getTranslations('Hero')
+export function Hero() {
+  const t = useTranslations('Hero')
+
+  const palco = useMotion<HTMLDivElement>((el) => {
+    const animais = el.querySelectorAll<HTMLElement>('[data-hero-animal]')
+    const doodles = el.querySelectorAll<HTMLElement>('[data-hero-doodle]')
+    const textos = el.querySelectorAll<HTMLElement>('[data-hero-texto]')
+    const blob = el.querySelector<HTMLElement>('[data-hero-blob]')
+    const logo = el.querySelector<HTMLElement>('[data-hero-logo]')
+    const topo = el.querySelector<HTMLElement>('[data-hero-topo]')
+
+    animais.forEach((animal) => {
+      gsap.set(animal, { transformOrigin: animal.dataset.apoio ?? 'bottom center' })
+    })
+
+    const entrada = gsap.timeline({ defaults: { ease: 'power3.out' } })
+
+    if (topo) entrada.from(topo, { opacity: 0, y: -16, duration: 0.5 }, 0)
+    if (blob) entrada.from(blob, { opacity: 0, scale: 0.85, duration: 0.6, ease: 'back.out(1.4)' }, 0.1)
+    if (textos.length > 0) {
+      entrada.from(textos, { opacity: 0, y: 14, duration: 0.5, stagger: 0.06 }, 0.15)
+    }
+    if (animais.length > 0) {
+      entrada.from(
+        animais,
+        {
+          yPercent: 7,
+          scaleY: 0.93,
+          rotation: (i: number) => (i % 2 === 0 ? -4 : 3),
+          opacity: 0,
+          duration: 0.75,
+          ease: 'power4.out',
+          stagger: 0.09,
+        },
+        0.25,
+      )
+    }
+    if (logo) entrada.from(logo, { opacity: 0, scale: 0.8, duration: 0.5 }, 0.45)
+    if (doodles.length > 0) {
+      entrada.from(doodles, { opacity: 0, scale: 0.5, duration: 0.5, ease: 'back.out(1.7)', stagger: 0.06 }, 0.35)
+    }
+
+    /**
+     * Repouso: os bichos respiram, o blob incha devagar, os doodles flutuam —
+     * uma timeline só (todos reavançam/recuam em conjunto, mas começam em
+     * offsets diferentes) para nunca saírem de fase entre si.
+     */
+    const respirar = gsap.timeline({ repeat: -1, yoyo: true, paused: true })
+    animais.forEach((animal, i) => {
+      respirar.to(
+        animal,
+        { yPercent: -1.5, rotation: i % 2 === 0 ? -0.8 : 0.8, duration: 2.4 + i * 0.4, ease: 'sine.inOut' },
+        i * 0.3,
+      )
+    })
+    if (blob) respirar.to(blob, { scale: 1.02, duration: 3.4, ease: 'sine.inOut' }, 0.2)
+    doodles.forEach((doodle, i) => {
+      respirar.to(
+        doodle,
+        { yPercent: -8 - i * 1.5, rotation: i % 2 === 0 ? 6 : -6, duration: 3 + i * 0.4, ease: 'sine.inOut' },
+        i * 0.28,
+      )
+    })
+
+    // Como no CarrosselCampanhas: nada de loop infinito com o banner fora do
+    // ecrã — o IntersectionObserver liga/desliga a respiração.
+    let visivel = true
+    const arrancar = () => {
+      if (visivel && !entrada.isActive()) respirar.play()
+    }
+    entrada.eventCallback('onComplete', arrancar)
+
+    const observador = new IntersectionObserver(([visao]) => {
+      visivel = visao?.isIntersecting ?? true
+      if (visivel) arrancar()
+      else respirar.pause()
+    })
+    observador.observe(el)
+
+    return () => observador.disconnect()
+  }, [])
 
   return (
     <section className={`${fonteTitulo.variable} ${fonteTexto.variable} ${fonteManuscrita.variable}`}>
-      <Entrada>
-        {/* Desktop/tablet — poster fiel ao canvas de referência */}
-        <div className="relative hidden aspect-[2172/724] w-full overflow-hidden sm:block [container-type:inline-size]">
-          <Image src="/banner-promo/fundo.webp" alt="" aria-hidden fill priority sizes="100vw" className="object-cover" />
-          <Image src="/banner-promo/doodles.webp" alt="" aria-hidden fill sizes="100vw" className="object-cover" />
+      {/* Desktop/tablet — poster fiel ao canvas de referência, animado */}
+      <div
+        ref={palco}
+        className="relative hidden aspect-[2172/724] w-full overflow-hidden sm:block [container-type:inline-size]"
+      >
+        <Image src="/banner-promo/fundo.webp" alt="" aria-hidden fill priority sizes="100vw" className="object-cover" />
 
-          {/* Blob turquesa atrás dos animais */}
-          <div className="absolute" style={{ left: emX(1260), top: emY(150), width: '36%', aspectRatio: '1100 / 825' }}>
-            <Image src="/banner-promo/blob.webp" alt="" aria-hidden fill className="object-contain" />
+        {DOODLES.map((d) => (
+          <div
+            key={d.id}
+            data-hero-doodle
+            className="absolute"
+            style={{ left: `${d.leftPct}%`, top: `${d.topPct}%`, width: `${d.widthPct}%`, aspectRatio: d.aspecto }}
+          >
+            <Image src={`/banner-promo/${d.id}.webp`} alt="" aria-hidden fill className="object-contain" />
           </div>
+        ))}
 
-          {/* Cão e gato — os protagonistas da campanha */}
-          <div className="absolute" style={{ left: emX(1180), top: emY(150), width: '34%', aspectRatio: '880 / 900' }}>
-            <Image src="/banner-promo/cao.webp" alt="" aria-hidden fill priority className="object-contain" />
-          </div>
-          <div className="absolute" style={{ left: emX(1640), top: emY(255), width: '18%', aspectRatio: '900 / 885' }}>
-            <Image src="/banner-promo/gato.webp" alt="" aria-hidden fill className="object-contain" />
-          </div>
-          <div className="absolute" style={{ left: emX(1560), top: emY(500), width: '8.5%', aspectRatio: '900 / 890' }}>
-            <Image src="/banner-promo/bola.webp" alt="" aria-hidden fill className="object-contain" />
-          </div>
-          <div className="absolute" style={{ left: emX(1790), top: emY(505), width: '13.5%', aspectRatio: '900 / 699' }}>
-            <Image src="/banner-promo/logo.webp" alt="" aria-hidden fill className="object-contain" />
-          </div>
+        {/* Blob turquesa atrás dos animais */}
+        <div
+          data-hero-blob
+          className="absolute"
+          style={{ left: emX(1190), top: emY(150), width: '36%', aspectRatio: '1100 / 825' }}
+        >
+          <Image src="/banner-promo/blob.webp" alt="" aria-hidden fill className="object-contain" />
+        </div>
 
-          {/* Barra superior — ícone + texto, centrados como um bloco só */}
-          <div className="absolute inset-x-0 top-0 flex items-center justify-center px-[4%]" style={{ height: emY(80) }}>
-            <div className="flex items-center" style={{ gap: '0.8cqi' }}>
-              <div className="relative shrink-0" style={{ width: '1.7cqi', aspectRatio: '172 / 200' }}>
-                <Image src="/banner-promo/sacola.webp" alt="" aria-hidden fill className="object-contain" />
-              </div>
-              <p
-                className="whitespace-nowrap text-center"
-                style={{
-                  fontFamily: 'var(--fonte-banner-texto)',
-                  fontWeight: 500,
-                  fontSize: tamanhoFluido(32),
-                  color: '#FFFFFF',
-                }}
-              >
-                {t.rich('topBarText', { b: (chunks) => <strong className="font-semibold">{chunks}</strong> })}
-              </p>
+        {/* Cão, gato e bola — os protagonistas, assentam ao entrar */}
+        {ANIMAIS.map((a) => (
+          <div
+            key={a.id}
+            data-hero-animal
+            data-apoio={a.apoio}
+            className="absolute"
+            style={{ left: emX(a.leftPx), top: emY(a.topPx), width: a.widthPct, aspectRatio: a.aspecto }}
+          >
+            <Image
+              src={`/banner-promo/${a.id}.webp`}
+              alt=""
+              aria-hidden
+              fill
+              priority={a.id === 'cao'}
+              className="object-contain"
+            />
+          </div>
+        ))}
+
+        <div
+          data-hero-logo
+          className="absolute"
+          style={{ left: emX(1759), top: emY(478), width: '13.5%', aspectRatio: '900 / 699' }}
+        >
+          <Image src="/banner-promo/logo.webp" alt="" aria-hidden fill className="object-contain" />
+        </div>
+
+        {/* Barra superior — ícone + texto, centrados como um bloco só */}
+        <div
+          data-hero-topo
+          className="absolute inset-x-0 top-0 flex items-center justify-center px-[4%]"
+          style={{ height: emY(80) }}
+        >
+          <div className="flex items-center" style={{ gap: '0.8cqi' }}>
+            <div className="relative shrink-0" style={{ width: '1.7cqi', aspectRatio: '172 / 200' }}>
+              <Image src="/banner-promo/sacola.webp" alt="" aria-hidden fill className="object-contain" />
             </div>
+            <p
+              className="whitespace-nowrap text-center"
+              style={{
+                fontFamily: 'var(--fonte-banner-texto)',
+                fontWeight: 500,
+                fontSize: tamanhoFluido(32),
+                lineHeight: 1,
+                color: '#FFFFFF',
+              }}
+            >
+              {t.rich('topBarText', { b: (chunks) => <strong className="font-semibold">{chunks}</strong> })}
+            </p>
           </div>
+        </div>
 
-          {/* Data */}
-          <p
-            style={{
-              ...posicao(165, 160),
-              fontFamily: 'var(--fonte-banner-texto)',
-              fontWeight: 600,
-              fontSize: tamanhoFluido(28),
-              color: '#0F4F57',
-            }}
-          >
-            {t('data')}
-          </p>
+        {/* Data, com o sublinhado laranja que a referência tem por baixo */}
+        <p
+          data-hero-texto
+          style={{
+            ...posicao(165, 145),
+            fontFamily: 'var(--fonte-banner-texto)',
+            fontWeight: 600,
+            fontSize: tamanhoFluido(28),
+            lineHeight: 1,
+            color: '#0F4F57',
+            paddingBottom: '0.3em',
+            borderBottom: '0.1em solid #F57C00',
+          }}
+        >
+          {t('data')}
+        </p>
 
-          {/* Título — um único <h1> para a página inteira */}
-          <h1 className="contents">
-            <span
-              style={{
-                ...posicao(160, 215),
-                fontFamily: 'var(--fonte-banner-titulo)',
-                fontWeight: 800,
-                fontSize: tamanhoFluido(110),
-                lineHeight: 1,
-                color: '#085B6B',
-              }}
-            >
-              {t('headline1')}
-            </span>
-            <span
-              style={{
-                ...posicao(160, 325),
-                fontFamily: 'var(--fonte-banner-titulo)',
-                fontWeight: 800,
-                fontSize: tamanhoFluido(120),
-                lineHeight: 1,
-                color: '#F57C00',
-              }}
-            >
-              {t('headline2')}
-            </span>
-          </h1>
-
-          {/* Subtítulo */}
-          <p
+        {/* Título — um único <h1> para a página inteira */}
+        <h1 className="contents">
+          <span
+            data-hero-texto
             style={{
-              ...posicao(180, 450),
-              fontFamily: 'var(--fonte-banner-texto)',
-              fontWeight: 500,
-              fontSize: tamanhoFluido(28),
-              color: '#0F4F57',
-            }}
-          >
-            {t('subtitulo')} <span aria-hidden>♡</span>
-          </p>
-
-          {/* Oferta central */}
-          <p
-            style={{
-              ...posicao(900, 190),
-              fontFamily: 'var(--fonte-banner-texto)',
-              fontWeight: 600,
-              fontSize: tamanhoFluido(32),
-              color: '#0F4F57',
-            }}
-          >
-            {t('ofertaLabel')}
-          </p>
-          <p
-            style={{
-              ...posicao(870, 250),
+              ...posicao(160, 200),
               fontFamily: 'var(--fonte-banner-titulo)',
               fontWeight: 800,
-              fontSize: tamanhoFluido(200),
-              lineHeight: 0.85,
-              color: '#F57C00',
+              fontSize: tamanhoFluido(110),
+              lineHeight: 1,
+              color: '#085B6B',
             }}
           >
-            {t('ofertaValor')}
-          </p>
-          <p
+            {t('headline1')}
+          </span>
+          <span
+            data-hero-texto
             style={{
-              ...posicao(1090, 410),
+              ...posicao(120, 285),
               fontFamily: 'var(--fonte-banner-titulo)',
               fontWeight: 800,
-              fontSize: tamanhoFluido(72),
+              fontSize: tamanhoFluido(120),
               lineHeight: 1,
               color: '#F57C00',
             }}
           >
-            {t('ofertaOff')}
-          </p>
+            {t('headline2')}
+          </span>
+        </h1>
 
-          {/* CTA — cor amostrada do próprio banner de referência, não é um
-              token da loja (não entra no `tailwind.config.ts`): é o botão
-              desta campanha. */}
-          <Link
-            href="/produtos"
-            style={{
-              ...posicao(925, 470),
-              fontFamily: 'var(--fonte-banner-texto)',
-              fontWeight: 600,
-              fontSize: tamanhoFluido(32),
-              backgroundColor: '#024043',
-            }}
-            className="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-[1.4em] py-[0.7em] text-white transition-opacity hover:opacity-90"
-          >
-            {t('cta')}
-            <span aria-hidden="true">›</span>
-          </Link>
+        {/* Subtítulo */}
+        <p
+          data-hero-texto
+          style={{
+            ...posicao(165, 420),
+            fontFamily: 'var(--fonte-banner-texto)',
+            fontWeight: 500,
+            fontSize: tamanhoFluido(28),
+            lineHeight: 1,
+            color: '#0F4F57',
+          }}
+        >
+          {t('subtitulo')} <span aria-hidden style={{ color: '#F57C00' }}>♥</span>
+        </p>
 
-          {/* Features inferiores — ícone recortado + texto real */}
-          {FEATURES.map(({ icone, aspecto, chave, xPx }) => (
-            <div
-              key={icone}
-              className="absolute flex items-center"
-              style={{ left: emX(xPx - 56), top: emY(540), gap: '0.6cqi' }}
-            >
+        {/* Oferta central */}
+        <p
+          data-hero-texto
+          style={{
+            ...posicao(860, 140),
+            fontFamily: 'var(--fonte-banner-texto)',
+            fontWeight: 600,
+            fontSize: tamanhoFluido(32),
+            lineHeight: 1,
+            color: '#0F4F57',
+          }}
+        >
+          {t('ofertaLabel')}
+        </p>
+        <p
+          data-hero-texto
+          style={{
+            ...posicao(810, 200),
+            fontFamily: 'var(--fonte-banner-titulo)',
+            fontWeight: 800,
+            fontSize: tamanhoFluido(200),
+            lineHeight: 0.85,
+            color: '#F57C00',
+          }}
+        >
+          {t('ofertaValor')}
+        </p>
+        <p
+          data-hero-texto
+          style={{
+            ...posicao(1100, 395),
+            fontFamily: 'var(--fonte-banner-titulo)',
+            fontWeight: 800,
+            fontSize: tamanhoFluido(72),
+            lineHeight: 1,
+            color: '#F57C00',
+          }}
+        >
+          {t('ofertaOff')}
+        </p>
+
+        {/* CTA — cor amostrada do próprio banner de referência, não é um
+            token da loja (não entra no `tailwind.config.ts`): é o botão
+            desta campanha.
+
+            `hover:opacity-90` + `transition-opacity` competiam com o GSAP a
+            animar a mesma propriedade (`opacity`) neste elemento — a
+            transição CSS reagia a cada frame que o GSAP escrevia em
+            `style.opacity`, travando o botão perto de 0 para sempre. Hover
+            muda a cor de fundo em vez de opacidade, como o `.botao-principal`
+            já faz no resto do site. */}
+        <Link
+          data-hero-texto
+          href="/produtos"
+          style={{
+            ...posicao(925, 455),
+            fontFamily: 'var(--fonte-banner-texto)',
+            fontWeight: 600,
+            fontSize: tamanhoFluido(32),
+            lineHeight: 1,
+            backgroundColor: '#024043',
+          }}
+          className="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-[1.4em] py-[0.7em] text-white transition-colors hover:bg-[#035249]"
+        >
+          {t('cta')}
+          <span aria-hidden="true">›</span>
+        </Link>
+
+        {/* Features inferiores — um único grupo flex, não 3 posições fixas:
+            o texto varia de comprimento por idioma ("Entrega para todo o
+            Brasil" é bem mais longo que "OFF") e posições em x absolutas
+            coladas ao spec colidiam com o ícone seguinte. */}
+        <div className="absolute flex items-center" style={{ left: emX(150 - 56), top: emY(520), gap: '3.2cqi' }}>
+          {FEATURES.map(({ icone, aspecto, chave }) => (
+            <div key={icone} data-hero-texto className="flex items-center" style={{ gap: '0.6cqi' }}>
               <div className="relative shrink-0" style={{ width: '3.2cqi', aspectRatio: aspecto }}>
                 <Image src={`/banner-promo/${icone}.webp`} alt="" aria-hidden fill className="object-contain" />
               </div>
@@ -266,6 +452,7 @@ export async function Hero() {
                   fontFamily: 'var(--fonte-banner-texto)',
                   fontWeight: 500,
                   fontSize: tamanhoFluido(18),
+                  lineHeight: 1,
                   color: '#0F4F57',
                 }}
               >
@@ -273,28 +460,35 @@ export async function Hero() {
               </p>
             </div>
           ))}
-
-          {/* Nota manuscrita, canto superior direito — ancorada pela direita
-              (`right`, não `left`) porque o texto cresce para a esquerda. */}
-          <p
-            className="text-right"
-            style={{
-              position: 'absolute',
-              top: emY(120),
-              right: emX(CANVAS_W - 1800 - 220),
-              fontFamily: 'var(--fonte-banner-manuscrita)',
-              fontWeight: 600,
-              fontSize: tamanhoFluido(36),
-              lineHeight: 1.15,
-              color: '#0F4F57',
-            }}
-          >
-            {t('manuscrito')}
-          </p>
         </div>
 
-        {/* Telemóvel — layout próprio, empilhado; sem nota manuscrita nem
-            selo do logótipo (ver nota acima). */}
+        {/* Nota manuscrita, canto superior direito — ancorada pela direita
+            (`right`, não `left`) porque o texto cresce para a esquerda. Uma
+            coluna estreita (a referência quebra este texto em 3-4 linhas
+            curtas, não uma linha só a espremer-se contra o cão). */}
+        <p
+          data-hero-texto
+          className="text-right"
+          style={{
+            position: 'absolute',
+            top: emY(105),
+            right: emX(CANVAS_W - 1800 - 220),
+            width: emX(190),
+            fontFamily: 'var(--fonte-banner-manuscrita)',
+            fontWeight: 600,
+            fontSize: tamanhoFluido(32),
+            lineHeight: 1.15,
+            color: '#0F4F57',
+          }}
+        >
+          {t('manuscrito')}
+        </p>
+      </div>
+
+      {/* Telemóvel — layout próprio, empilhado; sem nota manuscrita nem
+          selo do logótipo (ver nota acima). Entrada simples, não a
+          coreografia de cima. */}
+      <Entrada>
         <div className="sm:hidden" style={{ backgroundColor: '#FDF3EC' }}>
           <div className="flex items-center justify-center gap-2 px-4 py-2 text-center" style={{ backgroundColor: '#F57C00' }}>
             <div className="relative h-4 w-3.5 shrink-0">
@@ -333,7 +527,7 @@ export async function Hero() {
               </span>
             </h1>
             <p className="mt-2 text-sm font-medium" style={{ fontFamily: 'var(--fonte-banner-texto)', color: '#0F4F57' }}>
-              {t('subtitulo')} <span aria-hidden>♡</span>
+              {t('subtitulo')} <span aria-hidden style={{ color: '#F57C00' }}>♥</span>
             </p>
 
             <div className="mt-5 flex flex-col items-center">
