@@ -3,47 +3,52 @@ import type { Config } from 'tailwindcss'
 /**
  * O vocabulário visual da loja, e nada além dele.
  *
- * A regra que governa esta lista é **uma cor, uma função**. A versão anterior
- * tinha dezanove cores em cinco famílias, das quais quatro eram quentes e
- * competiam pelo mesmo papel — `terracota`, `promo`, `sol` e `dourado`.
- *
- * A razão de fundo era uma regra do design system que mandava amostrar a
- * paleta do pacote de arte da campanha (`public/banner/`): a loja herdava as
- * cores do cartaz e, com elas, a gama do cartaz — dourado metálico, laranja
- * lustroso, brilho. Essa regra inverteu-se: **a marca dita a arte**, e a arte
- * gerada obedece a esta lista. Ver
- * `docs/superpowers/specs/2026-08-28-linguagem-visual-premium-design.md`.
+ * A regra que governa esta lista continua a ser **uma cor, uma função**.
+ * Esta paleta substitui por completo a anterior (`ink`/`terracota`/`sage`/
+ * `papel`/`floresta`) — não há aliases de compatibilidade nem as duas
+ * paletas lado a lado. Fonte única dos valores: tabela de tokens em
+ * `docs/superpowers/specs/2026-09-18-identidade-laranja-teal-design.md` §5.
  */
 export default {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        // Texto. Verde-escuro de confiança e o seu tom de apoio.
-        ink: '#18352A',
-        'ink-muted': '#4F685F',
-        // A única cor de ação da loja: se algo é terracota, é clicável ou está
-        // ativo. Mais contido do que o `#F2703A` anterior, que era uma amostra
-        // do botão do cartaz — saturado para gritar dentro de um banner.
-        terracota: { DEFAULT: '#E0623A', dark: '#C44A24' },
-        // Apoio botânico: ilustrações de estado vazio, marca de água do
-        // placeholder, avisos calmos. Nunca texto de leitura.
-        sage: '#6F8F72',
-        // Superfície tingida. Colapsa o `cream` e o `creme-luz` anteriores —
-        // estavam a menos de 3% de distância percetual e faziam o mesmo
-        // trabalho em sítios diferentes. É também o texto sobre floresta.
-        papel: '#F7F5EF',
-        line: 'rgba(111, 143, 114, 0.18)',
-        // O chão das superfícies de campanha. `fundo` reabriu de `#061003`
-        // (quase preto, que matava a leitura de clareira) para este.
-        floresta: { DEFAULT: '#0D2305', fundo: '#0A1A06' },
+        // Fundo da loja e superfície de cartão — quase-branco e branco puro,
+        // não o mesmo tom: dá profundidade sem escurecer nada.
+        bg: '#FFFDFC',
+        surface: '#FFFFFF',
+        // Creme pontual: faixas e blocos que precisam de se distinguir do
+        // fundo sem virar cor de marca.
+        cream: '#FDF3EC',
+        // A única cor de ação da loja: se algo é laranja, é clicável ou está
+        // ativo. `hover` é o tom mais escuro — mais escrutínio, mais peso.
+        orange: { DEFAULT: '#F57C00', hover: '#E96F00' },
+        // Teal faz o trabalho que `ink`/`sage` faziam: estrutura, títulos e
+        // apoio. Dois tons só, sem escala intermédia.
+        'teal-900': '#085B6B',
+        'teal-700': '#0F6F78',
+        // Acento de contraste — o único tom saturado fora do laranja.
+        aqua: '#00B4B0',
+        // Texto de leitura e o seu tom secundário. Mais frio que `teal-900`
+        // de propósito: texto corrido não deve competir com títulos.
+        text: '#103F46',
+        'text-muted': '#6D7F82',
+        // Divisória hairline, neutra — já não deriva de `sage` a 18%.
+        border: '#E8ECEC',
+        // Estado, não marca: usados só em confirmação/erro, nunca em UI de
+        // ação (isso é `orange`).
+        success: '#1F8A5B',
+        danger: '#C84444',
       },
       fontFamily: {
-        // Duas famílias e mais nada: Bricolage Grotesque nos títulos (nunca
-        // abaixo de 24px — em corpo pequeno não lê como display, lê como
-        // irregular) e Figtree no texto. Carregadas por `next/font` no layout.
-        display: ['var(--fonte-titulo)', 'Georgia', 'serif'],
+        // Três famílias: Fredoka nos títulos (rounded, nunca abaixo de 24px),
+        // Montserrat no texto/interface, Caveat só em manuscrito decorativo
+        // — nunca em informação funcional. Carregadas por `next/font` no
+        // layout.
+        display: ['var(--fonte-titulo)', 'system-ui', 'sans-serif'],
         sans: ['var(--fonte-texto)', 'system-ui', 'sans-serif'],
+        script: ['var(--fonte-manuscrita)', 'cursive'],
       },
       fontSize: {
         // A escala, num sítio só. Antes cada secção escrevia
@@ -66,19 +71,28 @@ export default {
         leitura: '62ch',
       },
       borderRadius: {
-        // Três raios. Eram cinco (`lg` 33×, `card` 23×, `full` 14×, `xl` 6×,
-        // `2xl` 1×), sem nenhuma regra sobre qual usar onde.
-        campo: '10px',
-        card: '14px',
+        // Cinco raios, hierarquia de campo a superfície de campanha. Eram
+        // dois (`campo` 10px, `card` 14px), sem cobrir pílulas nem
+        // superfícies grandes.
+        sm: '10px',
+        md: '16px',
+        lg: '22px',
+        xl: '28px',
+        pill: '999px',
       },
       boxShadow: {
-        // Duas elevações, ambas na cor da marca e não em preto neutro.
-        sm: '0 10px 20px rgba(24, 53, 42, 0.06)',
-        md: '0 18px 45px rgba(24, 53, 42, 0.12)',
+        // Três elevações, todas tingidas de teal (não preto neutro): repouso
+        // de cartão, hover de cartão, e drawer/modal — que continua neutro
+        // porque cobre a página inteira e não deve ler como parte da marca.
+        card: '0 6px 24px rgba(8, 91, 107, 0.06)',
+        'card-hover': '0 12px 32px rgba(8, 91, 107, 0.10)',
+        drawer: '0 20px 60px rgba(0, 0, 0, 0.16)',
       },
       transitionTimingFunction: {
-        // A curva da loja, uma só. Estava escrita à mão no carrossel.
-        loja: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        // A curva da loja, uma só. Substitui `loja` — mesma função (uma
+        // curva, para tudo o que se move), nome novo para acompanhar a
+        // troca de identidade.
+        brand: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
       },
     },
   },

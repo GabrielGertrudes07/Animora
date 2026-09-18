@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
-import { Bricolage_Grotesque, Figtree } from 'next/font/google'
+import { Fredoka, Montserrat, Caveat } from 'next/font/google'
 import '../../styles/globals.css'
 import { routing } from '../../i18n/routing'
 import { Header } from '../../components/layout/Header'
@@ -11,24 +11,34 @@ import { CarrinhoProvider } from '../../modules/cart'
 import { SITE_URL, alternatesFor } from '../../lib/seo'
 
 /**
- * As duas famílias da loja, auto-alojadas por `next/font` — sem pedido a
+ * As três famílias da loja, auto-alojadas por `next/font` — sem pedido a
  * servidores de fontes em tempo de execução e sem salto de tipo ao carregar.
  *
- * Fraunces + Nunito Sans (a combinação anterior) é a escolha-reflexo de
- * qualquer gerador de design — foi apontada como "cara de IA" na crítica que
- * levou a este redesign. Bricolage Grotesque nos títulos tem carácter próprio
- * sem cair em serifa editorial; Figtree no texto continua legível. Duas e
- * mais nenhuma.
+ * Substituem Bricolage Grotesque + Figtree (identidade anterior, "A
+ * Clareira e o Balcão") pela paleta tipográfica da spec definitiva: Fredoka
+ * nos títulos (peso 700 — a família não tem corte 800, o mais pesado
+ * disponível é 700), Montserrat no texto/interface, Caveat só em manuscrito
+ * decorativo (nunca em informação funcional, por isso um peso mais leve, 500,
+ * já serve o uso pontual).
  */
-const fonteTitulo = Bricolage_Grotesque({
+const fonteTitulo = Fredoka({
+  weight: ['700'],
   subsets: ['latin'],
   variable: '--fonte-titulo',
   display: 'swap',
 })
 
-const fonteTexto = Figtree({
+const fonteTexto = Montserrat({
+  weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--fonte-texto',
+  display: 'swap',
+})
+
+const fonteManuscrita = Caveat({
+  weight: ['500', '600', '700'],
+  subsets: ['latin'],
+  variable: '--fonte-manuscrita',
   display: 'swap',
 })
 
@@ -65,7 +75,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <html
       lang={HTML_LANG[locale] ?? locale}
-      className={`${fonteTitulo.variable} ${fonteTexto.variable}`}
+      className={`${fonteTitulo.variable} ${fonteTexto.variable} ${fonteManuscrita.variable}`}
     >
       {/* A folga em baixo é do tamanho da barra de navegação em telemóvel
           (ver `BarraMobile`), que é fixa e taparia o fim do rodapé. A partir
