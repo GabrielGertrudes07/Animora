@@ -20,10 +20,19 @@ API própria (Payload + Postgres), não um projeto novo.
 
 Regra da spec original que se mantém inalterada e não-negociável nesta
 fase: **não gerar, procurar, inventar, rasterizar ou embutir imagens
-finais.** Espaço de mídia nova (hero, categorias, banners) é
-`MediaPlaceholder` estrutural. Produtos que já têm fotografia real no
-catálogo continuam a mostrá-la — isso não é "gerar imagem", é dado real já
-existente.
+finais.** Espaço de mídia nova (categorias, banners) é `MediaPlaceholder`
+estrutural. Produtos que já têm fotografia real no catálogo continuam a
+mostrá-la — isso não é "gerar imagem", é dado real já existente.
+
+**Exceção registada — Hero:** durante a execução (2026-09-18), uma sessão
+paralela implementou a campanha real "Semana Animora" em
+`components/marketing/Hero.tsx`, a pedido explícito do utilizador e com
+assets finais entregues por ele (não gerados por nenhum agente). Uma
+campanha comercial real e já pedida tem precedência sobre a regra de
+placeholder — essa regra existe para não inventar conteúdo, não para
+apagar conteúdo real já fornecido. O plano de execução não recria nem
+substitui este Hero. Ver `docs/superpowers/plans/2026-09-18-identidade-laranja-teal.md`,
+Task 5 (cancelada) e o ledger em `.superpowers/sdd/.../progress.md`.
 
 ## 2. Decisões que substituem specs anteriores
 

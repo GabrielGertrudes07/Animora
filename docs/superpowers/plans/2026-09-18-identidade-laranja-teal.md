@@ -273,70 +273,22 @@ git commit -m "feat(shopify): scaffold do cliente Storefront GraphQL, sem dado l
 
 ---
 
-## Task 5: Hero em camadas
+## Task 5: CANCELADA — colisão com campanha real "Semana Animora"
 
-**Depends on:** Task A.
+Cancelada em 2026-09-18 durante a execução. Uma sessão paralela
+("banner design implementation") já tinha implementado, a pedido direto e
+explícito do utilizador (assets reais entregues por zip), uma campanha
+real em `apps/web/src/components/marketing/Hero.tsx` — "Semana Animora",
+11–20 de setembro, com fotografia real (`public/banner-promo/*.webp`) e
+já na mesma paleta laranja/teal/Fredoka desta spec.
 
-**Files:**
-- Create: `apps/web/src/components/home/Hero.tsx`
-- Create: `apps/web/src/components/home/Hero.test.tsx`
-- Modify: `apps/web/messages/pt.json`, `apps/web/messages/de.json` (namespace `Hero` novo — data, título, subtítulo, oferta, CTA, benefícios)
-- **Não modificar** `apps/web/src/app/[locale]/(home)/page.tsx` — a troca de `CarrosselCampanhas` por `Hero` acontece na Task J (integração), para não haver dois agentes a editar o mesmo ficheiro.
-
-**Interfaces:**
-- Produces: `Hero({ href, hrefSecundario }: { href: string; hrefSecundario: string })` — Server Component, sem props de imagem (a spec proíbe imagem final nesta fase). Task J passa as rotas reais (`/caes`, `/produtos`) ao integrar.
-
-- [ ] **Passo 1:** Estrutura em camadas exigida pela spec §7 (nenhuma depende de uma imagem única):
-
-```tsx
-// apps/web/src/components/home/Hero.tsx
-import { getTranslations } from 'next-intl/server'
-import { Link } from '../../i18n/navigation'
-import { MediaPlaceholder } from '../ui/MediaPlaceholder'
-
-export async function Hero({ href, hrefSecundario }: { href: string; hrefSecundario: string }) {
-  const t = await getTranslations('Hero')
-
-  return (
-    <section className="relative overflow-hidden rounded-xl bg-cream">
-      <div className="mx-auto grid max-w-7xl gap-8 px-6 py-10 sm:min-h-[360px] sm:grid-cols-[1fr_1fr] sm:items-center sm:py-0 lg:min-h-[430px]">
-        <div className="relative z-10 flex flex-col gap-4">
-          <p className="text-sm font-medium text-teal-700">{t('data')}</p>
-          <h1 className="font-display text-4xl font-bold text-teal-900 sm:text-5xl">{t('titulo')}</h1>
-          <p className="max-w-md text-text-muted">{t('subtitulo')}</p>
-          <p className="font-display text-2xl font-bold text-orange">{t('oferta')}</p>
-          <div className="flex flex-wrap gap-3">
-            <Link href={href} className="botao-principal">
-              {t('cta')}
-            </Link>
-            <Link
-              href={hrefSecundario}
-              className="inline-flex items-center font-medium text-teal-900 underline underline-offset-4"
-            >
-              {t('ctaSecundario')}
-            </Link>
-          </div>
-          <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-text-muted">
-            <li>{t('beneficio1')}</li>
-            <li>{t('beneficio2')}</li>
-          </ul>
-        </div>
-
-        <div className="relative aspect-[4/3] sm:aspect-auto sm:h-full">
-          <MediaPlaceholder ratio="4/3" type="hero" label={t('petAlt')} fill />
-          <span aria-hidden className="absolute right-[8%] top-[10%] h-16 w-16 rounded-full bg-aqua/20" />
-          <span aria-hidden className="absolute bottom-[12%] left-[6%] h-10 w-10 rounded-full bg-orange/15" />
-        </div>
-      </div>
-    </section>
-  )
-}
-```
-
-- [ ] **Passo 2:** Adicionar ao `messages/pt.json` e `messages/de.json` o namespace `Hero` com `data`, `titulo`, `subtitulo`, `oferta`, `cta`, `ctaSecundario`, `beneficio1`, `beneficio2`, `petAlt` — copy real da loja (reaproveitar o texto de `CarrosselCampanhas.slide2*` já existente como ponto de partida, adaptado ao novo layout, não inventar promessa comercial nova como desconto percentual que não existe numa campanha real).
-- [ ] **Passo 3:** Teste de componente (`Hero.test.tsx`) confirmando que renderiza título, CTA com `href` correto e o `MediaPlaceholder` com `type="hero"` — seguir o padrão de teste já usado para outros componentes de `marketing/` (`vi`/Testing Library).
-- [ ] **Passo 4:** `pnpm --filter @animora/web typecheck && pnpm --filter @animora/web test`.
-- [ ] **Passo 5:** Commit.
+A regra "não gerar/embutir imagem final, usar `MediaPlaceholder`" desta
+spec destina-se a reconstrução estrutural sem campanha real por trás —
+não a apagar uma campanha comercial real e explicitamente pedida. Manter
+o `Hero.tsx` da sessão paralela tal como está; não criar
+`components/home/Hero.tsx`; a Task 10 não troca o Hero, só integra
+`ProductTabs`/`Marcas`. Ver ruling completo em
+`.superpowers/sdd/2026-09-18-identidade-laranja-teal/progress.md`.
 
 ---
 
@@ -479,25 +431,29 @@ export function ProductTabs({ grupos }: { grupos: Grupo[] }) {
 
 ---
 
-## Task 10: Integração da Home (só depois de E, F, G, H concluídas)
+## Task 10: Integração da Home (produtos e marcas — não mexe no Hero)
 
-**Depends on:** Tasks A, E, F, G, H (e idealmente C, D, I para a página inteira bater a compasso, mas não é bloqueante tecnicamente).
+**Depends on:** Tasks A, F, G, H (e idealmente C, D, I para a página inteira bater a compasso, mas não é bloqueante tecnicamente).
+
+**Nota:** a troca do herói por `CarrosselCampanhas` → `Hero` já foi feita por
+outra sessão (campanha real "Semana Animora", ver Task 5 cancelada). Esta
+tarefa não toca no `<Hero />` nem no import de `Hero.tsx`. Não apagar
+`CarrosselCampanhas.tsx` — mantido de propósito pela sessão paralela para
+outros slides já escritos.
 
 **Files:**
-- Modify: `apps/web/src/app/[locale]/(home)/page.tsx`
-- Delete: `apps/web/src/components/marketing/CarrosselCampanhas.tsx` (confirmar com `grep -rln "CarrosselCampanhas"` que só `page.tsx` o importa antes de apagar)
+- Modify: `apps/web/src/app/[locale]/(home)/page.tsx` (só os blocos de produtos e marcas)
 
 **Interfaces:**
-- Consumes: `Hero` (Task E), `ProductTabs` (Task G), `Marcas` (Task H) — assinaturas exatamente como definidas nessas tarefas.
+- Consumes: `ProductTabs` (Task 7), `Marcas` (Task 8) — assinaturas exatamente como definidas nessas tarefas.
 
-- [ ] **Passo 1:** Trocar `<CarrosselCampanhas slides={[...]} />` por `<Hero href="/caes" hrefSecundario="/produtos" />`.
+- [ ] **Passo 1:** Reler `page.tsx` no estado atual antes de editar (outra sessão editou-o há pouco) — confirmar que o `<Hero />` e os imports dela continuam intactos depois desta tarefa.
 - [ ] **Passo 2:** Calcular `novidades` (novo grupo, `[...todos].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4)`), buscar avaliações em lote incluindo este terceiro grupo (`getAvaliacoesEmLote([...emDestaque, ...ofertas, ...novidades].map(...))`).
 - [ ] **Passo 3:** Substituir as duas `<section>` de "Em destaque"/"Ofertas desta semana" por um único bloco `<ProductTabs grupos={[...]} />`, cada grupo com `titulo` vindo de `t('emDestaque')`/`t('ofertasDaSemana')`/uma nova chave `t('novidades')` (adicionar a `messages/*.json`) e `produtos` sendo o grid `<CascataProdutos>` de `<ProductCard>` já existente, um por grupo.
 - [ ] **Passo 4:** Substituir o `<section>` inline de marcas por `<Marcas marcas={marcas} />`.
-- [ ] **Passo 5:** Confirmar `grep -rln "CarrosselCampanhas" apps/web/src` só devolve o próprio ficheiro do componente e apagá-lo.
-- [ ] **Passo 6:** `pnpm --filter @animora/web typecheck && pnpm --filter @animora/web test`.
-- [ ] **Passo 7:** Verificação visual completa: dev server próprio + Playwright, capturar a Home inteira em 1440/768/390px, `page.on('console')`/`pageerror` sem erros, scroll completo para disparar animações antes de capturar `fullPage`.
-- [ ] **Passo 8:** Commit.
+- [ ] **Passo 5:** `pnpm --filter @animora/web typecheck && pnpm --filter @animora/web test`.
+- [ ] **Passo 6:** Verificação visual completa: dev server próprio + Playwright, capturar a Home inteira em 1440/768/390px, `page.on('console')`/`pageerror` sem erros, scroll completo para disparar animações antes de capturar `fullPage`.
+- [ ] **Passo 7:** Commit.
 
 ---
 
