@@ -256,20 +256,29 @@ git commit -m "feat(shopify): scaffold do cliente Storefront GraphQL, sem dado l
 
 ---
 
-## Task 4: Navegação mobile + Footer
+## Task 4: Navegação mobile + Footer + CarrinhoBotao + SeletorIdioma
 
 **Depends on:** Task A.
+
+**Nota (achado da Task 3):** o implementador da Task 3 confirmou que
+`CarrinhoBotao.tsx` e `SeletorIdioma.tsx` também têm tokens de cor mortos
+(`rounded-campo`, `border-line`, `text-ink`, `terracota`) e não estavam
+cobertos por nenhuma das 10 tarefas originais do plano — gap real, corrigido
+aqui em vez de ficar por resolver.
 
 **Files:**
 - Modify: `apps/web/src/components/layout/BarraMobile.tsx`
 - Modify: `apps/web/src/components/layout/Footer.tsx`
+- Modify: `apps/web/src/components/layout/CarrinhoBotao.tsx`
+- Modify: `apps/web/src/components/layout/SeletorIdioma.tsx`
 
 - [ ] **Passo 1:** Ler `BarraMobile.tsx` (drawer full-height, teclado, `Escape`, `focus trap` — spec §6 e regras de acessibilidade §19) e trocar só as classes de cor/tipografia pelos tokens novos, preservando toda a lógica de foco/teclado já implementada.
 - [ ] **Passo 2:** `Footer.tsx`: restilizar para `bg-teal-900 text-white` (ou manter `bg-surface` com `border-t border-border` se o teal maciço no rodapé ficar pesado visualmente — decidir por captura, registar a escolha no relatório) e tipografia Montserrat. **Não adicionar** links para Institucional/Ajuda/Termos que não existem como página real — manter só o que já lá está (nome, descrição, ano), restilizado. Isto é uma divergência deliberada da spec §7, registada em §3 da spec deste repositório.
-- [ ] **Passo 3:** `grep -rn "chao-floresta\|terracota\|text-ink\|bg-papel" apps/web/src/components/layout/BarraMobile.tsx apps/web/src/components/layout/Footer.tsx` → zero.
-- [ ] **Passo 4:** `pnpm --filter @animora/web typecheck && pnpm --filter @animora/web test`.
-- [ ] **Passo 5:** Verificação visual (drawer aberto em 390px, footer em 1440px).
-- [ ] **Passo 6:** Commit.
+- [ ] **Passo 3:** `CarrinhoBotao.tsx` e `SeletorIdioma.tsx`: trocar `rounded-campo`→`rounded-sm`, `border-line`→`border-border`, `text-ink`→`text-text`, `terracota`→`orange` (ou `orange-deep` se o uso for texto branco sobre fundo laranja — confirmar caso a caso) — sem alterar nenhuma lógica de estado/interação destes dois Client Components, só classes.
+- [ ] **Passo 4:** `grep -rn "chao-floresta\|terracota\|text-ink\|bg-papel\|border-line\|rounded-campo" apps/web/src/components/layout/BarraMobile.tsx apps/web/src/components/layout/Footer.tsx apps/web/src/components/layout/CarrinhoBotao.tsx apps/web/src/components/layout/SeletorIdioma.tsx` → zero.
+- [ ] **Passo 5:** `pnpm --filter @animora/web typecheck && pnpm --filter @animora/web test`.
+- [ ] **Passo 6:** Verificação visual (drawer aberto em 390px, footer em 1440px, seletor de idioma e botão de carrinho no header).
+- [ ] **Passo 7:** Commit.
 
 ---
 
