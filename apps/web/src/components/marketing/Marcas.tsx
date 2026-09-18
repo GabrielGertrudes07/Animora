@@ -19,7 +19,7 @@ export async function Marcas({ marcas }: { marcas: { slug: string; nome: string 
 
   return (
     <section className="border-t border-border px-4 py-secao text-center sm:px-6">
-      <p className="mx-auto max-w-7xl text-eyebrow font-semibold uppercase text-text-muted/70">
+      <p className="mx-auto max-w-7xl text-eyebrow font-semibold uppercase text-text-muted">
         {t('marcasEmQueConfiamos')}
       </p>
       <ul className="mx-auto mt-6 flex max-w-7xl flex-wrap justify-center gap-x-8 gap-y-3">

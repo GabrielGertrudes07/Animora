@@ -46,14 +46,14 @@ export async function Estrelas({
   const media = resumo.media / 10
 
   return (
-    <div className={`flex items-center gap-1.5 text-sm text-ink-muted ${className}`}>
+    <div className={`flex items-center gap-1.5 text-sm text-text-muted ${className}`}>
       <span className="relative inline-block" aria-hidden="true">
-        <Fila className="text-ink-muted/25" />
+        <Fila className="text-text-muted/25" />
         <span
           className="absolute inset-y-0 left-0 overflow-hidden"
           style={{ width: `${(media / 5) * 100}%` }}
         >
-          <Fila className="text-terracota" />
+          <Fila className="text-orange" />
         </span>
       </span>
       <span className="tabular-nums">

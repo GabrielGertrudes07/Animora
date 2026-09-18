@@ -47,7 +47,7 @@ export function AdicionarAoCarrinho({
   const definirQuantidade = aoMudarQuantidade ?? setQuantidadeInterna
 
   if (esgotado) {
-    return <span className="text-sm font-medium text-ink-muted">{t('esgotado')}</span>
+    return <span className="text-sm font-medium text-text-muted">{t('esgotado')}</span>
   }
 
   return (
@@ -64,16 +64,16 @@ export function AdicionarAoCarrinho({
     // ao custo de um pouco de altura extra nos cartões mais largos.
     <div className="flex flex-col gap-2">
       {comQuantidade ? (
-        <div className="flex items-center self-start rounded-full border border-line">
+        <div className="flex items-center self-start rounded-full border border-border">
           <button
             type="button"
             aria-label={t('diminuir')}
             onClick={() => definirQuantidade(Math.max(1, quantidade - 1))}
-            className="flex h-11 w-11 items-center justify-center text-ink-muted transition-colors hover:text-ink sm:h-9 sm:w-9"
+            className="flex h-11 w-11 items-center justify-center text-text-muted transition-colors hover:text-text sm:h-9 sm:w-9"
           >
             −
           </button>
-          <span aria-live="polite" className="w-6 text-center text-sm tabular-nums text-ink">
+          <span aria-live="polite" className="w-6 text-center text-sm tabular-nums text-text">
             {quantidade}
           </span>
           <button
@@ -83,7 +83,7 @@ export function AdicionarAoCarrinho({
             // que `acrescentar` recusa (exceção não tratada) em vez de saturar
             // como a soma de duas linhas já satura em `QTY_MAX`.
             onClick={() => definirQuantidade(Math.min(QTY_MAX, quantidade + 1))}
-            className="flex h-11 w-11 items-center justify-center text-ink-muted transition-colors hover:text-ink sm:h-9 sm:w-9"
+            className="flex h-11 w-11 items-center justify-center text-text-muted transition-colors hover:text-text sm:h-9 sm:w-9"
           >
             +
           </button>

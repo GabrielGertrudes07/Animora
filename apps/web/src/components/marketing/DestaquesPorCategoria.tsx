@@ -35,16 +35,16 @@ export async function DestaquesPorCategoria({
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-      <h2 className="text-titulo text-ink">{t('titulo')}</h2>
+      <h2 className="text-titulo text-text">{t('titulo')}</h2>
 
       <div className="mt-8 flex flex-col gap-12">
         {comProdutos.map(({ categoria, produtos }) => (
           <div key={categoria.id}>
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <h3 className="text-secao text-ink">{categoria.name}</h3>
+              <h3 className="text-secao text-text">{categoria.name}</h3>
               <Link
                 href={`/${categoria.slug}`}
-                className="text-sm font-semibold text-ink underline underline-offset-4 transition-colors hover:text-terracota-dark"
+                className="text-sm font-semibold text-text underline underline-offset-4 transition-colors hover:text-teal-900"
               >
                 {t('verCategoria')}
               </Link>

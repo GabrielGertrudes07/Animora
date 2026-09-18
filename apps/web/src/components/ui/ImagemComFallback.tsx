@@ -20,7 +20,7 @@ export function ImagemComFallback({ className, ...props }: ImageProps) {
 
   if (falhou) {
     return (
-      <span className={`flex items-center justify-center text-sage/40 ${className ?? ''}`}>
+      <span className={`flex items-center justify-center text-teal-700/40 ${className ?? ''}`}>
         <Icon name="paw" className="h-16 w-16" />
       </span>
     )

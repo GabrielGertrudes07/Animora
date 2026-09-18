@@ -100,12 +100,6 @@
     "emStock": "{count} em stock",
     "semStock": "Sem stock de momento"
   },
-  "ProductTabs": {
-    "emDestaque": "Em destaque",
-    "ofertas": "Ofertas",
-    "novidades": "Novidades",
-    "verTodosOsProdutos": "Ver todos os produtos"
-  },
   "Price": {
     "desde": "desde"
   },

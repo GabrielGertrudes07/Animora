@@ -100,12 +100,6 @@
     "emStock": "{count} auf Lager",
     "semStock": "Momentan nicht auf Lager"
   },
-  "ProductTabs": {
-    "emDestaque": "Empfehlungen",
-    "ofertas": "Angebote",
-    "novidades": "Neuheiten",
-    "verTodosOsProdutos": "Alle Produkte ansehen"
-  },
   "Price": {
     "desde": "ab"
   },

@@ -28,7 +28,7 @@ export async function Footer() {
           Animora
         </Link>
         <p className="mt-2 max-w-md">{t('descricao')}</p>
-        <p className="mt-8 text-white/50">
+        <p className="mt-8 text-white/70">
           {t('direitos', { ano: new Date().getFullYear() })}
         </p>
       </div>

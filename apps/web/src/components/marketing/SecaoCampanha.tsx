@@ -50,7 +50,7 @@ export function SecaoCampanha({
         </div>
         <div className={inverter ? 'order-2 md:order-1' : 'order-2'}>
           <h2 className="text-secao">{titulo}</h2>
-          <p className={`mt-3 max-w-leitura ${teal ? 'text-white/80' : 'text-teal-900/70'}`}>{texto}</p>
+          <p className={`mt-3 max-w-leitura ${teal ? 'text-white' : 'text-teal-900/80'}`}>{texto}</p>
           <Link href={ctaHref} className="botao-principal botao-principal-pequeno mt-6 inline-flex">
             {ctaTexto}
           </Link>

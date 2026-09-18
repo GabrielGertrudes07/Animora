@@ -43,7 +43,7 @@ export default {
         // Texto de leitura e o seu tom secundário. Mais frio que `teal-900`
         // de propósito: texto corrido não deve competir com títulos.
         text: '#103F46',
-        'text-muted': '#6D7F82',
+        'text-muted': '#647679',
         // Divisória hairline, neutra — já não deriva de `sage` a 18%.
         border: '#E8ECEC',
         // Estado, não marca: usados só em confirmação/erro, nunca em UI de

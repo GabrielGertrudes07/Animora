@@ -21,14 +21,14 @@ export async function Price({
 
   return (
     <span className={className}>
-      {desde ? <span className="mr-1 text-sm text-ink-muted">{t('desde')}</span> : null}
-      <span className="text-lg font-bold tabular-nums text-ink">{formatEuros(cents)}</span>
+      {desde ? <span className="mr-1 text-sm text-text-muted">{t('desde')}</span> : null}
+      <span className="text-lg font-bold tabular-nums text-text">{formatEuros(cents)}</span>
       {old && old > cents ? (
         // O preço riscado, e mais nada. Havia aqui um distintivo verde
         // "Poupas X €" que dizia pela terceira vez o que o distintivo de
         // percentagem e o preço riscado já diziam — três pílulas de três cores
         // num cartão de 300 px.
-        <span className="ml-2 text-sm tabular-nums text-ink-muted line-through">
+        <span className="ml-2 text-sm tabular-nums text-text-muted line-through">
           {formatEuros(old)}
         </span>
       ) : null}

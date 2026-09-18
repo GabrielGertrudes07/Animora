@@ -46,7 +46,7 @@ export function BotaoFavorito({
         <Link
           href="/conta/entrar"
           aria-label={t('entrarParaGuardar')}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white/90 text-ink-muted backdrop-blur-sm transition-colors hover:text-ink"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white/90 text-text-muted backdrop-blur-sm transition-colors hover:text-text"
         >
           <Icon name="heart" className="h-5 w-5" />
         </Link>
@@ -55,7 +55,7 @@ export function BotaoFavorito({
     return (
       <Link
         href="/conta/entrar"
-        className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-ink-muted underline transition-colors hover:text-ink sm:min-h-0"
+        className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-text-muted underline transition-colors hover:text-text sm:min-h-0"
       >
         <Icon name="heart" className="h-4 w-4" />
         {t('entrarParaGuardar')}
@@ -83,8 +83,8 @@ export function BotaoFavorito({
         onClick={alternar}
         className={`flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${
           favorito
-            ? 'border-terracota bg-terracota/10 text-terracota-dark'
-            : 'border-line bg-white/90 text-ink-muted backdrop-blur-sm hover:text-ink'
+            ? 'border-orange bg-orange/10 text-orange-deep'
+            : 'border-border bg-white/90 text-text-muted backdrop-blur-sm hover:text-text'
         }`}
       >
         <Icon name="heart" className="h-5 w-5" />
@@ -98,16 +98,16 @@ export function BotaoFavorito({
         type="button"
         aria-pressed={favorito}
         onClick={alternar}
-        className={`inline-flex min-h-11 items-center gap-2 rounded-campo border px-3 py-2 text-sm font-medium transition-colors sm:min-h-0 ${
+        className={`inline-flex min-h-11 items-center gap-2 rounded-sm border px-3 py-2 text-sm font-medium transition-colors sm:min-h-0 ${
           favorito
-            ? 'border-terracota bg-terracota/10 text-terracota-dark'
-            : 'border-line text-ink-muted hover:text-ink'
+            ? 'border-orange bg-orange/10 text-orange-deep'
+            : 'border-border text-text-muted hover:text-text'
         }`}
       >
         <Icon name="heart" className="h-4 w-4" />
         {favorito ? t('nosFavoritos') : t('guardarNosFavoritos')}
       </button>
-      {erro ? <p className="mt-2 text-sm text-terracota-dark">{erro}</p> : null}
+      {erro ? <p className="mt-2 text-sm text-orange-deep">{erro}</p> : null}
     </div>
   )
 }

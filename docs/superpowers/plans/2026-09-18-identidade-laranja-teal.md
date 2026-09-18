@@ -362,7 +362,7 @@ describe('ProductTabs', () => {
 ```
 
 - [ ] **Passo 3:** Rodar o teste, confirmar falha (componente não existe).
-- [ ] **Passo 4:** Implementação mínima — `role="tablist"`/`role="tab"`/`aria-selected`, `useState` para a aba ativa, `botao-principal-pequeno`-like para a aba ativa (`bg-orange text-white`) vs. inativa (`text-text-muted`), foco visível herdado da camada base:
+- [ ] **Passo 4:** Implementação mínima — `role="tablist"`/`role="tab"`/`aria-selected`, `useState` para a aba ativa, `botao-principal-pequeno`-like para a aba ativa (`bg-orange-deep text-white` — `bg-orange` com texto branco falha AA, 2,70:1) vs. inativa (`text-text-muted`), foco visível herdado da camada base:
 
 ```tsx
 // apps/web/src/components/home/ProductTabs.tsx
@@ -385,7 +385,7 @@ export function ProductTabs({ grupos }: { grupos: Grupo[] }) {
             aria-selected={g.chave === ativa}
             onClick={() => setAtiva(g.chave)}
             className={`rounded-t-md px-4 py-2 text-sm font-semibold transition-colors ${
-              g.chave === ativa ? 'bg-orange text-white' : 'text-text-muted hover:text-text'
+              g.chave === ativa ? 'bg-orange-deep text-white' : 'text-text-muted hover:text-text'
             }`}
           >
             {g.titulo}
