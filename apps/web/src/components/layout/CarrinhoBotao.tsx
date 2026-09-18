@@ -27,7 +27,7 @@ export function CarrinhoBotao() {
       <Icon name="cart" className="h-5 w-5" />
       <span className="hidden sm:inline">{t('carrinho')}</span>
       {pronto && contagem > 0 ? (
-        <span className="rounded-full bg-orange-deep px-2 py-0.5 text-xs font-semibold text-white">
+        <span className="rounded-full bg-orange px-2 py-0.5 text-xs font-semibold text-white">
           {contagem}
         </span>
       ) : null}

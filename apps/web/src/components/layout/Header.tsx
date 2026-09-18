@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
 import { listCategories } from '../../modules/catalog'
@@ -16,9 +15,10 @@ import { Icon } from '../icons/sprite'
  * próprio (`overflow-x-auto`) em vez de espremer a página inteira: a página
  * nunca ganha scroll horizontal, só esta barra.
  *
- * A barra de aviso do topo usa `orange-deep`, não `orange`: texto branco
- * sobre `orange` dá só 2,70:1 de contraste (falha WCAG AA), sobre
- * `orange-deep` dá 4,74:1 (passa). Em mobile mostra só a mensagem principal
+ * A barra de aviso do topo usa `orange.DEFAULT` (`#ED6900`, amostrado do
+ * banner de referência) com texto branco — ~3,17:1 de contraste, abaixo do
+ * 4,5:1 ideal, aceite por pedido explícito de fidelidade visual à
+ * referência (ver `tailwind.config.ts`). Em mobile mostra só a mensagem principal
  * (envio grátis) — slogan e "dados protegidos" ficam para `sm:` para cima,
  * por pedido explícito da spec de remover conteúdo secundário no telemóvel.
  *
@@ -39,9 +39,13 @@ import { Icon } from '../icons/sprite'
  * agrupamento visual seria inventado. Ambos ficam registados como pendência
  * de dados, não como desvio silencioso.
  *
- * `logo-cabecalho.png` é o `logo.png` original sem a legenda alemã
- * ("Haustierbedarf") que vinha por baixo do nome — um resto de um genérico
- * qualquer, nunca traduzido. A pesquisa é um `<form method="get">` simples
+ * O logótipo deixou de ser uma imagem (`logo-cabecalho.png`, a árvore
+ * verde-salva da identidade antiga) — passa a ser texto+ícone em HTML,
+ * igual ao mockup de referência: pata laranja, "animora" em `font-display`,
+ * "PET SHOP" por baixo. Texto em HTML em vez de imagem é o que a própria
+ * spec pede para qualquer elemento de marca — sobrevive a tradução, não
+ * pesa um pedido de rede, e não fica desatualizado se a paleta mudar outra
+ * vez. A pesquisa é um `<form method="get">` simples
  * para `/produtos`: `lerFiltros` já lê `?q=` (ver `modules/catalog/pesquisa`),
  * só faltava um sítio na interface para lá chegar sem escrever o URL à mão.
  *
@@ -60,10 +64,10 @@ export async function Header() {
   return (
     <>
       <header className="bg-surface">
-        {/* Barra promocional: 34-38px, orange-deep + texto branco (contraste
+        {/* Barra promocional: 34-38px, orange + texto branco (contraste
             AA — ver comentário acima). Slogan e "dados protegidos" só a
             partir de `sm`, mobile fica só com o envio grátis. */}
-        <div className="bg-orange-deep px-4 py-2 sm:px-6">
+        <div className="bg-orange px-4 py-2 sm:px-6">
           <ul className="mx-auto flex min-h-[34px] max-w-7xl flex-wrap items-center justify-center gap-x-6 gap-y-1 text-[13px] font-medium text-white sm:min-h-[38px] sm:text-sm">
             <li className="flex items-center gap-1.5">
               <Icon name="cart" className="h-3.5 w-3.5 shrink-0" />
@@ -85,19 +89,15 @@ export async function Header() {
         <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center gap-4 border-b border-border px-6 py-3 sm:min-h-20 sm:py-4">
           <Link
             href="/"
-            className="flex min-h-11 shrink-0 flex-col justify-center"
+            className="flex min-h-11 shrink-0 items-center gap-2"
             aria-label={t('logoAria')}
           >
-            <Image
-              src="/logo-cabecalho.png"
-              alt="Animora"
-              width={771}
-              height={160}
-              className="h-9 w-auto sm:h-11"
-              priority
-            />
-            <span className="mt-0.5 hidden pl-1 text-xs font-medium text-text-muted lg:block">
-              {t('slogan')}
+            <Icon name="paw" className="h-7 w-7 shrink-0 text-orange" />
+            <span className="flex flex-col leading-none">
+              <span className="font-display text-2xl font-bold text-teal-900">animora</span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-muted">
+                {t('petShop')}
+              </span>
             </span>
           </Link>
 

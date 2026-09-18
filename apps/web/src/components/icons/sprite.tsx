@@ -15,6 +15,14 @@ const PATHS = {
 export type IconName = keyof typeof PATHS
 
 /**
+ * `paw` não tem linha interior nenhuma para o traço preservar — só
+ * círculos e um blob. Riscado (como todos os outros ícones), lê-se como
+ * argolas ocas em vez de uma pata; a referência visual do Gabriel usa-a
+ * sempre preenchida a sólido. É a única excepção à convenção de traço.
+ */
+const PREENCHIDOS = new Set<IconName>(['paw'])
+
+/**
  * Ícone em SVG, herdando a cor do texto.
  *
  * Decorativo por omissão (`aria-hidden`). Se for a única coisa dentro de
@@ -29,12 +37,13 @@ export function Icon({
   className?: string
   title?: string
 }) {
+  const preenchido = PREENCHIDOS.has(name)
   return (
     <svg
       viewBox="0 0 24 24"
       className={className}
-      fill="none"
-      stroke="currentColor"
+      fill={preenchido ? 'currentColor' : 'none'}
+      stroke={preenchido ? 'none' : 'currentColor'}
       strokeWidth={1.8}
       strokeLinecap="round"
       strokeLinejoin="round"

@@ -22,7 +22,7 @@ export function ProductTabs({ grupos }: { grupos: Grupo[] }) {
             aria-selected={g.chave === ativa}
             onClick={() => setAtiva(g.chave)}
             className={`rounded-t-md px-4 py-2 text-sm font-semibold transition-colors ${
-              g.chave === ativa ? 'bg-orange-deep text-white' : 'text-text-muted hover:text-text'
+              g.chave === ativa ? 'bg-orange text-white' : 'text-text-muted hover:text-text'
             }`}
           >
             {g.titulo}

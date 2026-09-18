@@ -37,7 +37,7 @@ export function SeletorIdioma() {
             const query = window.location.search
             router.replace(query ? `${pathname}${query}` : pathname, { locale })
           }}
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-sm px-2 py-1 transition-colors hover:text-text sm:min-h-0 sm:min-w-0 disabled:font-semibold disabled:text-orange-deep disabled:hover:text-orange-deep"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-sm px-2 py-1 transition-colors hover:text-text sm:min-h-0 sm:min-w-0 disabled:font-semibold disabled:text-orange disabled:hover:text-orange"
         >
           {t(locale as 'pt' | 'de')}
         </button>

@@ -83,7 +83,7 @@ export function BotaoFavorito({
         onClick={alternar}
         className={`flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${
           favorito
-            ? 'border-orange bg-orange/10 text-orange-deep'
+            ? 'border-orange bg-orange/10 text-orange'
             : 'border-border bg-white/90 text-text-muted backdrop-blur-sm hover:text-text'
         }`}
       >
@@ -100,14 +100,14 @@ export function BotaoFavorito({
         onClick={alternar}
         className={`inline-flex min-h-11 items-center gap-2 rounded-sm border px-3 py-2 text-sm font-medium transition-colors sm:min-h-0 ${
           favorito
-            ? 'border-orange bg-orange/10 text-orange-deep'
+            ? 'border-orange bg-orange/10 text-orange'
             : 'border-border text-text-muted hover:text-text'
         }`}
       >
         <Icon name="heart" className="h-4 w-4" />
         {favorito ? t('nosFavoritos') : t('guardarNosFavoritos')}
       </button>
-      {erro ? <p className="mt-2 text-sm text-orange-deep">{erro}</p> : null}
+      {erro ? <p className="mt-2 text-sm text-orange">{erro}</p> : null}
     </div>
   )
 }

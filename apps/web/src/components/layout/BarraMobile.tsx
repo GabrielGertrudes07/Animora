@@ -139,13 +139,13 @@ function ItemLink({
         href={href}
         aria-current={ativo ? 'page' : undefined}
         className={`relative flex min-h-[3.5rem] flex-col items-center justify-center gap-1 text-[0.6875rem] font-medium transition-colors ${
-          ativo ? 'text-orange-deep' : 'text-text-muted'
+          ativo ? 'text-orange' : 'text-text-muted'
         }`}
       >
         <Icon name={icone} className="h-6 w-6" />
         {rotulo}
         {distintivo ? (
-          <span className="absolute right-[22%] top-1.5 min-w-[1.15rem] rounded-full bg-orange-deep px-1 text-center text-[0.625rem] font-bold leading-[1.15rem] text-white">
+          <span className="absolute right-[22%] top-1.5 min-w-[1.15rem] rounded-full bg-orange px-1 text-center text-[0.625rem] font-bold leading-[1.15rem] text-white">
             {distintivo}
           </span>
         ) : null}
