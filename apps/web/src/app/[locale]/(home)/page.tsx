@@ -127,7 +127,7 @@ export default async function Home({ params }: Props) {
           <div className="mt-8 text-center">
             <Link
               href="/produtos"
-              className="text-sm font-semibold text-ink underline underline-offset-4 transition-colors hover:text-terracota-dark"
+              className="text-sm font-semibold text-text underline underline-offset-4 transition-colors hover:text-teal-900"
             >
               {t('verTodosOsProdutos')}
             </Link>
