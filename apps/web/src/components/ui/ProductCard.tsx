@@ -55,15 +55,15 @@ export async function ProductCard({
   return (
     <article
       data-cartao
-      // Hairline em repouso, sem sombra: um cartão que já flutua parado não
-      // tem para onde subir no hover. A elevação chega só quando o rato chega.
-      className="group relative overflow-hidden rounded-card border border-line bg-white transition-shadow duration-200 ease-loja hover:shadow-md"
+      // Sombra de repouso (shadow-card) já suave; o hover sobe um nível
+      // (shadow-card-hover), nunca aparece do nada.
+      className="group relative overflow-hidden rounded-lg border border-border bg-white shadow-card transition-shadow duration-200 ease-brand hover:shadow-card-hover"
     >
       <Link href={`/produto/${product.slug}`} className="block">
         {/* 4:5 e não quadrado: o quadrado lê como grelha de marketplace, a
             vertical lê como editorial — e é a mesma proporção das cenas de
             categoria, o que faz a página inteira bater a compasso. */}
-        <div className="relative aspect-[4/5] overflow-hidden bg-papel">
+        <div className="relative aspect-[4/5] overflow-hidden bg-cream">
           {img ? (
             <ImagemComFallback
               src={mediaUrl(img.url)}
@@ -81,51 +81,51 @@ export async function ProductCard({
               // propriedade, disparada por `:hover` do cartão. Passava por um
               // ouvinte delegado no contentor da grelha, que existia só para
               // isto. `1.03` e não `1.06` — a imagem aproxima-se, não salta.
-              className="h-full w-full object-cover transition-transform duration-500 ease-loja group-hover:scale-[1.03]"
+              className="h-full w-full object-cover transition-transform duration-500 ease-brand group-hover:scale-[1.03]"
             />
           ) : (
             // Sem fotografia, uma pata em marca de água — não um retângulo
             // vazio que parece a página a meio de carregar.
-            <span className="flex h-full w-full items-center justify-center text-sage/40">
+            <span className="flex h-full w-full items-center justify-center text-teal-700/40">
               <Icon name="paw" className="h-16 w-16" />
             </span>
           )}
           {/*
-            Um sinal por cartão. O desconto em floresta e não em vermelho: o
+            Um sinal por cartão. O desconto em teal-900 e não em vermelho: o
             vermelho puro é a cor do saldo de fim de estação, e destaca-se pior
-            sobre fotografia clara do que este verde quase preto.
+            sobre fotografia clara do que este teal quase preto.
 
             Um produto esgotado não anuncia desconto — daí o `else`, e não dois
             distintivos a dividir os cantos de cima. Os dois ficam à esquerda:
             o canto direito é do botão de favorito, fora deste link.
           */}
           {stockTotal === 0 ? (
-            <span className="absolute left-3 top-3 rounded-full bg-floresta px-3 py-1 text-eyebrow font-semibold uppercase text-papel">
+            <span className="absolute left-3 top-3 rounded-full bg-teal-900 px-3 py-1 text-eyebrow font-semibold uppercase text-white">
               {t('esgotado')}
             </span>
           ) : desconto ? (
-            <span className="absolute left-3 top-3 rounded-full bg-floresta px-3 py-1 text-xs font-bold tabular-nums text-papel">
+            <span className="absolute left-3 top-3 rounded-full bg-teal-900 px-3 py-1 text-xs font-bold tabular-nums text-white">
               -{desconto}%
             </span>
           ) : null}
         </div>
 
         <div className="flex flex-col gap-1.5 p-5 pb-3">
-          <p className="text-eyebrow font-semibold uppercase text-ink-muted">
+          <p className="text-eyebrow font-semibold uppercase text-text-muted">
             {product.brand.name}
           </p>
           {/* Duas linhas e reticências: um título de 50+ carateres não deve
               esticar o cartão nem empurrar o preço para alturas diferentes na
               mesma fiada. */}
-          <h3 className="line-clamp-2 text-base font-semibold leading-snug text-ink sm:text-lg">
+          <h3 className="line-clamp-2 text-base font-semibold leading-snug text-text sm:text-lg">
             {product.title}
           </h3>
           <Estrelas resumo={avaliacao} />
           <Price cents={preco.cents} old={preco.old} desde={preco.desde} className="mt-2 block" />
           {stockTotal > 0 ? (
-            <p className="text-sm text-ink-muted">{t('emStock', { count: stockTotal })}</p>
+            <p className="text-sm text-text-muted">{t('emStock', { count: stockTotal })}</p>
           ) : (
-            <p className="text-sm text-ink-muted">{t('semStock')}</p>
+            <p className="text-sm text-text-muted">{t('semStock')}</p>
           )}
         </div>
       </Link>
