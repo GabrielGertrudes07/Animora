@@ -21,8 +21,9 @@ export async function Hero() {
           <p className="text-eyebrow font-semibold uppercase text-ink-muted">{t('eyebrow')}</p>
           <h1 className="mt-2 text-titulo text-ink">{t('titulo')}</h1>
           <p className="mt-3 max-w-leitura text-ink-muted">{t('texto')}</p>
-          <Link href="/produtos" className="botao-principal mt-6 inline-flex">
+          <Link href="/produtos" className="botao-principal mt-6 inline-flex items-center gap-2">
             {t('cta')}
+            <span aria-hidden="true">→</span>
           </Link>
         </div>
         <div className="order-1 md:order-2">

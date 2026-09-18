@@ -1,8 +1,8 @@
 import type { AttributeDef } from './types'
 
-export type SortKey = 'relevancia' | 'preco-asc' | 'preco-desc'
+export type SortKey = 'relevancia' | 'preco-asc' | 'preco-desc' | 'recentes'
 
-const SORT_KEYS: readonly SortKey[] = ['relevancia', 'preco-asc', 'preco-desc']
+const SORT_KEYS: readonly SortKey[] = ['relevancia', 'preco-asc', 'preco-desc', 'recentes']
 
 /** Os únicos parâmetros com significado fixo. Tudo o resto na query string é
  * lido como um filtro de atributo, pela chave — ver `parseFilters`. */

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { mediaUrl } from '../../lib/api'
 import { Icon } from '../icons/sprite'
+import { ImagemComFallback } from '../ui/ImagemComFallback'
 
 type Imagem = { url: string; alt: string; width?: number; height?: number }
 
@@ -32,7 +33,7 @@ export function GaleriaProduto({ imagens, tituloProduto }: { imagens: Imagem[]; 
   return (
     <div>
       <div className="overflow-hidden rounded-card bg-white shadow-sm">
-        <Image
+        <ImagemComFallback
           src={mediaUrl(atual.url)}
           alt={atual.alt}
           width={atual.width ?? 800}

@@ -1,0 +1,19 @@
+{
+  "sortAria": "- combobox:\n  - option \"Relevância\" [selected]\n  - 'option \"Preço: do mais barato\"'\n  - 'option \"Preço: do mais caro\"'",
+  "dialogAria": "- dialog:\n  - heading \"Escolhe uma categoria\" [level=2]\n  - button \"Fechar\"\n  - list:\n    - listitem:\n      - link \"Todos os produtos\":\n        - /url: /produtos\n    - listitem:\n      - link \"Acessórios\":\n        - /url: /acessorios\n    - listitem:\n      - link \"Alimentação\":\n        - /url: /alimentacao\n    - listitem:\n      - link \"Aquário\":\n        - /url: /aquario\n    - listitem:\n      - link \"Brinquedos\":\n        - /url: /brinquedos\n    - listitem:\n      - link \"Cães\":\n        - /url: /caes",
+  "buttons": {
+    "color": "rgb(255, 255, 255)",
+    "background": "rgb(224, 98, 58)",
+    "fontSize": "16px",
+    "fontWeight": "600"
+  },
+  "filterClose": {
+    "x": 338,
+    "y": 143.609375,
+    "width": 28,
+    "height": 28
+  },
+  "dialogPadding": {
+    "bottomPadding": "16px"
+  }
+}

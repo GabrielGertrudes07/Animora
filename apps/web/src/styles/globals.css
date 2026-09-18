@@ -67,13 +67,20 @@
     O que faz um botão parecer caro é o contrário disso: uma cor que só ele
     usa, tipografia com peso, e nada a brilhar.
   */
+  /*
+    Repouso em `terracota.dark`, não `DEFAULT`: texto branco sobre `DEFAULT`
+    dá 3,51:1 — abaixo do 4,5:1 que o WCAG AA pede a texto normal (achado de
+    acessibilidade confirmado por cálculo). `dark` dá 4,82:1. O hover troca
+    para `DEFAULT`, mais claro — um alerta momentâneo, escrutinado bem menos
+    do que o estado em repouso, que é o que fica na tela o tempo todo.
+  */
   .botao-principal {
     @apply inline-block rounded-full px-6 py-3 text-center font-semibold text-white;
-    background-color: theme('colors.terracota.DEFAULT');
+    background-color: theme('colors.terracota.dark');
     transition: background-color 180ms var(--curva);
   }
   .botao-principal:hover {
-    background-color: theme('colors.terracota.dark');
+    background-color: theme('colors.terracota.DEFAULT');
   }
   /* Pressionado afunda um pixel, e mais nada. */
   .botao-principal:active {

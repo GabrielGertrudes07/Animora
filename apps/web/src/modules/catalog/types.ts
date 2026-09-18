@@ -28,6 +28,9 @@ export type PublicProduct = {
   shareImage?: { url: string; alt: string; width?: number; height?: number } | null
   metaTitle?: string | null
   metaDescription?: string | null
+  /** ISO, gerido pelo Payload — nunca escrito por esta loja. É o único sinal
+   * real de "mais recente" que existe; a ordenação por recência usa isto. */
+  createdAt: string
   variants: PublicVariant[]
 }
 

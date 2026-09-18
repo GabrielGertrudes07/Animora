@@ -8,7 +8,8 @@
     "trocarPara": "Zu {idioma} wechseln"
   },
   "Header": {
-    "envioGratis": "Kostenloser Versand ab {valor}. Immer, nicht nur im Angebot.",
+    "barraEnvio": "Kostenloser Versand ab {valor}",
+    "barraDados": "Konto und Daten geschützt",
     "logoAria": "Animora — Startseite",
     "slogan": "Fürsorge mit Herz, ohne bierernst zu sein",
     "pesquisarPlaceholder": "Was braucht dein Tier heute?",
@@ -91,7 +92,8 @@
     "rotulo": "Sortieren nach",
     "relevancia": "Relevanz",
     "precoAsc": "Preis: aufsteigend",
-    "precoDesc": "Preis: absteigend"
+    "precoDesc": "Preis: absteigend",
+    "recentes": "Neueste zuerst"
   },
   "ProductCard": {
     "esgotado": "Ausverkauft",
@@ -318,7 +320,8 @@
     "esgotado": "ausverkauft",
     "envioGratis": "Kostenloser Versand ab {valor}",
     "descricao": "Beschreibung",
-    "recomendacoesTitulo": "Das könnte dir auch gefallen"
+    "recomendacoesTitulo": "Das könnte dir auch gefallen",
+    "combinacaoIndisponivel": "Diese Kombination ist nicht verfügbar."
   },
   "GaleriaProduto": {
     "verImagem": "Bild {indice} von {total} von {produto} ansehen"
@@ -364,7 +367,7 @@
     "slide2Texto": "Robuste Ausrüstung, nützliches Zubehör und Komfort für Hunde, die Haus und Straße jeden Tag erleben.",
     "slide2CtaPrincipal": "Hunde kaufen",
     "slide2CtaSecundario": "Kategorien ansehen",
-    "slide2Alt": "Aufmerksamer Hund in einer hochwertigen grünen Szene mit Spaziergangszubehör und Abendlicht",
+    "slide2Alt": "Golden Retriever bringt einen Tennisball, in einem gemütlichen Wohnzimmer mit Teppich und Pflanzen",
     "slide3Eyebrow": "Für Katzen",
     "slide3Titulo": "Komfort für die Chefs im Haus",
     "slide3Texto": "Kratzbäume, Betten, Streu und Spielzeug mit gepflegtem Look und leicht vergleichbaren Optionen.",
@@ -377,5 +380,9 @@
     "slide4CtaPrincipal": "Tier wählen",
     "slide4CtaSecundario": "Vögel ansehen",
     "slide4Alt": "Hochwertige Komposition mit verschiedenen Haustieren in einer dunklen, auffälligen botanischen Szene"
+  },
+  "VistosRecentemente": {
+    "titulo": "Zuletzt angesehen",
+    "desde": "ab"
   }
 }

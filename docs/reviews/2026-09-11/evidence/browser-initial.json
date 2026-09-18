@@ -1,0 +1,386 @@
+{
+  "home390": {
+    "height": 10006,
+    "firstProductY": 1926.546875,
+    "heroHeight": 443.40625,
+    "sections": [
+      {
+        "title": "Tudo o que o teu animal precisa, num só sítio",
+        "y": 106,
+        "h": 443.40625,
+        "products": 0
+      },
+      {
+        "title": "Escolhe o teu animal",
+        "y": 549.40625,
+        "h": 923.546875,
+        "products": 0
+      },
+      {
+        "title": "Compra por necessidade",
+        "y": 1472.953125,
+        "h": 326.796875,
+        "products": 0
+      },
+      {
+        "title": "Em destaque",
+        "y": 1799.75,
+        "h": 1195.671875,
+        "products": 4
+      },
+      {
+        "title": "Novidades a caminho",
+        "y": 2995.421875,
+        "h": 527.375,
+        "products": 0
+      },
+      {
+        "title": "Ofertas desta semana",
+        "y": 3522.796875,
+        "h": 1208.859375,
+        "products": 4
+      },
+      {
+        "title": "Destaques por categoria",
+        "y": 4731.65625,
+        "h": 2848.171875,
+        "products": 10
+      },
+      {
+        "title": "Conhece a loja",
+        "y": 7579.828125,
+        "h": 527.375,
+        "products": 0
+      },
+      {
+        "title": "Aprovado por quem manda",
+        "y": 8107.203125,
+        "h": 855.546875,
+        "products": 0
+      },
+      {
+        "y": 8962.75,
+        "h": 354.1875,
+        "products": 0
+      },
+      {
+        "y": 9316.9375,
+        "h": 376,
+        "products": 0
+      }
+    ],
+    "overflow": false
+  },
+  "home768": {
+    "height": 9970,
+    "firstProductY": 1713.828125,
+    "heroHeight": 333.578125,
+    "sections": [
+      {
+        "title": "Tudo o que o teu animal precisa, num só sítio",
+        "y": 155,
+        "h": 333.578125,
+        "products": 0
+      },
+      {
+        "title": "Escolhe o teu animal",
+        "y": 488.578125,
+        "h": 826.328125,
+        "products": 0
+      },
+      {
+        "title": "Compra por necessidade",
+        "y": 1314.90625,
+        "h": 267.015625,
+        "products": 0
+      },
+      {
+        "title": "Em destaque",
+        "y": 1581.921875,
+        "h": 1338.390625,
+        "products": 4
+      },
+      {
+        "title": "Novidades a caminho",
+        "y": 2920.3125,
+        "h": 329.46875,
+        "products": 0
+      },
+      {
+        "title": "Ofertas desta semana",
+        "y": 3249.78125,
+        "h": 1338.390625,
+        "products": 4
+      },
+      {
+        "title": "Destaques por categoria",
+        "y": 4588.171875,
+        "h": 3086.453125,
+        "products": 10
+      },
+      {
+        "title": "Conhece a loja",
+        "y": 7674.625,
+        "h": 329.46875,
+        "products": 0
+      },
+      {
+        "title": "Aprovado por quem manda",
+        "y": 8004.09375,
+        "h": 1154.015625,
+        "products": 0
+      },
+      {
+        "y": 9158.109375,
+        "h": 284.40625,
+        "products": 0
+      },
+      {
+        "y": 9442.515625,
+        "h": 290.21875,
+        "products": 0
+      }
+    ],
+    "overflow": false
+  },
+  "home1440": {
+    "height": 8968,
+    "firstProductY": 1802.21875,
+    "heroHeight": 356.671875,
+    "sections": [
+      {
+        "title": "Tudo o que o teu animal precisa, num só sítio",
+        "y": 173,
+        "h": 356.671875,
+        "products": 0
+      },
+      {
+        "title": "Escolhe o teu animal",
+        "y": 529.671875,
+        "h": 663.515625,
+        "products": 0
+      },
+      {
+        "title": "Compra por necessidade",
+        "y": 1193.1875,
+        "h": 401.515625,
+        "products": 0
+      },
+      {
+        "title": "Em destaque",
+        "y": 1594.703125,
+        "h": 974.703125,
+        "products": 4
+      },
+      {
+        "title": "Novidades a caminho",
+        "y": 2569.40625,
+        "h": 591.25,
+        "products": 0
+      },
+      {
+        "title": "Ofertas desta semana",
+        "y": 3160.65625,
+        "h": 974.703125,
+        "products": 4
+      },
+      {
+        "title": "Destaques por categoria",
+        "y": 4135.359375,
+        "h": 2511.078125,
+        "products": 10
+      },
+      {
+        "title": "Conhece a loja",
+        "y": 6646.4375,
+        "h": 591.25,
+        "products": 0
+      },
+      {
+        "title": "Aprovado por quem manda",
+        "y": 7237.6875,
+        "h": 767.015625,
+        "products": 0
+      },
+      {
+        "y": 8004.703125,
+        "h": 362.1875,
+        "products": 0
+      },
+      {
+        "y": 8366.890625,
+        "h": 364,
+        "products": 0
+      }
+    ],
+    "overflow": false
+  },
+  "home1920": {
+    "height": 8816,
+    "firstProductY": 1804.84375,
+    "heroHeight": 356.671875,
+    "sections": [
+      {
+        "title": "Tudo o que o teu animal precisa, num só sítio",
+        "y": 173,
+        "h": 356.671875,
+        "products": 0
+      },
+      {
+        "title": "Escolhe o teu animal",
+        "y": 529.671875,
+        "h": 664.390625,
+        "products": 0
+      },
+      {
+        "title": "Compra por necessidade",
+        "y": 1194.0625,
+        "h": 402.390625,
+        "products": 0
+      },
+      {
+        "title": "Em destaque",
+        "y": 1596.453125,
+        "h": 897.078125,
+        "products": 4
+      },
+      {
+        "title": "Novidades a caminho",
+        "y": 2493.53125,
+        "h": 591.25,
+        "products": 0
+      },
+      {
+        "title": "Ofertas desta semana",
+        "y": 3084.78125,
+        "h": 897.078125,
+        "products": 4
+      },
+      {
+        "title": "Destaques por categoria",
+        "y": 3981.859375,
+        "h": 2511.953125,
+        "products": 10
+      },
+      {
+        "title": "Conhece a loja",
+        "y": 6493.8125,
+        "h": 591.25,
+        "products": 0
+      },
+      {
+        "title": "Aprovado por quem manda",
+        "y": 7085.0625,
+        "h": 767.890625,
+        "products": 0
+      },
+      {
+        "y": 7852.953125,
+        "h": 362.1875,
+        "products": 0
+      },
+      {
+        "y": 8215.140625,
+        "h": 364,
+        "products": 0
+      }
+    ],
+    "overflow": false
+  },
+  "stickyInitial": {
+    "scrollY": 0,
+    "areaY": 829.5,
+    "sticky": false,
+    "cartAccessible": true,
+    "hit": "<svg viewBox=\"0 0 24 24\" class=\"h-6 w-6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 6h15l-1.5 9h-12zM6 6L5 3H2m4 16a1 1 0 100 2 1 1 0 000-2zm12 0a1 1 0 100 2 1 1 "
+  },
+  "stickyAtBuy": {
+    "scrollY": 134,
+    "areaY": 695.5,
+    "sticky": false,
+    "cartAccessible": true,
+    "hit": "<svg viewBox=\"0 0 24 24\" class=\"h-6 w-6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 6h15l-1.5 9h-12zM6 6L5 3H2m4 16a1 1 0 100 2 1 1 0 000-2zm12 0a1 1 0 100 2 1 1 "
+  },
+  "buyButtons": [
+    {
+      "name": "Diminuir quantidade",
+      "text": "−"
+    },
+    {
+      "name": "Aumentar quantidade",
+      "text": "+"
+    },
+    {
+      "name": "Adicionar Kit Viagem PatasPro (Taça Dobrável + Garrafa) — Padrão ao carrinho",
+      "text": "Adicionar"
+    }
+  ],
+  "stickyAfter": {
+    "scrollY": 1822,
+    "areaY": -992.5,
+    "sticky": true,
+    "stickyText": "15,90 €Adicionar",
+    "cartAccessible": false,
+    "hit": "<button type=\"button\" aria-label=\"Adicionar Kit Viagem PatasPro (Taça Dobrável + Garrafa) ao carrinho\" class=\"botao-principal min-h-11 px-5 py-2 text-base sm:min-h-0 sm:px-4 sm:text-sm \">Adicionar</button>"
+  },
+  "stickyAdded": [
+    {
+      "variantId": 197,
+      "qty": 1
+    }
+  ],
+  "plpInitial": 12,
+  "plpBeforeNavigation": {
+    "count": 24,
+    "scroll": 1477,
+    "href": "/produto/bola-borracha-petisco-real-resistente"
+  },
+  "plpAfterBack": {
+    "count": 4,
+    "scroll": 971
+  },
+  "filteredCount": 3,
+  "selectLabels": [
+    {
+      "label": "Ordenar por\nRelevância\nPreço: do mais barato\nPreço: do mais caro",
+      "aria": null
+    }
+  ],
+  "brokenMedia": [
+    {
+      "src": "/_next/image?url=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fmedia%2Ffile%2Fkit-viagem-patas-pro-2.webp&w=1920&q=75",
+      "broken": true,
+      "alt": "Fotografia do produto Kit Viagem PatasPro (Taça Dobrável + Garrafa), da categoria Acessórios, loja Animora."
+    },
+    {
+      "src": "/_next/image?url=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fmedia%2Ffile%2Fcobertor-polar-fauna-norte-2.webp&w=1920&q=75",
+      "broken": true,
+      "alt": "Fotografia do produto Cobertor Polar Fauna Norte para Animais, da categoria Acessórios, loja Animora."
+    },
+    {
+      "src": "/_next/image?url=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fmedia%2Ffile%2Fcomedouro-lento-bicharada-anti-engasgamento-2.webp&w=1920&q=75",
+      "broken": true,
+      "alt": "Fotografia do produto Comedouro Lento Bicharada Anti-engasgamento, da categoria Acessórios, loja Animora."
+    },
+    {
+      "src": "/_next/image?url=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fmedia%2Ffile%2Fcinto-seguranca-carro-trela-certa-2.webp&w=1920&q=75",
+      "broken": true,
+      "alt": "Fotografia do produto Cinto de Segurança para Carro Trela Certa, da categoria Acessórios, loja Animora."
+    },
+    {
+      "src": "/_next/image?url=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fmedia%2Ffile%2Ftaca-dupla-patas-pro-inox-2.webp&w=1920&q=75",
+      "broken": true,
+      "alt": "Fotografia do produto Taça Dupla PatasPro Inox, da categoria Acessórios, loja Animora."
+    }
+  ],
+  "pdpMaybeMulti": {
+    "title": "Página não encontrada",
+    "variants": 0
+  },
+  "noJsPlp": {
+    "cards": 12,
+    "more": 0,
+    "body": "Saltar para o conteúdo\n\nEnvio grátis acima de 50,00 €. Sempre, não só em promoção.\n\nPT\nDE\nInício\nCategorias\nProcurar\nConta\nCarrinho\nAnimora\n\nAlimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.\n\n© 2026 Animora. Todos os direitos reservados."
+  },
+  "errors": []
+}

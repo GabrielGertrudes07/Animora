@@ -1,0 +1,83 @@
+{
+  "initialPosts": 13,
+  "beforeBack": {
+    "url": "http://localhost:3021/produtos",
+    "count": 24,
+    "scroll": 1477
+  },
+  "afterBack": {
+    "url": "http://localhost:3021/produtos",
+    "count": 12,
+    "scroll": 1477
+  },
+  "applied": {
+    "url": "http://localhost:3021/produtos?marca=roedix",
+    "count": 3,
+    "checked": true
+  },
+  "cleared": {
+    "url": "http://localhost:3021/produtos",
+    "count": 12,
+    "checked": true
+  },
+  "reapplied": {
+    "url": "http://localhost:3021/produtos?marca=roedix",
+    "count": 3
+  },
+  "localeSwitch": {
+    "url": "http://localhost:3021/de/produtos",
+    "heading": "Alle Produkte"
+  },
+  "realData": {
+    "products": 42,
+    "variants": 69,
+    "multi": "coleira-ajustavel-trela-certa-classic"
+  },
+  "multi": {
+    "slug": "coleira-ajustavel-trela-certa-classic",
+    "initialSticky": 1,
+    "area": {
+      "x": 16,
+      "y": 758.5,
+      "width": 358,
+      "height": 1272
+    },
+    "variants": 9
+  },
+  "quantity100": "OPÇÕES DISPONÍVEIS\nPadrão11 em stock\n−\n100\n+\nAdicionar",
+  "quantityErrors": [
+    "Quantidade inválida: 100. Tem de ser um inteiro entre 1 e 99."
+  ],
+  "noJS": {
+    "visibleMain": [
+      {
+        "display": "block",
+        "visible": true,
+        "text": ""
+      },
+      {
+        "display": "block",
+        "visible": false,
+        "text": "/Todos os produtosTodos os produtosTudo o que está à venda, de uma vez"
+      }
+    ],
+    "body": "Saltar para o conteúdo\n\nEnvio grátis acima de 50,00 €. Sempre, não só em promoção.\n\nPT\nDE\nInício\nCategorias\nProcurar\nConta\nCarrinho\nAnimora\n\nAlimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.\n\n© 2026 Animora. Todos os direitos reservados."
+  },
+  "noJSFiltered": {
+    "body": "Saltar para o conteúdo\n\nEnvio grátis acima de 50,00 €. Sempre, não só em promoção.\n\nPT\nDE\nInício\nCategorias\nProcurar\nConta\nCarrinho\nAnimora\n\nAlimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.\n\n© 2026 Animora. Todos os direitos reservados."
+  },
+  "cartNetworkFailure": {
+    "text": "Carrinho\n\nA carregar o carrinho…",
+    "errors": [
+      "Failed to fetch",
+      "Failed to fetch"
+    ]
+  },
+  "status": {
+    "/produto/nao-existe-review": 404,
+    "/categoria-review-nao-existe": 404,
+    "/rota/que/nao-existe": 404,
+    "/robots.txt": 404,
+    "/sitemap.xml": 404
+  }
+}

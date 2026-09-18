@@ -893,9 +893,233 @@ sku e migalhas corretos, sem `aggregateRating`).
 `pnpm --filter @animora/web build` (127 páginas, as 2 a mais são
 `/robots.txt` e `/sitemap.xml`), `git diff --check` (sem erros).
 
+## Três frentes em paralelo: UX/acessibilidade, performance real, densidade da home
+
+Pedido do usuário: as três frentes que ainda faltavam das sugestões
+anteriores (A, C, D — a fase de criativos, E, continua à parte,
+aguardando decisão). R07 e R08 (confronto com o plano original e o
+padrão "9 linhas" da PDP) foram tratados aqui também; R09/R10 quase por
+completo. Nada de proposta comercial nova (pagamento, fotografia real,
+políticas) — fora de escopo desde sempre.
+
+**A — UX/acessibilidade:**
+- **R09**: `<select>` de ordenação ganhou nome acessível em mobile
+  (`sr-only sm:not-sr-only` em vez de `hidden`, que tirava o texto da
+  árvore de acessibilidade). Botão de fechar da folha de filtros
+  (`FiltrosCatalogo.tsx`) passou de 28×28px para 44×44px. Contraste do
+  `.botao-principal`: texto branco sobre `terracota.DEFAULT` dava
+  3,51:1 (abaixo do 4,5:1 do WCAG AA para texto normal — cálculo
+  confirmado); repouso passou a `terracota.dark` (4,82:1), hover
+  passou a usar o tom mais claro.
+- **R10**: `ImagemComFallback.tsx` (novo) — mostra a pata em marca
+  d'água quando o `<Image>` falha ao *carregar* (URL quebrada), não só
+  quando não há registo de imagem nenhum. Aplicado em `ProductCard` e
+  na foto principal da `GaleriaProduto`. Precisa de Client Component:
+  um Server Component não pode passar `onError` para o `<Image>` do
+  `next/image`.
+- **R08**: seletor por atributo (`SeletorAtributos.tsx`, novo) em vez
+  da lista de uma linha por variante, quando `agruparPorAtributo`
+  (`modules/catalog/variantes.ts`) confirma que as variantes formam
+  uma matriz regular (mesmas chaves em todas — Tamanho × Cor, por
+  exemplo). Com 0/1 variante ou uma combinação irregular, continua a
+  lista de linhas de sempre. **Limitação registada, não escondida**:
+  os 42 produtos semeados têm todos variante única — este caminho
+  nunca pôde ser exercido em navegador contra dado real, só verificado
+  por teste unitário da lógica pura (`variantes.test.ts`, 6 casos:
+  matriz regular, irregular, sem combination, busca de variante) e
+  confirmado que o caminho antigo (lista) continua a renderizar
+  corretamente para os produtos reais (QA abaixo).
+
+**C — Performance:**
+- `sizes` acrescentado ao `<Image>` do `ProductCard` (fórmula espelha
+  os breakpoints reais da grelha, 2 a 5 colunas).
+- N+1 de avaliações eliminado: `getAvaliacoesEmLote` (nova, uma
+  consulta com `where[produto][in]=`) substitui a leitura por cartão
+  em todos os 5 pontos onde `ProductCard` é usado (Home ×2, PDP
+  recomendados, favoritos, PLP/categoria, destaques por categoria).
+  `ProductCard` deixou de buscar a própria avaliação — recebe-a como
+  prop.
+- **Diagnóstico real de LCP via Lighthouse** (não mais especulação):
+  rodado contra o build de produção (`next start`), com
+  `lcp-breakdown-insight` a apontar o elemento exato.
+  - **Home**: LCP é o parágrafo do `Hero` (`<p class="mt-3
+    max-w-leitura...">`) — confirma que a explicação anterior (falta
+    de `priority` numa imagem) estava errada; não há imagem nenhuma
+    ali.
+  - **PDP**: LCP é a foto principal da galeria, que já usa `priority`
+    corretamente. Nada a corrigir.
+  - **PLP**: LCP é a foto do primeiro cartão da grelha, e ela carregava
+    `loading="lazy"` como qualquer outra — achado real e acionável.
+    Corrigido: `ProductCard` ganhou `prioritario` (novo prop); quem
+    monta a grelha (`Catalogo.tsx`) marca só o primeiro item.
+    **Verificado antes/depois**: "Resource load delay" caiu de 386ms
+    para 149ms, pontuação do Lighthouse subiu de 0,87 para 0,94.
+  - TBT=0 continua sem provar INP — não medido nesta rodada (precisa
+    de dado de campo, não de laboratório).
+
+**D — Densidade/descoberta na Home:**
+- Ordenação real por "mais recentes": `PublicProduct` ganhou
+  `createdAt` (do Payload, nunca escrito por esta loja — timestamps
+  são automáticos em toda coleção); novo valor `'recentes'` em
+  `SortKey`, ordena por essa data real.
+- "Vistos recentemente": `lib/vistos.ts` (localStorage, lógica de
+  dedup/limite pura e testada) + `RegistrarVisualizacao.tsx` (grava ao
+  abrir uma ficha) + `VistosRecentemente.tsx` (mostra na Home). Cartão
+  próprio, mais simples que `ProductCard` (sem avaliação, sem
+  adicionar rápido) — um Client Component não pode instanciar
+  `ProductCard`, que é um Server Component assíncrono. Nova ação
+  `produtosPorIds` (`'use server'`) busca os produtos reais pelos ids
+  guardados, preservando a ordem (mais recente primeiro) e descartando
+  em silêncio um id que já não resolve a produto real.
+- Links "Ver todos os produtos" nas seções "Em destaque" e "Ofertas
+  desta semana" (chave de tradução já existia, nunca tinha sido usada).
+
+**Verificações:**
+
+| Verificação | Resultado |
+|---|---|
+| `pnpm --filter @animora/web typecheck` | ✅ 0 erros |
+| `pnpm --filter @animora/web test` | ✅ 16 arquivos, 165 testes |
+| `pnpm --filter @animora/web build` | ✅ 127 páginas |
+| `git diff --check` | ✅ sem erros de espaço em branco |
+
+**QA real de navegador** (Playwright, build de produção): 7/7 —
+PDP real (variante única) continua a usar a lista de linhas, não o
+seletor novo; "Ordenar por recentes" atualiza a URL; botão de fechar
+dos filtros mede 44×44px; imagem forçada a falhar mostra o ícone de
+pata; ver um produto grava no `localStorage` e "Vistos recentemente"
+aparece na Home a seguir; "Ver todos os produtos" presente nas duas
+seções.
+
+Nota de infraestrutura (não é do código): a bateria de build/QA desta
+rodada esbarrou numa degradação do Docker local (Postgres respondendo
+em ~4s por consulta simples, depois parando de responder) — resolvida
+reiniciando o Docker Desktop, não investigada mais a fundo por estar
+fora do escopo desta sessão.
+
+## Fase de criativos e motion — início (2026-09-14)
+
+Primeira imagem real da loja, na secção mais visível da Home. Usuário
+trouxe 7 imagens reais (geradas, não fotografadas) para compor o herói;
+antes de tocar em código, confirmei com ele que isto abre a fase de
+criativos (até aqui só "estrutural") e o que fazer com cada peça — ver a
+conversa para as duas perguntas e respostas.
+
+**Descoberta que mudou o plano**: `CarrosselCampanhas.tsx` — um
+componente inteiro para "animal composto sobre fotografia", com
+entrada em GSAP (o animal assenta, não flutua; ver `apoio`/`CamadaPet`),
+respiração em loop, `IntersectionObserver` para pausar fora do ecrã e
+`prefers-reduced-motion` (herdado de `useMotion`) — já existia,
+preservado desde o checkpoint `1ac1d5b`, só desligado (`MediaPlaceholder`
+no lugar da foto real) pela Fase 1 da estrutural. Reaproveitado em vez de
+escrever um sistema novo — é por isto que o pedido do usuário virou uma
+tarde, não uma semana.
+
+**O que fiz:**
+- **Imagens**: as 7 PNGs (até 2,2 MB cada) convertidas para `.webp`
+  (`cwebp`), redimensionadas ao tamanho real de exibição — total ~390 KB
+  para as 7, contra ~10 MB nas fontes. Em `public/banner/`: `sala-estar`
+  (fundo), `cao-dourado` + `cao-dourado-sombra` (o animal, a única
+  camada com peso — assenta no `apoio: '50% 97%'`), `bolinha-tenis`,
+  `decoracao-folha`, `decoracao-sparkle` (toques flutuantes, sempre em
+  loop, nunca assentam), `decoracao-mancha` (halo suave atrás do animal,
+  opacidade 50%).
+- **`CarrosselCampanhas.tsx`**: restaurada a renderização real de
+  `slide.fotografia`/`slide.pets` (estava só nos tipos, preservada em
+  comentário) a partir da versão pré-estrutural do próprio ficheiro
+  (`git show 1ac1d5b:...`) — não reinventada. Um ajuste sobre o original:
+  `object-bottom` na sombra (`object-contain` sozinho centrava-a a meio
+  da caixa do animal, porque a sombra gerada é uma elipse larga e baixa,
+  não a mesma proporção do animal — sem isto, "flutuava" acima do chão).
+  Novo campo `decoracoes`/`decoracoesFundo` (tipo `Decoracao`) para os
+  toques que não são `CamadaPet` — sem assentar, sem sombra própria, só
+  um `from(scale/opacity)` na entrada e uma deriva lenta e dessincronizada
+  (rotação e `yPercent` com fase própria por elemento) no loop de
+  repouso, dentro da mesma timeline `respirar` — herda de graça o
+  `prefers-reduced-motion` e a pausa por `IntersectionObserver` que já
+  existiam.
+- **Home**: `<Hero />` (estrutural, `MediaPlaceholder`) trocado por
+  `<CarrosselCampanhas>` com um slide só. Copy: reaproveitada a do
+  "slide2" (`CarrosselCampanhas.slide2*`, pt/de) — já escrita na fase de
+  design original, nunca usada, e fala de cães, o que a foto real já é.
+  `slide2Alt` **corrigido** para descrever a foto real (a versão antiga
+  descrevia uma composição diferente que nunca chegou a existir).
+  `href`/`hrefSecundario` reais: `/caes` (categoria real) e `/produtos`.
+  `Hero.tsx` fica no disco, não referenciado — mesmo padrão de
+  preservação já usado no projeto (nunca apagar o que pode voltar).
+
+**Verificado**: `typecheck` 0 erros, `test` 165/165 (sem mudança de
+lógica testável — isto é composição visual), `build` 127 páginas,
+`git diff --check` limpo. Visual conferido via Playwright em 1440px e
+390px, com e sem `prefers-reduced-motion`, e ~2,5s depois da carga
+(estado de repouso/loop) — sem erros nem avisos no console nas três
+capturas. Não fiz uma segunda rodada de ajuste fino de posição: o
+primeiro resultado já ficou bem composto (animal sobre o tapete, sombra
+coerente, decorações sem sobrepor o texto) nas duas larguras testadas.
+
+**Registo, não decisão silenciosa**: a mancha de tinta verde (halo atrás
+do animal) é a única das 4 peças "soltas" sem uso 1:1 óbvio sobre uma
+fotografia real — usada como glow suave em vez de descartada, por pedido
+explícito do usuário de aproveitar as 4 como toques flutuantes.
+
 ### Próximo passo
 
-Aguardar decisão do usuário sobre iniciar a fase de criativos, tratar
-R07/R08/R09/R10/R11 (deixados de fora da rodada corretiva anterior), ou
-seguir para outra frente de melhoria já levantada (UX/acessibilidade
-pendente, performance real, densidade/descoberta na home).
+Aguardar feedback do usuário sobre o resultado visual (a mesma captura
+que ele vai ver ao abrir a home). Se aprovado, considerar: os outros 3
+slides do carrossel (`slide1`/`slide3`/`slide4`, com copy já escrita,
+sem imagem ainda) para um carrossel de verdade em vez de um herói fixo;
+tratar o que restou de R09/R10 (contraste do texto sobre imagem sem
+verificar caso a caso, INP de campo); ou seguir para outra frente.
+
+## Investigação: fundação Shopify — confirmado bloqueio na Task 3 (2026-09-18)
+
+O usuário pediu para deixar o catálogo (destaques, ofertas, etc.) 100%
+adaptado ao Shopify, preparando a fundação para "só chegar e conectar"
+(ainda sem conta Shopify). Antes de desenhar algo novo, esta sessão
+verificou o estado real do trabalho já existente e encontrou uma
+decisão arquitetural anterior, aprovada e parcialmente implementada,
+que já resolve exatamente esse pedido:
+
+- `docs/superpowers/specs/2026-08-29-catalogo-shopify-design.md` (spec)
+  e `docs/superpowers/plans/2026-08-29-catalogo-shopify-espelho.md`
+  (plano) — o Shopify é dono só do catálogo (produtos/variantes/preços/
+  stock/imagens/categorias/marcas), espelhado no Postgres por
+  sincronização GraphQL. Checkout, encomendas e clientes ficam neste
+  projeto, sem uso do checkout hospedado do Shopify. `modules/catalog`
+  do `apps/web` não muda — a loja continua a ler REST do Payload como
+  hoje.
+
+**Estado real confirmado nesta sessão** (por leitura de código, não
+suposição):
+
+- ✅ **Task 1** (campo `shopifyId` nas 4 coleções de catálogo) e
+  **Task 2** (`apps/api/src/shopify/cliente.ts`, cliente GraphQL da
+  Admin API) — feitas e commitadas (`83dbbdf`, `86cba69`).
+- ⏸️ **Task 3** (validar `CONSULTA_PRODUTOS` contra uma loja Shopify
+  real e capturar `apps/api/src/shopify/fixtures/produtos.json`) —
+  **bloqueada**: a pasta `fixtures/` existe mas está vazia, confirmando
+  que `pnpm --filter @animora/api shopify:validar` nunca correu com
+  sucesso. O commit `d2fc02b` (sanitizador de HTML da descrição, CDN do
+  Shopify autorizado em `next.config.mjs`) é trabalho preparatório da
+  Task 4, feito adiantado e propositalmente "sem consumidor" (texto do
+  próprio commit) até a Task 3 destravar.
+- ⛔ **Tasks 4 a 7** (esquema de espelho, apagar `Media`/`sharp`/hooks
+  de edição, `espelhar.ts`, `sync.ts`) — não avançadas. `Products.ts`
+  ainda tem `description: richText` e campos `upload`; `Media.ts` e
+  todos os hooks (`syncVariants`, `validatePublish`, `blockOffMatrix`,
+  `ajustarStock`, `uniqueSlug`, `blockDeleteIfPublished`) ainda
+  existem. O próprio plano proíbe avançar sem a fixture real da Task 3
+  ("Não avançar para a Task 4 sem esta fixture").
+
+**Decisão do usuário nesta sessão**: não criar uma loja de
+desenvolvimento Shopify (gratuita, via Partners) agora para destravar a
+Task 3. Nenhum código foi alterado — não é seguro simular a forma da
+resposta da Admin API 2025-07 sem uma consulta real, e o plano já prevê
+esse caso ("Se não houver ainda loja Shopify com produtos: parar aqui e
+reportar").
+
+**Para retomar**: assim que houver acesso a qualquer loja Shopify (uma
+de desenvolvimento serve), rodar
+`pnpm --filter @animora/api shopify:validar` e seguir
+`docs/superpowers/plans/2026-08-29-catalogo-shopify-espelho.md` a
+partir da Task 3. Não é preciso replanear nem redesenhar nada.

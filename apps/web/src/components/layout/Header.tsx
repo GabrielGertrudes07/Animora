@@ -22,6 +22,12 @@ import { Icon } from '../icons/sprite'
  * cromo antes de qualquer conteúdo. Agora é uma linha em papel: diz o que tem
  * a dizer e não disputa a atenção do herói.
  *
+ * Três factos, não três promessas: envio grátis (real, `ENVIO_GRATIS_ACIMA_DE`),
+ * o slogan da loja (não é um facto, é só quem a loja é) e "conta e dados
+ * protegidos" — a mesma frase já usada em `Beneficios.tsx`, nunca "apoio ao
+ * cliente" ou coisa parecida, que a loja não tem hoje (ver o comentário do
+ * `Footer.tsx` sobre não fingir páginas de apoio que não existem).
+ *
  * `logo-cabecalho.png` é o `logo.png` original sem a legenda alemã
  * ("Haustierbedarf") que vinha por baixo do nome — um resto de um genérico
  * qualquer, nunca traduzido. A pesquisa é um `<form method="get">` simples
@@ -43,9 +49,22 @@ export async function Header() {
   return (
     <>
       <header className="border-b border-line bg-white">
-        <p className="border-b border-line bg-papel px-4 py-1.5 text-center text-xs font-medium text-ink-muted sm:px-6">
-          {t('envioGratis', { valor: formatEuros(ENVIO_GRATIS_ACIMA_DE) })}
-        </p>
+        <div className="border-b border-line bg-papel px-4 py-2 sm:px-6">
+          <ul className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-6 gap-y-1 text-xs font-medium text-ink-muted">
+            <li className="flex items-center gap-1.5">
+              <Icon name="cart" className="h-3.5 w-3.5 shrink-0" />
+              {t('barraEnvio', { valor: formatEuros(ENVIO_GRATIS_ACIMA_DE) })}
+            </li>
+            <li className="flex items-center gap-1.5">
+              <Icon name="paw" className="h-3.5 w-3.5 shrink-0" />
+              {t('slogan')}
+            </li>
+            <li className="flex items-center gap-1.5">
+              <Icon name="shield" className="h-3.5 w-3.5 shrink-0" />
+              {t('barraDados')}
+            </li>
+          </ul>
+        </div>
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-6 py-4">
           <Link
             href="/"

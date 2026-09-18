@@ -15,6 +15,7 @@ function produto(over: Partial<PublicProduct> & { id: number }): PublicProduct {
     brand: { id: 1, name: 'Marca A', slug: 'marca-a' },
     categories: [],
     gallery: [],
+    createdAt: new Date(0).toISOString(),
     variants: [],
     ...over,
   }

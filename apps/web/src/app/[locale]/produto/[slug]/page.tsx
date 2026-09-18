@@ -6,8 +6,10 @@ import {
   listAllSlugs,
   precoDeMostra,
   getAvaliacaoProduto,
+  getAvaliacoesEmLote,
   pesquisarProdutos,
 } from '../../../../modules/catalog'
+import type { ResumoAvaliacoes } from '@animora/core'
 import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
 import { mediaUrl } from '../../../../lib/api'
 import { descriptionToHtml } from '../../../../lib/richtext'
@@ -21,6 +23,7 @@ import { Entrada } from '../../../../components/motion/Entrada'
 import { CascataProdutos } from '../../../../components/motion/CascataProdutos'
 import { GaleriaProduto } from '../../../../components/produto/GaleriaProduto'
 import { AreaCompra } from '../../../../components/produto/AreaCompra'
+import { RegistrarVisualizacao } from '../../../../components/produto/RegistrarVisualizacao'
 import { JsonLd } from '../../../../components/seo/JsonLd'
 import { absoluteUrl, alternatesFor, centsToDecimalString } from '../../../../lib/seo'
 
@@ -92,6 +95,8 @@ export default async function ProdutoPage({ params }: Props) {
       : Promise.resolve([]),
   ])
   const recomendadosReais = recomendados.filter((r) => r.id !== p.id).slice(0, 4)
+  const avaliacoesRecomendados = await getAvaliacoesEmLote(recomendadosReais.map((r) => r.id))
+  const SEM_AVALIACAO: ResumoAvaliacoes = { media: null, total: 0 }
 
   // `primaryImage` e o (único, hoje) item de `gallery` apontam sempre para a
   // mesma fotografia nos dados semeados — deduplicado por `url` para a
@@ -147,6 +152,7 @@ export default async function ProdutoPage({ params }: Props) {
 
   return (
     <main id="conteudo" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+      <RegistrarVisualizacao produtoId={p.id} />
       <JsonLd data={produtoJsonLd} />
       <JsonLd data={migalhasJsonLd} />
       <nav aria-label={t('breadcrumbAria')} className="text-sm text-ink-muted">
@@ -232,7 +238,11 @@ export default async function ProdutoPage({ params }: Props) {
           <h2 className="text-titulo text-ink">{t('recomendacoesTitulo')}</h2>
           <CascataProdutos className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
             {recomendadosReais.map((r) => (
-              <ProductCard key={r.id} product={r} />
+              <ProductCard
+                key={r.id}
+                product={r}
+                avaliacao={avaliacoesRecomendados.get(r.id) ?? SEM_AVALIACAO}
+              />
             ))}
           </CascataProdutos>
         </section>

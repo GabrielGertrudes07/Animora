@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import gsap from 'gsap'
 import { useTranslations } from 'next-intl'
 import { Link } from '../../i18n/navigation'
 import { useMotion } from '../motion/useMotion'
 import { Icon } from '../icons/sprite'
-import { MediaPlaceholder } from '../ui/MediaPlaceholder'
 
 /**
  * Uma camada de animal por cima da fotografia — recorte com alpha, posicionado
@@ -33,6 +33,18 @@ export type CamadaPet = {
   apoio?: string
 }
 
+/**
+ * Um toque decorativo solto na fotografia — folha, brilho, mancha de cor. Ao
+ * contrário de `CamadaPet`, não assenta em lugar nenhum: flutua e roda
+ * devagar, sempre, sem gesto de entrada com peso. `decorativo` de propósito
+ * (`aria-hidden`, sem `alt`): não acrescenta informação nenhuma à foto.
+ */
+export type Decoracao = {
+  src: string
+  /** Posição, tamanho e proporção dentro do palco — mesma convenção de `CamadaPet.classe`. */
+  classe: string
+}
+
 export type SlideCampanha = {
   id: string
   href: string
@@ -46,6 +58,10 @@ export type SlideCampanha = {
   alt: string
   fotografia: string
   pets?: CamadaPet[]
+  /** Atrás do animal — um halo suave, nunca por cima do que tem peso. */
+  decoracoesFundo?: Decoracao[]
+  /** À frente de tudo — os toques que se veem primeiro. */
+  decoracoes?: Decoracao[]
 }
 
 const INTERVALO_MS = 7000
@@ -113,6 +129,7 @@ export function CarrosselCampanhas({ slides }: { slides: SlideCampanha[] }) {
 
       const animais = slide.querySelectorAll('[data-pet-animal]')
       const sombras = slide.querySelectorAll('[data-pet-sombra]')
+      const decoracoes = slide.querySelectorAll('[data-decoracao]')
 
       const entrada = gsap
         .timeline({ defaults: { ease: 'power3.out' } })
@@ -149,6 +166,16 @@ export function CarrosselCampanhas({ slides }: { slides: SlideCampanha[] }) {
           0.3,
         )
       }
+      // Os toques decorativos (folha, brilho, bola) chegam por último e mais
+      // devagar — nunca competem com o animal a assentar, só pontuam a cena
+      // depois de ela já estar composta.
+      if (decoracoes.length > 0) {
+        entrada.from(
+          decoracoes,
+          { scale: 0.6, opacity: 0, duration: 0.6, ease: 'back.out(1.7)', stagger: 0.12 },
+          0.55,
+        )
+      }
 
       /**
        * Repouso: os animais respiram e a sombra respira ao contrário. Uma
@@ -172,6 +199,20 @@ export function CarrosselCampanhas({ slides }: { slides: SlideCampanha[] }) {
           sombra,
           { scale: 1.035, opacity: 0.82, duration: 2.4 + i * 0.4, ease: 'sine.inOut' },
           i * 0.3,
+        )
+      })
+      // Deriva lenta, cada decoração com o seu próprio ritmo e fase — é o
+      // dessincronismo que lê como "solta no ar" em vez de "presa junto".
+      decoracoes.forEach((decoracao, i) => {
+        respirar.to(
+          decoracao,
+          {
+            yPercent: -8 - i * 2,
+            rotation: i % 2 === 0 ? 6 : -6,
+            duration: 3.2 + i * 0.6,
+            ease: 'sine.inOut',
+          },
+          i * 0.4,
         )
       })
 
@@ -220,16 +261,73 @@ export function CarrosselCampanhas({ slides }: { slides: SlideCampanha[] }) {
               className="grid w-full shrink-0 grid-cols-1 sm:grid-cols-[minmax(0,36%)_1fr]"
             >
               {/* Em telemóvel a fotografia vem primeiro; em ecrã largo passa
-                  para a direita. Uma ordem por CSS, sem duplicar marcação.
-                  Fase estrutural v1: mídia editorial neutra — sem fotografia
-                  nem animal composto (ver `slide.fotografia`/`slide.pets`,
-                  preservados para a fase de criativos). `data-foto` continua
-                  no contentor para o gesto de revelação por `clipPath`. */}
+                  para a direita. Uma ordem por CSS, sem duplicar marcação. */}
               <div
                 data-foto
                 className="relative order-first aspect-[16/10] overflow-hidden sm:order-last sm:aspect-[1.92/1]"
               >
-                <MediaPlaceholder ratio="16/10" type="hero" label={slide.alt} fill />
+                <Image
+                  src={slide.fotografia}
+                  alt={slide.alt}
+                  fill
+                  priority={indice === 0}
+                  sizes="(min-width: 640px) 64vw, 100vw"
+                  className="object-cover"
+                />
+                {slide.decoracoesFundo?.map((deco, i) => (
+                  <Image
+                    key={`fundo-${deco.src}-${i}`}
+                    data-decoracao
+                    src={deco.src}
+                    alt=""
+                    aria-hidden
+                    width={200}
+                    height={200}
+                    className={`pointer-events-none absolute object-contain ${deco.classe}`}
+                  />
+                ))}
+                {slide.pets?.map((pet) => (
+                  <span key={pet.animal} data-pet className={`absolute ${pet.classe}`}>
+                    {/* A sombra por baixo e num ficheiro próprio: fica ancorada
+                        ao chão quando o animal ganhar movimento. `object-bottom`
+                        porque a sombra (elipse larga e baixa) não preenche a
+                        mesma caixa do animal (retrato) — sem isto, `object-contain`
+                        centrava-a a meio da caixa, flutuando acima do chão. */}
+                    {pet.sombra ? (
+                      <Image
+                        data-pet-sombra
+                        src={pet.sombra}
+                        alt=""
+                        aria-hidden
+                        width={pet.largura}
+                        height={pet.altura}
+                        className="absolute inset-0 h-full w-full object-contain object-bottom"
+                      />
+                    ) : null}
+                    <Image
+                      data-pet-animal
+                      style={{ transformOrigin: pet.apoio ?? 'bottom center' }}
+                      src={pet.animal}
+                      alt=""
+                      aria-hidden
+                      width={pet.largura}
+                      height={pet.altura}
+                      className="relative h-full w-full object-contain"
+                    />
+                  </span>
+                ))}
+                {slide.decoracoes?.map((deco, i) => (
+                  <Image
+                    key={`${deco.src}-${i}`}
+                    data-decoracao
+                    src={deco.src}
+                    alt=""
+                    aria-hidden
+                    width={200}
+                    height={200}
+                    className={`pointer-events-none absolute object-contain ${deco.classe}`}
+                  />
+                ))}
               </div>
 
               <div className="chao-floresta flex flex-col justify-center gap-4 px-6 pb-20 pt-10 sm:px-10 sm:pb-24 sm:pt-12">

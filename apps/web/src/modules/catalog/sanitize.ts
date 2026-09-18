@@ -87,6 +87,7 @@ export function sanitizeProduct(raw: unknown): PublicProduct {
     shareImage: pickImage(p.shareImage),
     metaTitle: typeof p.metaTitle === 'string' ? p.metaTitle : null,
     metaDescription: typeof p.metaDescription === 'string' ? p.metaDescription : null,
+    createdAt: typeof p.createdAt === 'string' ? p.createdAt : new Date(0).toISOString(),
     variants: variants
       .map((v) => v as Raw)
       .filter((v) => v.active !== false)

@@ -25,6 +25,7 @@ const produto = (
     slug: nome.toLowerCase().replace(/[^a-z]+/gi, '-'),
   })),
   gallery: [],
+  createdAt: new Date(0).toISOString(),
   variants: [],
 })
 

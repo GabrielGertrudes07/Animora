@@ -51,7 +51,7 @@ arte nova, antes de qualquer trabalho de criativos.
 | 5 | PLP | ✅ Concluída (2026-09-11) |
 | 6 | PDP | ✅ Concluída (2026-09-11) |
 | 7 | Validação integrada | ✅ Concluída (2026-09-11) |
-| — | Fase posterior: criativos e motion (retoma "Clareira e Balcão") | 🔜 Desbloqueada — aguardando decisão do usuário para iniciar |
+| — | Fase de criativos e motion | 🟡 Em curso (iniciada 2026-09-14) — primeira imagem real na home |
 
 Detalhes de cada fase concluída (arquivos, verificações, limitações) em
 `docs/CURRENT_STATE.md`. Decisões arquiteturais não óbvias (a partir da

@@ -20,11 +20,16 @@ export function OrdenarPor({ filtrosAtuais }: { filtrosAtuais: CatalogFilters })
     { value: 'relevancia', label: t('relevancia') },
     { value: 'preco-asc', label: t('precoAsc') },
     { value: 'preco-desc', label: t('precoDesc') },
+    { value: 'recentes', label: t('recentes') },
   ]
 
   return (
     <label className="flex items-center gap-2 text-sm text-ink-muted">
-      <span className="hidden sm:inline">{t('rotulo')}</span>
+      {/* `sr-only` e não `hidden`: `display:none` sai da árvore de
+          acessibilidade, e era por isso que o `<select>` não tinha nome
+          nenhum em mobile — o texto continua a dar o nome ao controlo pela
+          própria `<label>` que os envolve aos dois, só deixa de aparecer. */}
+      <span className="sr-only sm:not-sr-only">{t('rotulo')}</span>
       <select
         value={filtrosAtuais.ordem}
         onChange={(e) => {

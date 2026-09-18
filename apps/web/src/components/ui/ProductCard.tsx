@@ -1,13 +1,14 @@
-import Image from 'next/image'
 import { getTranslations } from 'next-intl/server'
 import type { PublicProduct } from '../../modules/catalog'
-import { precoDeMostra, getAvaliacaoProduto } from '../../modules/catalog'
+import { precoDeMostra } from '../../modules/catalog'
+import type { ResumoAvaliacoes } from '@animora/core'
 import { mediaUrl } from '../../lib/api'
 import { Link } from '../../i18n/navigation'
 import { Price } from './Price'
 import { Estrelas } from './Estrelas'
 import { BotaoFavorito } from './BotaoFavorito'
 import { AdicionarAoCarrinho } from './AdicionarAoCarrinho'
+import { ImagemComFallback } from './ImagemComFallback'
 import { Icon } from '../icons/sprite'
 
 /**
@@ -18,18 +19,31 @@ import { Icon } from '../icons/sprite'
  * do rato, sem que o GSAP precise de conhecer a estrutura interna deste
  * componente nem de o transformar num Client Component.
  *
- * Assíncrono para ler as avaliações do produto — uma leitura a mais por
- * cartão (`getAvaliacaoProduto`), aceitável numa grelha de destaques ou
- * ofertas com poucas dezenas de cartões.
+ * `avaliacao` chega de fora, já resolvida — nunca busca a sua própria. Uma
+ * leitura por cartão (`getAvaliacaoProduto`) numa grelha de dezenas era N+1
+ * consultas por página; quem monta a grelha lê uma vez em lote
+ * (`getAvaliacoesEmLote`) e distribui por aqui.
+ *
+ * `prioritario`: o Lighthouse confirmou (não achismo — `lcp-breakdown-insight`
+ * contra o build de produção) que o elemento de LCP da PLP é a foto do
+ * primeiro cartão da grelha, e que ela carregava `loading="lazy"` como
+ * qualquer outra — um atraso de ~390ms medido só por isso. Quem monta a
+ * grelha marca o primeiro cartão; os outros continuam preguiçosos, que é o
+ * comportamento certo para quem nunca chega a entrar na viewport inicial.
  */
-export async function ProductCard({ product }: { product: PublicProduct }) {
+export async function ProductCard({
+  product,
+  avaliacao,
+  prioritario = false,
+}: {
+  product: PublicProduct
+  avaliacao: ResumoAvaliacoes
+  prioritario?: boolean
+}) {
   const preco = precoDeMostra(product.variants)
   const img = product.primaryImage ?? product.gallery[0]?.image ?? null
   const stockTotal = product.variants.reduce((s, v) => s + v.stock, 0)
-  const [avaliacao, t] = await Promise.all([
-    getAvaliacaoProduto(product.id),
-    getTranslations('ProductCard'),
-  ])
+  const t = await getTranslations('ProductCard')
   const desconto =
     preco.old && preco.old > preco.cents
       ? Math.round(((preco.old - preco.cents) / preco.old) * 100)
@@ -51,11 +65,18 @@ export async function ProductCard({ product }: { product: PublicProduct }) {
             categoria, o que faz a página inteira bater a compasso. */}
         <div className="relative aspect-[4/5] overflow-hidden bg-papel">
           {img ? (
-            <Image
+            <ImagemComFallback
               src={mediaUrl(img.url)}
               alt={img.alt}
               width={img.width ?? 600}
               height={img.height ?? 600}
+              // A grelha vai de 2 a 5 colunas — sem `sizes`, o navegador
+              // assume que a imagem enche o ecrã inteiro e pede sempre a
+              // maior do `srcset`, mesmo num cartão de 200px numa grelha de
+              // 5. Os números espelham os breakpoints da própria grelha
+              // (`grid-cols-2` → `md:grid-cols-3` → ...) usada em toda a loja.
+              sizes="(min-width: 1536px) 20vw, (min-width: 768px) 33vw, 50vw"
+              priority={prioritario}
               // A escala no hover é CSS e não GSAP: é uma transição de uma
               // propriedade, disparada por `:hover` do cartão. Passava por um
               // ouvinte delegado no contentor da grelha, que existia só para

@@ -1,14 +1,16 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { listCategories, listProducts, marcasDisponiveis } from '../../../modules/catalog'
+import { getAvaliacoesEmLote, listCategories, listProducts, marcasDisponiveis } from '../../../modules/catalog'
+import type { ResumoAvaliacoes } from '@animora/core'
 import { Link } from '../../../i18n/navigation'
 import { ProductCard } from '../../../components/ui/ProductCard'
 import { CascataProdutos } from '../../../components/motion/CascataProdutos'
-import { Hero } from '../../../components/marketing/Hero'
+import { CarrosselCampanhas } from '../../../components/marketing/CarrosselCampanhas'
 import { EscolhaSeuAnimal, ComprarPorNecessidade } from '../../../components/marketing/CategoriasVisuais'
 import { SecaoCampanha } from '../../../components/marketing/SecaoCampanha'
 import { DestaquesPorCategoria } from '../../../components/marketing/DestaquesPorCategoria'
 import { AprovadoPorQuemManda } from '../../../components/marketing/AprovadoPorQuemManda'
 import { Beneficios } from '../../../components/marketing/Beneficios'
+import { VistosRecentemente } from '../../../components/marketing/VistosRecentemente'
 import { JsonLd } from '../../../components/seo/JsonLd'
 import { SITE_URL } from '../../../lib/seo'
 
@@ -21,16 +23,23 @@ type Props = { params: Promise<{ locale: string }> }
  * segunda campanha/editorial, aprovado por quem manda, marcas, benefícios —
  * o cabeçalho e o rodapé vivem no `layout.tsx`, fora desta página.
  *
- * O carrossel de campanhas anterior (`CarrosselCampanhas`, `ProvaSocial`
- * como secção à parte, "escolhas da casa") saiu da composição — não foi
- * apagado, só parou de ser importado aqui. Ver `docs/CURRENT_STATE.md` §Fase 4.
+ * `ProvaSocial` como secção à parte e "escolhas da casa" continuam fora da
+ * composição — não foram apagados, só pararam de ser importados aqui. Ver
+ * `docs/CURRENT_STATE.md` §Fase 4.
+ *
+ * O herói voltou a ser `CarrosselCampanhas` (início da fase de criativos,
+ * primeira imagem real na home): um slide só, cão real sobre fotografia real
+ * de sala de estar — a mesma copy já escrita para "slide2" (`Header`
+ * `CarrosselCampanhas`, nunca usada até agora) por já falar de cães. Ver
+ * `docs/CURRENT_STATE.md` §Fase de criativos.
  */
 export default async function Home({ params }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
 
-  const [t, todos, categorias] = await Promise.all([
+  const [t, tCampanha, todos, categorias] = await Promise.all([
     getTranslations('Home'),
+    getTranslations('CarrosselCampanhas'),
     listProducts({ ordem: 'relevancia' }),
     listCategories(),
   ])
@@ -52,6 +61,11 @@ export default async function Home({ params }: Props) {
    * no frontend nem inventada no seeder.
    */
   const emDestaque = todos.filter((p) => !ofertas.some((o) => o.id === p.id)).slice(0, 4)
+
+  // Uma leitura em lote para os dois grupos de cartões desta página — não
+  // uma por cartão (era N+1: 8 leituras de avaliação por carga da home).
+  const avaliacoes = await getAvaliacoesEmLote([...emDestaque, ...ofertas].map((p) => p.id))
+  const SEM_AVALIACAO: ResumoAvaliacoes = { media: null, total: 0 }
 
   const marcas = marcasDisponiveis(todos)
 
@@ -81,17 +95,63 @@ export default async function Home({ params }: Props) {
           },
         ]}
       />
-      <Hero />
+      <CarrosselCampanhas
+        slides={[
+          {
+            id: 'cao-dourado',
+            href: '/caes',
+            hrefSecundario: '/produtos',
+            eyebrow: tCampanha('slide2Eyebrow'),
+            titulo: tCampanha('slide2Titulo'),
+            texto: tCampanha('slide2Texto'),
+            ctaPrincipal: tCampanha('slide2CtaPrincipal'),
+            ctaSecundario: tCampanha('slide2CtaSecundario'),
+            alt: tCampanha('slide2Alt'),
+            fotografia: '/banner/sala-estar.webp',
+            pets: [
+              {
+                animal: '/banner/cao-dourado.webp',
+                sombra: '/banner/cao-dourado-sombra.webp',
+                largura: 720,
+                altura: 900,
+                classe: 'bottom-[3%] left-1/2 w-[36%] -translate-x-1/2 aspect-[4/5]',
+                apoio: '50% 97%',
+              },
+            ],
+            decoracoesFundo: [
+              {
+                src: '/banner/decoracao-mancha.webp',
+                classe: 'bottom-[8%] left-1/2 w-[54%] -translate-x-1/2 aspect-[3/2] opacity-50',
+              },
+            ],
+            decoracoes: [
+              { src: '/banner/decoracao-sparkle.webp', classe: 'top-[8%] right-[7%] w-[10%] aspect-square' },
+              { src: '/banner/decoracao-folha.webp', classe: 'top-[9%] left-[6%] w-[12%] aspect-square' },
+              { src: '/banner/bolinha-tenis.webp', classe: 'bottom-[9%] left-[63%] w-[8%] aspect-square' },
+            ],
+          },
+        ]}
+      />
+
+      <VistosRecentemente />
 
       <EscolhaSeuAnimal categorias={categorias} contagens={contagens} />
       <ComprarPorNecessidade categorias={categorias} />
 
       {emDestaque.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-          <h2 className="text-titulo text-ink">{t('emDestaque')}</h2>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 className="text-titulo text-ink">{t('emDestaque')}</h2>
+            <Link
+              href="/produtos"
+              className="text-sm font-semibold text-ink underline underline-offset-4 transition-colors hover:text-terracota-dark"
+            >
+              {t('verTodosOsProdutos')}
+            </Link>
+          </div>
           <CascataProdutos className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
             {emDestaque.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} avaliacao={avaliacoes.get(p.id) ?? SEM_AVALIACAO} />
             ))}
           </CascataProdutos>
         </section>
@@ -107,10 +167,18 @@ export default async function Home({ params }: Props) {
 
       {ofertas.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-          <h2 className="text-titulo text-ink">{t('ofertasDaSemana')}</h2>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 className="text-titulo text-ink">{t('ofertasDaSemana')}</h2>
+            <Link
+              href="/produtos"
+              className="text-sm font-semibold text-ink underline underline-offset-4 transition-colors hover:text-terracota-dark"
+            >
+              {t('verTodosOsProdutos')}
+            </Link>
+          </div>
           <CascataProdutos className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
             {ofertas.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} avaliacao={avaliacoes.get(p.id) ?? SEM_AVALIACAO} />
             ))}
           </CascataProdutos>
         </section>

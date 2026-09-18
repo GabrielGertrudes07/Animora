@@ -1,8 +1,11 @@
 import { getTranslations } from 'next-intl/server'
-import { pesquisarProdutos } from '../../modules/catalog'
+import { getAvaliacoesEmLote, pesquisarProdutos } from '../../modules/catalog'
+import type { ResumoAvaliacoes } from '@animora/core'
 import { Link } from '../../i18n/navigation'
 import { ProductCard } from '../ui/ProductCard'
 import { CascataProdutos } from '../motion/CascataProdutos'
+
+const SEM_AVALIACAO: ResumoAvaliacoes = { media: null, total: 0 }
 
 /**
  * Uma fiada de produtos reais por categoria — não os primeiros N produtos do
@@ -27,6 +30,9 @@ export async function DestaquesPorCategoria({
   const comProdutos = linhas.filter((l) => l.produtos.length > 0)
   if (comProdutos.length === 0) return null
 
+  // Uma leitura em lote para as até 3×4 cartões desta secção inteira.
+  const avaliacoes = await getAvaliacoesEmLote(comProdutos.flatMap((l) => l.produtos.map((p) => p.id)))
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
       <h2 className="text-titulo text-ink">{t('titulo')}</h2>
@@ -46,7 +52,7 @@ export async function DestaquesPorCategoria({
 
             <CascataProdutos className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
               {produtos.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <ProductCard key={p.id} product={p} avaliacao={avaliacoes.get(p.id) ?? SEM_AVALIACAO} />
               ))}
             </CascataProdutos>
           </div>

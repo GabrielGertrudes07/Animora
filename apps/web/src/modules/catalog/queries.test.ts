@@ -71,6 +71,23 @@ describe('listProducts — filtro por categoria', () => {
   })
 })
 
+describe('listProducts — ordenação por recência', () => {
+  it('"recentes" ordena pelo createdAt real, do mais novo ao mais velho', async () => {
+    apiGetMock.mockImplementation(async (path: string) => {
+      if (path.startsWith('/api/products'))
+        return paginated([
+          { ...produtoCru, id: 1, createdAt: '2026-01-01T00:00:00.000Z' },
+          { ...produtoCru, id: 2, createdAt: '2026-06-01T00:00:00.000Z' },
+          { ...produtoCru, id: 3, createdAt: '2026-03-01T00:00:00.000Z' },
+        ])
+      return paginated([varianteCrua])
+    })
+
+    const produtos = await listProducts({ ordem: 'recentes' })
+    expect(produtos.map((p) => p.id)).toEqual([2, 3, 1])
+  })
+})
+
 describe('listProducts — filtro por atributo', () => {
   const tamanho = {
     id: 1,

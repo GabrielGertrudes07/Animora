@@ -102,6 +102,11 @@ export async function listProducts(
 
   if (f.ordem === 'preco-asc') produtos.sort((a, b) => menorPreco(a) - menorPreco(b))
   if (f.ordem === 'preco-desc') produtos.sort((a, b) => menorPreco(b) - menorPreco(a))
+  // `createdAt` é do Payload, nunca escrito por esta loja — o único sinal
+  // real de recência que existe. Sem isto, "mais recentes" seria inventado.
+  if (f.ordem === 'recentes') {
+    produtos.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }
 
   return produtos
 }

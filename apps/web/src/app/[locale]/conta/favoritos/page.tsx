@@ -3,9 +3,12 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import { Link, redirect } from '../../../../i18n/navigation'
 import { clienteAtual } from '../../../../modules/account/sessao'
-import { listProductsByIds } from '../../../../modules/catalog'
+import { getAvaliacoesEmLote, listProductsByIds } from '../../../../modules/catalog'
+import type { ResumoAvaliacoes } from '@animora/core'
 import { EstadoVazio } from '../../../../components/ui/EstadoVazio'
 import { ProductCard } from '../../../../components/ui/ProductCard'
+
+const SEM_AVALIACAO: ResumoAvaliacoes = { media: null, total: 0 }
 
 type Props = { params: Promise<{ locale: string }> }
 
@@ -31,6 +34,7 @@ export default async function FavoritosPage({ params }: Props) {
   }
 
   const produtos = await listProductsByIds(cliente.favoritos)
+  const avaliacoes = await getAvaliacoesEmLote(produtos.map((p) => p.id))
 
   return (
     <main id="conteudo" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -50,7 +54,7 @@ export default async function FavoritosPage({ params }: Props) {
       ) : (
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {produtos.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} avaliacao={avaliacoes.get(p.id) ?? SEM_AVALIACAO} />
           ))}
         </div>
       )}

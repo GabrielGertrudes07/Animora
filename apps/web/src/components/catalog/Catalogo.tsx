@@ -6,9 +6,13 @@ import {
   precoBounds,
   marcasDisponiveis,
   listSubcategories,
+  getAvaliacoesEmLote,
   type AttributeDef,
   type CatalogFilters,
 } from '../../modules/catalog'
+import type { ResumoAvaliacoes } from '@animora/core'
+
+const SEM_AVALIACAO: ResumoAvaliacoes = { media: null, total: 0 }
 import { Link } from '../../i18n/navigation'
 import { ProductCard } from '../ui/ProductCard'
 import { EstadoVazio } from '../ui/EstadoVazio'
@@ -77,6 +81,9 @@ export async function Catalogo({
     pesquisarProdutos(q, filtros, categoriaId, atributosAtivos),
     categoriaId ? listSubcategories(categoriaId) : Promise.resolve([]),
   ])
+  // Uma leitura em lote para a grelha inteira — não uma por cartão (era N+1
+  // numa PLP com dezenas de produtos).
+  const avaliacoes = await getAvaliacoesEmLote(produtos.map((p) => p.id))
 
   const facetas = computeAttributeFacets(todos, atributosAtivos)
   const bounds = precoBounds(todos)
@@ -216,8 +223,13 @@ export async function Catalogo({
             // e corrigido nesta fase). Em `xl` (1280px) já há espaço de sobra.
             <CascataProdutos className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
               <MostrarMais>
-                {produtos.map((p) => (
-                  <ProductCard key={p.id} product={p} />
+                {produtos.map((p, i) => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    avaliacao={avaliacoes.get(p.id) ?? SEM_AVALIACAO}
+                    prioritario={i === 0}
+                  />
                 ))}
               </MostrarMais>
             </CascataProdutos>

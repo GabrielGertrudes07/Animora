@@ -338,7 +338,7 @@ export function FiltrosCatalogo(props: Props) {
               type="button"
               onClick={() => dialogRef.current?.close()}
               aria-label={t('fecharFiltrosAria')}
-              className="rounded-campo p-1 text-ink-muted hover:text-ink"
+              className="flex h-11 w-11 items-center justify-center rounded-campo text-ink-muted hover:text-ink"
             >
               <Icon name="close" className="h-5 w-5" />
             </button>

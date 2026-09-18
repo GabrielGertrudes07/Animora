@@ -8,7 +8,8 @@
     "trocarPara": "Mudar para {idioma}"
   },
   "Header": {
-    "envioGratis": "Envio grátis acima de {valor}. Sempre, não só em promoção.",
+    "barraEnvio": "Envio grátis acima de {valor}",
+    "barraDados": "Conta e dados protegidos",
     "logoAria": "Animora — página inicial",
     "slogan": "cuidados a sério, sem ser sério demais",
     "pesquisarPlaceholder": "O que o teu animal precisa hoje?",
@@ -91,7 +92,8 @@
     "rotulo": "Ordenar por",
     "relevancia": "Relevância",
     "precoAsc": "Preço: do mais barato",
-    "precoDesc": "Preço: do mais caro"
+    "precoDesc": "Preço: do mais caro",
+    "recentes": "Mais recentes"
   },
   "ProductCard": {
     "esgotado": "Esgotado",
@@ -318,7 +320,8 @@
     "esgotado": "esgotado",
     "envioGratis": "Envio grátis acima de {valor}",
     "descricao": "Descrição",
-    "recomendacoesTitulo": "Também pode interessar"
+    "recomendacoesTitulo": "Também pode interessar",
+    "combinacaoIndisponivel": "Esta combinação não está disponível."
   },
   "GaleriaProduto": {
     "verImagem": "Ver imagem {indice} de {total} de {produto}"
@@ -364,7 +367,7 @@
     "slide2Texto": "Equipamento resistente, acessórios úteis e conforto para cães que vivem a casa e a rua todos os dias.",
     "slide2CtaPrincipal": "Comprar cães",
     "slide2CtaSecundario": "Ver categorias",
-    "slide2Alt": "Cão atento numa cena verde premium com acessórios de passeio e luz de fim de tarde",
+    "slide2Alt": "Golden retriever a trazer uma bola de ténis, numa sala de estar acolhedora com tapete e plantas",
     "slide3Eyebrow": "Para gatos",
     "slide3Titulo": "Conforto para quem manda na casa",
     "slide3Texto": "Arranhadores, camas, areia e brinquedos com visual cuidado e escolhas fáceis de comparar.",
@@ -377,5 +380,9 @@
     "slide4CtaPrincipal": "Escolher animal",
     "slide4CtaSecundario": "Ver pássaros",
     "slide4Alt": "Composição premium com animais de estimação diferentes em cenário botânico escuro e chamativo"
+  },
+  "VistosRecentemente": {
+    "titulo": "Vistos recentemente",
+    "desde": "desde"
   }
 }
