@@ -39,7 +39,7 @@ export function BarraMobile({ categorias }: { categorias: Categoria[] }) {
         aria-label={t('navegacaoAria')}
         // `env(safe-area-inset-bottom)` mantém a barra acima do indicador de
         // home dos telemóveis sem entalhe fixo; em ecrãs sem ele vale 0.
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm sm:hidden"
       >
         <ul className="mx-auto flex max-w-lg items-stretch">
           <ItemLink href="/" icone="home" rotulo={t('inicio')} ativo={naHome} />
@@ -70,7 +70,7 @@ export function BarraMobile({ categorias }: { categorias: Categoria[] }) {
             <Link
               href="/produtos"
               onClick={() => folhaCategorias.current?.close()}
-              className="flex min-h-[3rem] items-center rounded-card bg-ink px-4 font-semibold text-papel"
+              className="flex min-h-[3rem] items-center rounded-md bg-teal-900 px-4 font-semibold text-white"
             >
               {t('todosOsProdutos')}
             </Link>
@@ -80,7 +80,7 @@ export function BarraMobile({ categorias }: { categorias: Categoria[] }) {
               <Link
                 href={`/${c.slug}`}
                 onClick={() => folhaCategorias.current?.close()}
-                className="flex min-h-[3rem] items-center rounded-card border border-line px-4 font-medium text-ink"
+                className="flex min-h-[3rem] items-center rounded-md border border-border px-4 font-medium text-text"
               >
                 {c.name}
               </Link>
@@ -95,8 +95,8 @@ export function BarraMobile({ categorias }: { categorias: Categoria[] }) {
           method="get"
           className="flex items-center gap-2 px-5 pb-8"
         >
-          <div className="flex flex-1 items-center gap-2 rounded-full border border-line bg-papel/60 px-4 py-3 focus-within:border-terracota">
-            <Icon name="search" className="h-5 w-5 shrink-0 text-ink-muted" />
+          <div className="flex flex-1 items-center gap-2 rounded-pill border border-border bg-cream/60 px-4 py-3 focus-within:border-orange">
+            <Icon name="search" className="h-5 w-5 shrink-0 text-text-muted" />
             <input
               type="search"
               name="q"
@@ -105,7 +105,7 @@ export function BarraMobile({ categorias }: { categorias: Categoria[] }) {
               // tem o dedo a caminho do campo.
               placeholder={t('pesquisaPlaceholder')}
               aria-label={t('pesquisaAria')}
-              className="w-full min-w-0 bg-transparent text-base text-ink placeholder:text-ink-muted focus:outline-none"
+              className="w-full min-w-0 bg-transparent text-base text-text placeholder:text-text-muted focus:outline-none"
             />
           </div>
           <button
@@ -139,13 +139,13 @@ function ItemLink({
         href={href}
         aria-current={ativo ? 'page' : undefined}
         className={`relative flex min-h-[3.5rem] flex-col items-center justify-center gap-1 text-[0.6875rem] font-medium transition-colors ${
-          ativo ? 'text-terracota' : 'text-ink-muted'
+          ativo ? 'text-orange-deep' : 'text-text-muted'
         }`}
       >
         <Icon name={icone} className="h-6 w-6" />
         {rotulo}
         {distintivo ? (
-          <span className="absolute right-[22%] top-1.5 min-w-[1.15rem] rounded-full bg-terracota px-1 text-center text-[0.625rem] font-bold leading-[1.15rem] text-white">
+          <span className="absolute right-[22%] top-1.5 min-w-[1.15rem] rounded-full bg-orange-deep px-1 text-center text-[0.625rem] font-bold leading-[1.15rem] text-white">
             {distintivo}
           </span>
         ) : null}
@@ -168,7 +168,7 @@ function ItemBotao({
       <button
         type="button"
         onClick={onClick}
-        className="flex min-h-[3.5rem] w-full flex-col items-center justify-center gap-1 text-[0.6875rem] font-medium text-ink-muted"
+        className="flex min-h-[3.5rem] w-full flex-col items-center justify-center gap-1 text-[0.6875rem] font-medium text-text-muted"
       >
         <Icon name={icone} className="h-6 w-6" />
         {rotulo}
@@ -200,15 +200,15 @@ function Folha({
       onClick={(e) => {
         if (e.target === e.currentTarget) ref.current?.close()
       }}
-      className="m-0 max-h-[85vh] w-full max-w-full rounded-t-card border-t border-line bg-papel p-0 shadow-md backdrop:bg-ink/40 sm:hidden [&[open]]:fixed [&[open]]:inset-x-0 [&[open]]:bottom-0 [&[open]]:top-auto"
+      className="m-0 max-h-[85vh] w-full max-w-full rounded-t-lg border-t border-border bg-cream p-0 shadow-drawer backdrop:bg-text/40 sm:hidden [&[open]]:fixed [&[open]]:inset-x-0 [&[open]]:bottom-0 [&[open]]:top-auto"
     >
       <div className="flex items-center justify-between px-5 py-4">
-        <h2 className="text-lg font-semibold text-ink">{titulo}</h2>
+        <h2 className="text-lg font-semibold text-text">{titulo}</h2>
         <button
           type="button"
           onClick={() => ref.current?.close()}
           aria-label={fechar}
-          className="flex h-11 w-11 items-center justify-center rounded-campo border border-line text-ink-muted"
+          className="flex h-11 w-11 items-center justify-center rounded-sm border border-border text-text-muted"
         >
           <Icon name="close" className="h-5 w-5" />
         </button>

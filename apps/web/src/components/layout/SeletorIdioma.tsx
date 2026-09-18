@@ -19,7 +19,7 @@ export function SeletorIdioma() {
   const params = useParams()
 
   return (
-    <div className="flex items-center gap-1 text-sm font-medium text-ink-muted">
+    <div className="flex items-center gap-1 text-sm font-medium text-text-muted">
       {routing.locales.map((locale) => (
         <button
           key={locale}
@@ -37,7 +37,7 @@ export function SeletorIdioma() {
             const query = window.location.search
             router.replace(query ? `${pathname}${query}` : pathname, { locale })
           }}
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-campo px-2 py-1 transition-colors hover:text-ink sm:min-h-0 sm:min-w-0 disabled:font-semibold disabled:text-terracota disabled:hover:text-terracota"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-sm px-2 py-1 transition-colors hover:text-text sm:min-h-0 sm:min-w-0 disabled:font-semibold disabled:text-orange-deep disabled:hover:text-orange-deep"
         >
           {t(locale as 'pt' | 'de')}
         </button>
