@@ -398,10 +398,10 @@ export function Hero() {
         <p
           data-hero-texto
           style={{
-            ...posicao(1100, 395),
+            ...posicao(1100, 365),
             fontFamily: 'var(--fonte-banner-titulo)',
             fontWeight: 800,
-            fontSize: tamanhoFluido(72),
+            fontSize: tamanhoFluido(52),
             lineHeight: 1,
             color: '#F57C00',
           }}
