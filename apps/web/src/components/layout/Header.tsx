@@ -1,11 +1,32 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
-import { listCategories } from '../../modules/catalog'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { listCategories, listProducts, marcasDisponiveis } from '../../modules/catalog'
 import { Link, getPathname } from '../../i18n/navigation'
 import { CarrinhoBotao } from './CarrinhoBotao'
 import { BarraMobile } from './BarraMobile'
+import { MegaMenu, type PainelCategoria } from './MegaMenu'
 import { SeletorIdioma } from './SeletorIdioma'
 import { Icon } from '../icons/sprite'
+
+/** Produtos listados por categoria no mega-menu; o resto fica no "Ver todos". */
+const PRODUTOS_NO_MENU = 6
+
+/**
+ * A fotografia do cartão do mega-menu vem da mesma cena das categorias de
+ * animal: `public/categorias/<slug>/fundo.webp` (obrigatória) e
+ * `animal.webp` (opcional, recortada). Categoria sem `fundo.webp` → cartão
+ * só na cor, até alguém lá pôr a fotografia.
+ */
+function imagemCategoria(slug: string): PainelCategoria['imagem'] {
+  const existe = (f: string) => existsSync(join(process.cwd(), 'public', 'categorias', slug, f))
+  if (!existe('fundo.webp')) return null
+  return {
+    fundo: `/categorias/${slug}/fundo.webp`,
+    animal: existe('animal.webp') ? `/categorias/${slug}/animal.webp` : null,
+  }
+}
 
 /**
  * Cabeçalho presente em todas as páginas.
@@ -38,11 +59,12 @@ import { Icon } from '../icons/sprite'
  * via `/api/categories`) — só um filtro de produtos com desconto usado na
  * home (`page.tsx`). Inventar aqui uma categoria ou rota que não existe
  * violaria a regra de não hardcodar dado que devia vir da base. Do mesmo
- * modo, a navegação fica em lista simples, sem mega menu de agrupamentos
- * (Alimentação/Diversão/Cuidados/...): as categorias reais não têm
- * hierarquia (`parent` é sempre `null` na base atual), então qualquer
- * agrupamento visual seria inventado. Ambos ficam registados como pendência
- * de dados, não como desvio silencioso.
+ * modo, não há agrupamentos (Alimentação/Diversão/Cuidados/...): as
+ * categorias reais não têm hierarquia (`parent` é sempre `null` na base
+ * atual). O mega-menu de cada categoria (`MegaMenu`) mostra por isso o que
+ * existe de facto nela — as marcas (atalho para o filtro `?marca=`) e os
+ * primeiros produtos —, tirado da mesma `listProducts` da home, que o
+ * `fetch` com `revalidate` partilha em vez de repetir.
  *
  * O logótipo deixou de ser uma imagem (`logo-cabecalho.png`, a árvore
  * verde-salva da identidade antiga) — passa a ser texto+ícone em HTML,
@@ -59,12 +81,24 @@ import { Icon } from '../icons/sprite'
  * um Client Component — o resto continua a ser lido no servidor.
  */
 export async function Header() {
-  const [categorias, t, locale] = await Promise.all([
+  const [categorias, produtos, t, locale] = await Promise.all([
     listCategories(),
+    listProducts({ ordem: 'relevancia' }),
     getTranslations('Header'),
     getLocale(),
   ])
   const acaoPesquisa = getPathname({ href: '/produtos', locale })
+  const paineis: PainelCategoria[] = categorias.map((c) => {
+    const daCategoria = produtos.filter((p) => p.categories.some((pc) => pc.slug === c.slug))
+    return {
+      slug: c.slug,
+      name: c.name,
+      marcas: marcasDisponiveis(daCategoria),
+      produtos: daCategoria.slice(0, PRODUTOS_NO_MENU).map((p) => ({ titulo: p.title, slug: p.slug })),
+      totalProdutos: daCategoria.length,
+      imagem: imagemCategoria(c.slug),
+    }
+  })
 
   return (
     <>
@@ -140,28 +174,7 @@ export async function Header() {
           aria-label={t('categoriasAria')}
           className="hidden border-b border-border sm:block"
         >
-          <ul className="mx-auto flex min-h-9 max-w-7xl items-center gap-1 overflow-x-auto whitespace-nowrap px-6 text-sm font-medium">
-            {/* Primeiro item, sempre: a loja inteira. Sem ele só se chegava a
-              produtos escolhendo primeiro uma categoria. */}
-            <li className="shrink-0">
-              <Link
-                href="/produtos"
-                className="block rounded-sm px-3 py-1.5 text-text transition-colors hover:bg-cream"
-              >
-                {t('todosOsProdutos')}
-              </Link>
-            </li>
-            {categorias.map((c) => (
-              <li key={c.slug} className="shrink-0">
-                <Link
-                  href={`/${c.slug}`}
-                  className="block rounded-sm px-3 py-1.5 text-text-muted transition-colors hover:bg-cream hover:text-text"
-                >
-                  {c.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <MegaMenu paineis={paineis} />
         </nav>
       </header>
 

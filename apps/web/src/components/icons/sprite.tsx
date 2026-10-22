@@ -10,6 +10,7 @@ const PATHS = {
   grelha: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
   chevronLeft: 'M15 18l-6-6 6-6',
   chevronRight: 'M9 6l6 6-6 6',
+  chevronDown: 'M6 9l6 6 6-6',
 } as const
 
 export type IconName = keyof typeof PATHS

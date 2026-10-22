@@ -17,7 +17,10 @@
     "pesquisarAria": "Pesquisar produtos",
     "conta": "Conta",
     "categoriasAria": "Categorias",
-    "todosOsProdutos": "Todos os produtos"
+    "todosOsProdutos": "Todos os produtos",
+    "menuMarcas": "Marcas",
+    "menuProdutos": "Produtos",
+    "menuVerTodos": "Ver todos ({total})"
   },
   "Footer": {
     "descricao": "Alimentação, acessórios, higiene e treino para cães, gatos, pássaros e pequenos animais.",

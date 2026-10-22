@@ -17,7 +17,10 @@
     "pesquisarAria": "Produkte durchsuchen",
     "conta": "Konto",
     "categoriasAria": "Kategorien",
-    "todosOsProdutos": "Alle Produkte"
+    "todosOsProdutos": "Alle Produkte",
+    "menuMarcas": "Marken",
+    "menuProdutos": "Produkte",
+    "menuVerTodos": "Alle ansehen ({total})"
   },
   "Footer": {
     "descricao": "Futter, Zubehör, Pflege und Training für Hunde, Katzen, Vögel und Kleintiere.",
