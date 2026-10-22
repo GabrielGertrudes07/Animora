@@ -89,7 +89,7 @@ export async function Hero() {
   const t = await getTranslations('Hero')
 
   return (
-    <section className={`${fonteTitulo.variable} ${fonteTexto.variable} ${fonteManuscrita.variable}`}>
+    <section className={`${fonteTitulo.variable} ${fonteTexto.variable} ${fonteManuscrita.variable} mx-auto max-w-7xl px-4 pt-4 sm:px-6 sm:pt-6`}>
       {/* Desktop/tablet — faixa curta, altura fixa, camadas animadas em CSS */}
       <div className="hidden sm:block">
         <div className="flex items-center justify-center gap-2 rounded-t-xl bg-orange px-4 py-2">
