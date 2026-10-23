@@ -3,6 +3,7 @@ import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
 import { listCategories, listProducts, marcasDisponiveis } from '../../modules/catalog'
 import { Link, getPathname } from '../../i18n/navigation'
 import { CarrinhoBotao } from './CarrinhoBotao'
+import { BarraFixa } from './BarraFixa'
 import { BarraMobile } from './BarraMobile'
 import { MegaMenu, type PainelCategoria } from './MegaMenu'
 import { SeletorIdioma } from './SeletorIdioma'
@@ -82,6 +83,18 @@ export async function Header() {
     }
   })
 
+  const logo = (
+    <Link href="/" className="flex min-h-11 shrink-0 items-center gap-1.5" aria-label={t('logoAria')}>
+      <Icon name="paw" className="h-6 w-6 shrink-0 text-orange" />
+      <span className="flex flex-col leading-none">
+        <span className="font-display text-xl font-bold text-teal-900">animora</span>
+        <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-text-muted">
+          {t('petShop')}
+        </span>
+      </span>
+    </Link>
+  )
+
   return (
     <>
       <header className="bg-surface">
@@ -108,19 +121,7 @@ export async function Header() {
         {/* Header principal: 56px mobile, 60px desktop fixos (era 64/80px),
             border-b sutil, sem sombra. */}
         <div className="mx-auto flex min-h-14 max-w-7xl flex-wrap items-center gap-4 border-b border-border px-6 py-2 sm:min-h-[60px] sm:py-0">
-          <Link
-            href="/"
-            className="flex min-h-11 shrink-0 items-center gap-1.5"
-            aria-label={t('logoAria')}
-          >
-            <Icon name="paw" className="h-6 w-6 shrink-0 text-orange" />
-            <span className="flex flex-col leading-none">
-              <span className="font-display text-xl font-bold text-teal-900">animora</span>
-              <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-text-muted">
-                {t('petShop')}
-              </span>
-            </span>
-          </Link>
+          {logo}
 
           <form
             action={acaoPesquisa}
@@ -156,9 +157,19 @@ export async function Header() {
           aria-label={t('categoriasAria')}
           className="hidden border-b border-border sm:block"
         >
-          <MegaMenu paineis={paineis} />
+          <MegaMenu paineis={paineis} id="mega-menu" />
         </nav>
       </header>
+
+      <BarraFixa>
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-6">
+          {logo}
+          <nav aria-label={t('categoriasAria')} className="min-w-0 flex-1">
+            <MegaMenu paineis={paineis} id="mega-menu-fixo" compacta />
+          </nav>
+          <CarrinhoBotao />
+        </div>
+      </BarraFixa>
 
       <BarraMobile categorias={categorias.map((c) => ({ slug: c.slug, name: c.name }))} />
     </>

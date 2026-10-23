@@ -30,8 +30,20 @@ const ATRASO_FECHAR_MS = 180
  * painéis invisíveis ficam `inert`, fora do foco e do leitor de ecrã.
  *
  * Abre também por foco do teclado; `Esc` fecha e devolve o foco ao item.
+ *
+ * `compacta` é a variante da barra fixa (`BarraFixa`): a lista encolhe para
+ * caber ao lado do logótipo e o painel deixa de se posicionar por este
+ * bloco (`static`) e passa a pendurar-se na barra inteira.
  */
-export function MegaMenu({ paineis }: { paineis: PainelCategoria[] }) {
+export function MegaMenu({
+  paineis,
+  id,
+  compacta = false,
+}: {
+  paineis: PainelCategoria[]
+  id: string
+  compacta?: boolean
+}) {
   const t = useTranslations('Header')
   const pathname = usePathname()
   const [ativa, setAtiva] = useState<string | null>(null)
@@ -72,7 +84,7 @@ export function MegaMenu({ paineis }: { paineis: PainelCategoria[] }) {
   return (
     <div
       ref={raiz}
-      className="relative"
+      className={compacta ? 'min-w-0' : 'relative'}
       onMouseLeave={fechar}
       onBlur={(e) => {
         if (!raiz.current?.contains(e.relatedTarget as Node | null)) fechar()
@@ -84,35 +96,42 @@ export function MegaMenu({ paineis }: { paineis: PainelCategoria[] }) {
         raiz.current?.querySelector<HTMLElement>(`[data-categoria="${ativa}"]`)?.focus()
       }}
     >
-      <ul className="mx-auto flex min-h-9 max-w-7xl items-center gap-1 overflow-x-auto whitespace-nowrap px-6 text-sm font-medium">
+      <ul
+        className={`flex items-center overflow-x-auto whitespace-nowrap text-sm font-medium ${
+          compacta ? 'mx-auto w-fit max-w-full' : 'mx-auto min-h-9 max-w-7xl gap-1 px-6'
+        }`}
+      >
         {/* Primeiro item, sempre: a loja inteira. Sem ele só se chegava a
-            produtos escolhendo primeiro uma categoria. */}
-        <li className="shrink-0" onMouseEnter={fechar}>
-          <Link
-            href="/produtos"
-            className="block rounded-sm px-3 py-1.5 text-text transition-colors hover:bg-cream"
-          >
-            {t('todosOsProdutos')}
-          </Link>
-        </li>
+            produtos escolhendo primeiro uma categoria. Na barra compacta não
+            cabe ao lado do logótipo — e o logótipo já leva à loja. */}
+        {compacta ? null : (
+          <li className="shrink-0" onMouseEnter={fechar}>
+            <Link
+              href="/produtos"
+              className="block rounded-sm px-3 py-1.5 text-text transition-colors hover:bg-cream"
+            >
+              {t('todosOsProdutos')}
+            </Link>
+          </li>
+        )}
         {paineis.map((c) => (
           <li key={c.slug} className="shrink-0" onMouseEnter={() => abrir(c.slug)}>
             <Link
               href={`/${c.slug}`}
               data-categoria={c.slug}
               aria-expanded={ativa === c.slug}
-              aria-controls="mega-menu"
+              aria-controls={id}
               onFocus={() => mostrar(c.slug)}
-              className={`flex items-center gap-1 rounded-sm px-3 py-1.5 transition-colors hover:bg-cream hover:text-text ${
-                ativa === c.slug ? 'bg-cream text-text' : 'text-text-muted'
-              }`}
+              className={`flex items-center gap-1 rounded-sm py-1.5 transition-colors hover:bg-cream hover:text-text ${
+                compacta ? 'px-2' : 'px-3'
+              } ${ativa === c.slug ? 'bg-cream text-text' : 'text-text-muted'}`}
             >
               {c.name}
               <Icon
                 name="chevronDown"
                 className={`h-3.5 w-3.5 transition-transform duration-300 ease-brand motion-reduce:transition-none ${
-                  ativa === c.slug ? 'rotate-180' : ''
-                }`}
+                  compacta ? 'hidden xl:block' : ''
+                } ${ativa === c.slug ? 'rotate-180' : ''}`}
               />
             </Link>
           </li>
@@ -120,7 +139,7 @@ export function MegaMenu({ paineis }: { paineis: PainelCategoria[] }) {
       </ul>
 
       <div
-        id="mega-menu"
+        id={id}
         inert={!aberto}
         onMouseEnter={limpar}
         className={`absolute inset-x-0 top-full z-40 transition-[opacity,transform] duration-200 ease-brand motion-reduce:transition-none ${
