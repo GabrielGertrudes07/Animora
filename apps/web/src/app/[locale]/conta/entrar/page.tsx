@@ -5,6 +5,7 @@ import { redirect } from '../../../../i18n/navigation'
 
 import { clienteAtual, COOKIE_SESSAO } from '../../../../modules/account/sessao'
 import { FormularioEntrada } from '../FormularioEntrada'
+import { PainelConta } from '../PainelConta'
 import { destinoSeguro } from '../destino'
 
 type Props = {
@@ -36,17 +37,22 @@ export default async function EntrarPage({ params, searchParams }: Props) {
   const sessaoQueNaoServe = (await cookies()).get(COOKIE_SESSAO) !== undefined
 
   return (
-    <main id="conteudo" className="mx-auto max-w-md px-4 py-10 sm:px-6">
-      <h1 className="text-titulo text-ink">{t('titulo')}</h1>
-      {sessaoQueNaoServe ? (
-        <p className="mt-2 rounded-campo border border-terracota bg-terracota/10 px-3 py-2 text-sm text-ink">
-          {t('sessaoQueNaoServe')}
-        </p>
-      ) : null}
-      {voltar === '/checkout' ? (
-        <p className="mt-2 text-ink-muted">{t('carrinhoFicaOndeEsta')}</p>
-      ) : null}
-      <FormularioEntrada modo="entrar" voltar={voltar} />
+    <main id="conteudo" className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+      <div className="grid overflow-hidden rounded-xl border border-border bg-surface shadow-card md:grid-cols-[5fr_6fr]">
+        <PainelConta />
+        <div className="px-6 py-8 sm:px-10 sm:py-12">
+          <h1 className="text-titulo text-text">{t('titulo')}</h1>
+          <p className="mt-2 text-text-muted">
+            {voltar === '/checkout' ? t('carrinhoFicaOndeEsta') : t('descricao')}
+          </p>
+          {sessaoQueNaoServe ? (
+            <p className="mt-4 rounded-sm border border-orange/30 bg-cream px-4 py-3 text-sm text-text">
+              {t('sessaoQueNaoServe')}
+            </p>
+          ) : null}
+          <FormularioEntrada modo="entrar" voltar={voltar} />
+        </div>
+      </div>
     </main>
   )
 }

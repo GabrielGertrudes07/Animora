@@ -127,7 +127,9 @@
     "soHaEmStock": "Só há {stock} em stock.",
     "remover": "Remover",
     "resumo": "Resumo",
-    "finalizarCompra": "Finalizar compra"
+    "finalizarCompra": "Finalizar compra",
+    "diminuirDe": "Diminuir quantidade de {titulo}",
+    "aumentarDe": "Aumentar quantidade de {titulo}"
   },
   "CheckoutPage": {
     "metaTitulo": "Finalizar compra",
@@ -173,7 +175,8 @@
     "metaTitulo": "Entrar",
     "titulo": "Entrar",
     "sessaoQueNaoServe": "A sessão que tem aberta não é de cliente (ou já terminou). Quem trabalha na loja compra com a sua conta de cliente, como toda a gente.",
-    "carrinhoFicaOndeEsta": "O carrinho fica onde está — entre e continue a compra."
+    "carrinhoFicaOndeEsta": "O carrinho fica onde está — entre e continue a compra.",
+    "descricao": "Entre para acompanhar encomendas e comprar mais depressa."
   },
   "RegistarPage": {
     "metaTitulo": "Criar conta",
@@ -188,7 +191,11 @@
     "entrar": "Entrar",
     "umMomento": "Um momento…",
     "jaTemConta": "Já tem conta? ",
-    "aindaNaoTemConta": "Ainda não tem conta? "
+    "aindaNaoTemConta": "Ainda não tem conta? ",
+    "emailExemplo": "nome@exemplo.pt",
+    "minimo8": "Mínimo de 8 caracteres.",
+    "mostrarPalavraPasse": "Mostrar palavra-passe",
+    "ocultarPalavraPasse": "Ocultar palavra-passe"
   },
   "Moradas": {
     "titulo": "Moradas",
@@ -396,5 +403,11 @@
   "VistosRecentemente": {
     "titulo": "Vistos recentemente",
     "desde": "desde"
+  },
+  "PainelConta": {
+    "titulo": "A sua conta Animora",
+    "beneficio1": "Acompanhe as suas encomendas, do pagamento à entrega.",
+    "beneficio2": "Moradas guardadas — o checkout fica num minuto.",
+    "beneficio3": "Favoritos à mão para quando a ração acabar."
   }
 }

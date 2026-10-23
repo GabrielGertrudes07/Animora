@@ -127,7 +127,9 @@
     "soHaEmStock": "Nur noch {stock} auf Lager.",
     "remover": "Entfernen",
     "resumo": "Zusammenfassung",
-    "finalizarCompra": "Zur Kasse"
+    "finalizarCompra": "Zur Kasse",
+    "diminuirDe": "Menge von {titulo} verringern",
+    "aumentarDe": "Menge von {titulo} erhöhen"
   },
   "CheckoutPage": {
     "metaTitulo": "Zur Kasse",
@@ -173,7 +175,8 @@
     "metaTitulo": "Anmelden",
     "titulo": "Anmelden",
     "sessaoQueNaoServe": "Die aktuell angemeldete Sitzung gehört keinem Kunden (oder ist abgelaufen). Wer im Shop arbeitet, kauft mit dem eigenen Kundenkonto ein, wie alle anderen auch.",
-    "carrinhoFicaOndeEsta": "Der Warenkorb bleibt, wo er ist — melde dich an und setze den Kauf fort."
+    "carrinhoFicaOndeEsta": "Der Warenkorb bleibt, wo er ist — melde dich an und setze den Kauf fort.",
+    "descricao": "Melde dich an, um Bestellungen zu verfolgen und schneller einzukaufen."
   },
   "RegistarPage": {
     "metaTitulo": "Konto erstellen",
@@ -188,7 +191,11 @@
     "entrar": "Anmelden",
     "umMomento": "Einen Moment…",
     "jaTemConta": "Schon ein Konto? ",
-    "aindaNaoTemConta": "Noch kein Konto? "
+    "aindaNaoTemConta": "Noch kein Konto? ",
+    "emailExemplo": "name@beispiel.de",
+    "minimo8": "Mindestens 8 Zeichen.",
+    "mostrarPalavraPasse": "Passwort anzeigen",
+    "ocultarPalavraPasse": "Passwort verbergen"
   },
   "Moradas": {
     "titulo": "Adressen",
@@ -396,5 +403,11 @@
   "VistosRecentemente": {
     "titulo": "Zuletzt angesehen",
     "desde": "ab"
+  },
+  "PainelConta": {
+    "titulo": "Dein Animora-Konto",
+    "beneficio1": "Verfolge deine Bestellungen von der Zahlung bis zur Lieferung.",
+    "beneficio2": "Gespeicherte Adressen — der Checkout dauert eine Minute.",
+    "beneficio3": "Favoriten griffbereit, wenn das Futter ausgeht."
   }
 }
