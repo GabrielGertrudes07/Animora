@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { Link, usePathname } from '../../i18n/navigation'
 import { Icon } from '../icons/sprite'
@@ -12,9 +11,6 @@ export type PainelCategoria = {
   marcas: { nome: string; slug: string }[]
   produtos: { titulo: string; slug: string }[]
   totalProdutos: number
-  /** `fundo` cobre o cartão; `animal` (recortado) senta-se por cima. Sem
-   *  fotografia em `public/categorias/<slug>/` o cartão fica só na cor. */
-  imagem: { fundo: string; animal: string | null } | null
 }
 
 /** Pausa antes de abrir: passar o rato pela barra a caminho da página não
@@ -135,8 +131,13 @@ export function MegaMenu({ paineis }: { paineis: PainelCategoria[] }) {
             dentro do painel, por isso atravessá-la não conta como sair. */}
         <div className="mx-auto max-w-7xl px-6 pt-2">
           <div className="grid rounded-lg border border-border bg-surface p-4 shadow-drawer">
-            {paineis.map((c) => (
-              <ConteudoPainel key={c.slug} painel={c} visivel={visivel === c.slug} />
+            {paineis.map((c, i) => (
+              <ConteudoPainel
+                key={c.slug}
+                painel={c}
+                visivel={visivel === c.slug}
+                cor={CORES_TESTE[i % CORES_TESTE.length]!}
+              />
             ))}
           </div>
         </div>
@@ -145,7 +146,22 @@ export function MegaMenu({ paineis }: { paineis: PainelCategoria[] }) {
   )
 }
 
-function ConteudoPainel({ painel: c, visivel }: { painel: PainelCategoria; visivel: boolean }) {
+// TESTE (pedido do Gabriel): uma cor por categoria só para ver a troca entre
+// painéis. Sai quando houver decisão de cor/fotografia para o cartão.
+const CORES_TESTE = [
+  '#0B5C6B', '#ED6900', '#7C3AED', '#DB2777', '#16A34A',
+  '#2563EB', '#CA8A04', '#DC2626', '#0891B2', '#4B5563',
+]
+
+function ConteudoPainel({
+  painel: c,
+  visivel,
+  cor,
+}: {
+  painel: PainelCategoria
+  visivel: boolean
+  cor: string
+}) {
   const t = useTranslations('Header')
 
   return (
@@ -158,34 +174,11 @@ function ConteudoPainel({ painel: c, visivel }: { painel: PainelCategoria; visiv
     >
       <Link
         href={`/${c.slug}`}
-        className="group relative block h-64 overflow-hidden rounded-md bg-teal-900"
+        style={{ backgroundColor: cor }}
+        className="group relative block h-64 overflow-hidden rounded-md"
       >
-        {c.imagem ? (
-          <>
-            <Image
-              src={c.imagem.fundo}
-              alt=""
-              fill
-              sizes="420px"
-              className="object-cover"
-            />
-            {c.imagem.animal ? (
-              <Image
-                src={c.imagem.animal}
-                alt=""
-                fill
-                sizes="420px"
-                className="object-contain object-bottom transition-transform duration-500 ease-brand group-hover:scale-[1.03] motion-reduce:transition-none"
-              />
-            ) : null}
-          </>
-        ) : (
-          <Icon
-            name="paw"
-            className="absolute right-6 top-6 h-16 w-16 text-white/15"
-          />
-        )}
-        <span className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
+        {/* Sem fotografia, por pedido do Gabriel: cartão só na cor da marca. */}
+        <Icon name="paw" className="absolute right-6 top-6 h-16 w-16 text-white/15" />
         <span className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-3">
           <span className="font-display text-2xl font-bold text-white">{c.name}</span>
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-white text-teal-900 transition-transform duration-300 ease-brand group-hover:translate-x-0.5 motion-reduce:transition-none">

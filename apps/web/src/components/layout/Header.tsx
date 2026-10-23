@@ -1,7 +1,5 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
-import { existsSync } from 'node:fs'
-import { join } from 'node:path'
 import { listCategories, listProducts, marcasDisponiveis } from '../../modules/catalog'
 import { Link, getPathname } from '../../i18n/navigation'
 import { CarrinhoBotao } from './CarrinhoBotao'
@@ -12,21 +10,6 @@ import { Icon } from '../icons/sprite'
 
 /** Produtos listados por categoria no mega-menu; o resto fica no "Ver todos". */
 const PRODUTOS_NO_MENU = 6
-
-/**
- * A fotografia do cartão do mega-menu vem da mesma cena das categorias de
- * animal: `public/categorias/<slug>/fundo.webp` (obrigatória) e
- * `animal.webp` (opcional, recortada). Categoria sem `fundo.webp` → cartão
- * só na cor, até alguém lá pôr a fotografia.
- */
-function imagemCategoria(slug: string): PainelCategoria['imagem'] {
-  const existe = (f: string) => existsSync(join(process.cwd(), 'public', 'categorias', slug, f))
-  if (!existe('fundo.webp')) return null
-  return {
-    fundo: `/categorias/${slug}/fundo.webp`,
-    animal: existe('animal.webp') ? `/categorias/${slug}/animal.webp` : null,
-  }
-}
 
 /**
  * Cabeçalho presente em todas as páginas.
@@ -96,7 +79,6 @@ export async function Header() {
       marcas: marcasDisponiveis(daCategoria),
       produtos: daCategoria.slice(0, PRODUTOS_NO_MENU).map((p) => ({ titulo: p.title, slug: p.slug })),
       totalProdutos: daCategoria.length,
-      imagem: imagemCategoria(c.slug),
     }
   })
 
