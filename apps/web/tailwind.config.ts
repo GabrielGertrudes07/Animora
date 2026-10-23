@@ -14,9 +14,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Fundo da loja e superfície de cartão — quase-branco e branco puro,
-        // não o mesmo tom: dá profundidade sem escurecer nada.
-        bg: '#FFFDFC',
+        // Fundo da loja: branco puro (pedido do Gabriel — o quase-branco
+        // #FFFDFC lia-se bege). A profundidade dos cartões vem da borda e da
+        // sombra, não de um tom de fundo diferente.
+        bg: '#FFFFFF',
         surface: '#FFFFFF',
         // Creme pontual: faixas e blocos que precisam de se distinguir do
         // fundo sem virar cor de marca.

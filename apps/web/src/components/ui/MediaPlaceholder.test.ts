@@ -11,8 +11,8 @@ describe('MediaPlaceholder', () => {
 
     expect(props.style).toEqual({
       aspectRatio: '16/7',
-      background: '#F4F1E8',
-      border: '1px solid #E8E5DC',
+      background: '#FFFFFF',
+      border: '1px solid #E8ECEC',
     })
     expect(props['data-media-placeholder']).toBe('hero')
   })

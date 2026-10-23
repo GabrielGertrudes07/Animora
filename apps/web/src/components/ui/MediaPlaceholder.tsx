@@ -39,6 +39,6 @@ export function MediaPlaceholder({ ratio, type, label, fill = false, className }
     'aria-label': label,
     'aria-hidden': label ? undefined : true,
     className: [fill ? 'absolute inset-0 h-full w-full' : 'block w-full', className].filter(Boolean).join(' '),
-    style: { aspectRatio: ratio, background: '#F4F1E8', border: '1px solid #E8E5DC' },
+    style: { aspectRatio: ratio, background: '#FFFFFF', border: '1px solid #E8ECEC' },
   })
 }

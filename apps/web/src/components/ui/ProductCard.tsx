@@ -63,7 +63,7 @@ export async function ProductCard({
         {/* 4:5 e não quadrado: o quadrado lê como grelha de marketplace, a
             vertical lê como editorial — e é a mesma proporção das cenas de
             categoria, o que faz a página inteira bater a compasso. */}
-        <div className="relative aspect-[4/5] overflow-hidden bg-cream">
+        <div className="relative aspect-[4/5] overflow-hidden bg-surface">
           {img ? (
             <ImagemComFallback
               src={mediaUrl(img.url)}
