@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { redirect } from '../../../i18n/navigation'
+import { Link, redirect } from '../../../i18n/navigation'
+import { Icon } from '../../../components/icons/sprite'
+import { Logo } from '../../../components/layout/Logo'
 
 import { clienteAtual } from '../../../modules/account/sessao'
 import { FormularioCheckout } from './FormularioCheckout'
@@ -37,15 +39,35 @@ export default async function CheckoutPage({ params }: Props) {
     return redirect({ href: { pathname: '/conta/entrar', query: { voltar: '/checkout' } }, locale })
   }
 
+  // Sem o cabeçalho da loja (ver `ForaDoCheckout`): só o logo, o selo de
+  // pagamento seguro e o caminho de volta ao carrinho.
   return (
-    <main id="conteudo" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <h1 className="text-titulo text-ink">{t('titulo')}</h1>
-      <p className="mt-2 text-ink-muted">{cliente.email}</p>
+    <>
+      <header className="border-b border-border bg-surface">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <Logo />
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-teal-900">
+            <Icon name="shield" className="h-5 w-5 text-success" />
+            {t('pagamentoSeguro')}
+          </p>
+        </div>
+      </header>
+      <main id="conteudo" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+        <Link
+          href="/carrinho"
+          className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-text-muted hover:text-orange"
+        >
+          <Icon name="chevronLeft" className="h-4 w-4" />
+          {t('voltarAoCarrinho')}
+        </Link>
+        <h1 className="mt-2 text-titulo text-text">{t('titulo')}</h1>
+        <p className="mt-2 text-text-muted">{cliente.email}</p>
 
-      <div className="mt-8">
-        {/* Só o nome e as moradas atravessam para o cliente. */}
-        <FormularioCheckout nome={cliente.nome} moradas={cliente.moradas} />
-      </div>
-    </main>
+        <div className="mt-8">
+          {/* Só o nome e as moradas atravessam para o cliente. */}
+          <FormularioCheckout nome={cliente.nome} moradas={cliente.moradas} />
+        </div>
+      </main>
+    </>
   )
 }

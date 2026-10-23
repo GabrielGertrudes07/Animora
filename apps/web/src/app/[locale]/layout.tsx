@@ -7,6 +7,7 @@ import '../../styles/globals.css'
 import { routing } from '../../i18n/routing'
 import { Header } from '../../components/layout/Header'
 import { Footer } from '../../components/layout/Footer'
+import { ForaDoCheckout } from '../../components/layout/ForaDoCheckout'
 import { CarrinhoProvider } from '../../modules/cart'
 import { SITE_URL, alternatesFor } from '../../lib/seo'
 
@@ -101,9 +102,13 @@ export default async function LocaleLayout({ children, params }: Props) {
         */}
         <NextIntlClientProvider messages={messages}>
           <CarrinhoProvider>
-            <Header />
+            <ForaDoCheckout>
+              <Header />
+            </ForaDoCheckout>
             {children}
-            <Footer />
+            <ForaDoCheckout>
+              <Footer />
+            </ForaDoCheckout>
           </CarrinhoProvider>
         </NextIntlClientProvider>
       </body>

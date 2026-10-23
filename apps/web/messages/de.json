@@ -135,7 +135,9 @@
     "metaTitulo": "Zur Kasse",
     "titulo": "Zur Kasse",
     "naoHaNadaParaComprar": "Es gibt nichts zu kaufen.",
-    "verProdutos": "Produkte ansehen"
+    "verProdutos": "Produkte ansehen",
+    "pagamentoSeguro": "Sichere Zahlung",
+    "voltarAoCarrinho": "Zurück zum Warenkorb"
   },
   "FormularioCheckout": {
     "aCarregar": "Warenkorb wird geladen…",

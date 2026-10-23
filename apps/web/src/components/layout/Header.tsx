@@ -7,6 +7,7 @@ import { BarraFixa } from './BarraFixa'
 import { BarraMobile } from './BarraMobile'
 import { MegaMenu, type PainelCategoria } from './MegaMenu'
 import { SeletorIdioma } from './SeletorIdioma'
+import { Logo } from './Logo'
 import { Icon } from '../icons/sprite'
 
 /** Produtos listados por categoria no mega-menu; o resto fica no "Ver todos". */
@@ -83,17 +84,7 @@ export async function Header() {
     }
   })
 
-  const logo = (
-    <Link href="/" className="flex min-h-11 shrink-0 items-center gap-1.5" aria-label={t('logoAria')}>
-      <Icon name="paw" className="h-6 w-6 shrink-0 text-orange" />
-      <span className="flex flex-col leading-none">
-        <span className="font-display text-xl font-bold text-teal-900">animora</span>
-        <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-text-muted">
-          {t('petShop')}
-        </span>
-      </span>
-    </Link>
-  )
+  const logo = <Logo />
 
   return (
     <>

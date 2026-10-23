@@ -135,7 +135,9 @@
     "metaTitulo": "Finalizar compra",
     "titulo": "Finalizar compra",
     "naoHaNadaParaComprar": "Não há nada para comprar.",
-    "verProdutos": "Ver produtos"
+    "verProdutos": "Ver produtos",
+    "pagamentoSeguro": "Pagamento seguro",
+    "voltarAoCarrinho": "Voltar ao carrinho"
   },
   "FormularioCheckout": {
     "aCarregar": "A carregar o carrinho…",
