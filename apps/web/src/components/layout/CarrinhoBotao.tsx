@@ -21,11 +21,10 @@ export function CarrinhoBotao() {
   return (
     <Link
       href="/carrinho"
-      className="flex min-h-11 min-w-11 shrink-0 items-center gap-2 rounded-pill bg-orange px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-deep"
+      className="flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-pill bg-orange px-3.5 text-sm font-semibold text-white transition-colors hover:bg-orange-deep"
       aria-label={t('carrinhoAria', { count: pronto ? contagem : 0 })}
     >
       <Icon name="cart" className="h-5 w-5" />
-      <span className="hidden sm:inline">{t('carrinho')}</span>
       {pronto && contagem > 0 ? (
         <span className="min-w-5 rounded-full bg-white px-1.5 py-0.5 text-center text-xs font-bold text-orange">
           {contagem}

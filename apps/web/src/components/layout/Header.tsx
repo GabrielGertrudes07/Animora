@@ -3,7 +3,8 @@ import { ENVIO_GRATIS_ACIMA_DE, formatEuros } from '@animora/core'
 import { listCategories, listProducts, marcasDisponiveis } from '../../modules/catalog'
 import { Link, getPathname } from '../../i18n/navigation'
 import { CarrinhoBotao } from './CarrinhoBotao'
-import { BarraFixa } from './BarraFixa'
+import { CabecalhoIlha } from './CabecalhoIlha'
+import { PesquisaIlha } from './PesquisaIlha'
 import { BarraMobile } from './BarraMobile'
 import { MegaMenu, type PainelCategoria } from './MegaMenu'
 import { SeletorIdioma } from './SeletorIdioma'
@@ -28,10 +29,10 @@ const PRODUTOS_NO_MENU = 6
  * (envio grátis) — slogan e "dados protegidos" ficam para `sm:` para cima,
  * por pedido explícito da spec de remover conteúdo secundário no telemóvel.
  *
- * Alturas compactadas (pedido do Gabriel, referência: `PromoBar`/`Header`/
- * `MainNavigation` do vivapapelcor — cabeçalho empilhado ali dá ~123px em
- * desktop): barra promocional ~28px, linha principal 60px fixos, linha de
- * categorias 36px — total ≈124px, contra os ~164px de antes.
+ * Desenho em "ilha" (pedido do Gabriel: "algo mais moderno"): barra
+ * promocional fina e, por baixo, uma cápsula flutuante numa linha só, que
+ * acompanha o scroll e encolhe (`CabecalhoIlha`). Substitui o cabeçalho
+ * empilhado em duas linhas e a barra fixa separada que aparecia ao rolar.
  *
  * Três factos, não três promessas: envio grátis (real, `ENVIO_GRATIS_ACIMA_DE`),
  * o slogan da loja (não é um facto, é só quem a loja é) e "conta e dados
@@ -84,21 +85,15 @@ export async function Header() {
     }
   })
 
-  const logo = <Logo />
-
   return (
     <>
-      <header className="bg-surface">
-        {/* Abertura: as três faixas descem em cascata (CSS, `entrada-cima`
-            com atraso crescente), uma vez — o cabeçalho vive no layout e não
-            volta a montar ao navegar. CSS e não GSAP: corre desde a primeira
-            pintura, sem o piscar visível → escondido → visível de esperar
-            pela hidratação. */}
-        {/* Barra promocional: ~28px, orange + texto branco (contraste
-            AA — ver comentário acima). Slogan e "dados protegidos" só a
-            partir de `sm`, mobile fica só com o envio grátis. */}
-        <div className="bg-orange px-4 py-1 motion-safe:animate-entrada-cima sm:px-6">
-          <ul className="mx-auto flex min-h-[26px] max-w-7xl flex-wrap items-center justify-center gap-x-6 gap-y-1 text-[13px] font-medium text-white sm:min-h-[28px] sm:text-xs">
+      {/* Barra promocional: orange + texto branco (contraste aceite — ver
+          comentário acima). Slogan e "dados protegidos" só a partir de `sm`,
+          mobile fica só com o envio grátis. Rola com a página; quem fica
+          preso ao topo é só a cápsula. */}
+      <div className="bg-orange px-4 py-1 motion-safe:animate-entrada-cima sm:px-6">
+        <div className="relative mx-auto max-w-7xl">
+          <ul className="flex min-h-[26px] flex-wrap items-center justify-center gap-x-6 gap-y-1 text-[13px] font-medium text-white sm:min-h-[28px] sm:px-16 sm:text-xs">
             <li className="flex items-center gap-1.5">
               <Icon name="cart" className="h-3.5 w-3.5 shrink-0" />
               {t('barraEnvio', { valor: formatEuros(ENVIO_GRATIS_ACIMA_DE) })}
@@ -112,62 +107,39 @@ export async function Header() {
               {t('barraDados')}
             </li>
           </ul>
-        </div>
-
-        {/* Header principal: 56px mobile, 72px desktop. A linha de baixo
-            ocupa a largura toda, como a do menu, e não só o contentor. */}
-        <div className="border-b border-border motion-safe:animate-entrada-cima motion-safe:[animation-delay:90ms]">
-          <div className="mx-auto flex min-h-14 max-w-7xl flex-wrap items-center gap-4 px-6 py-2 sm:min-h-[72px] sm:gap-6">
-            {logo}
-
-            <form
-              action={acaoPesquisa}
-              method="get"
-              className="order-3 hidden w-full items-center gap-2 h-11 rounded-pill border border-border bg-surface px-4 transition-[border-color,box-shadow] focus-within:border-orange focus-within:ring-4 focus-within:ring-orange/15 sm:order-none sm:mx-auto sm:flex sm:max-w-xl sm:flex-1"
-            >
-              <Icon name="search" className="h-4 w-4 shrink-0 text-text-muted" />
-              <input
-                type="search"
-                name="q"
-                placeholder={t('pesquisarPlaceholder')}
-                aria-label={t('pesquisarAria')}
-                className="w-full min-w-0 bg-transparent text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-            </form>
-
-            <div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0">
-              <SeletorIdioma />
-              <Link
-                href="/conta"
-                className="hidden min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-3 py-2 text-sm font-medium text-text transition-colors hover:text-orange sm:flex"
-              >
-                <Icon name="usuario" className="h-5 w-5" />
-                <span className="hidden sm:inline">{t('conta')}</span>
-              </Link>
-              <span className="hidden sm:block">
-                <CarrinhoBotao />
-              </span>
-            </div>
+          {/* Idioma no desktop: aqui, para a cápsula ter espaço para todas as
+              categorias. Em mobile fica na cápsula. */}
+          <div className="absolute inset-y-0 right-0 hidden items-center sm:flex">
+            <SeletorIdioma claro />
           </div>
         </div>
+      </div>
 
-        <nav
-          aria-label={t('categoriasAria')}
-          className="hidden border-b border-border motion-safe:animate-entrada-cima motion-safe:[animation-delay:180ms] sm:block"
-        >
-          <MegaMenu paineis={paineis} id="mega-menu" />
+      {/* Cápsula flutuante numa linha só: logo, categorias, ações. A
+          pesquisa abre por cima dela (`PesquisaIlha`). Em mobile as
+          categorias, a conta e o carrinho vivem na `BarraMobile`. */}
+      <CabecalhoIlha>
+        <Logo />
+        <nav aria-label={t('categoriasAria')} className="hidden min-w-0 flex-1 sm:block">
+          <MegaMenu paineis={paineis} id="mega-menu" compacta />
         </nav>
-      </header>
-
-      <BarraFixa>
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-6">
-          {logo}
-          <nav aria-label={t('categoriasAria')} className="min-w-0 flex-1">
-            <MegaMenu paineis={paineis} id="mega-menu-fixo" compacta />
-          </nav>
-          <CarrinhoBotao />
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:ml-0">
+          <span className="sm:hidden">
+            <SeletorIdioma />
+          </span>
+          <PesquisaIlha acao={acaoPesquisa} />
+          <Link
+            href="/conta"
+            aria-label={t('conta')}
+            className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full text-text transition-colors hover:bg-cream hover:text-orange sm:flex"
+          >
+            <Icon name="usuario" className="h-5 w-5" />
+          </Link>
+          <span className="hidden sm:block">
+            <CarrinhoBotao />
+          </span>
         </div>
-      </BarraFixa>
+      </CabecalhoIlha>
 
       <BarraMobile categorias={categorias.map((c) => ({ slug: c.slug, name: c.name }))} />
     </>

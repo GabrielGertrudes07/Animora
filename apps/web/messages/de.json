@@ -20,7 +20,8 @@
     "todosOsProdutos": "Alle Produkte",
     "menuMarcas": "Marken",
     "menuProdutos": "Produkte",
-    "menuVerTodos": "Alle ansehen ({total})"
+    "menuVerTodos": "Alle ansehen ({total})",
+    "fecharPesquisa": "Suche schließen"
   },
   "Footer": {
     "descricao": "Futter, Zubehör, Pflege und Training für Hunde, Katzen, Vögel und Kleintiere.",

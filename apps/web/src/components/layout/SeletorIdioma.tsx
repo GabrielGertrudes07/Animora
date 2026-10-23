@@ -12,14 +12,15 @@ const NOME: Record<string, string> = { pt: 'PT', de: 'DE' }
  * vêm da navegação locale-aware do next-intl: trocar de idioma preserva o
  * caminho atual, só o prefixo muda.
  */
-export function SeletorIdioma() {
+/** `claro`: texto branco, para a barra laranja do topo. */
+export function SeletorIdioma({ claro = false }: { claro?: boolean }) {
   const t = useTranslations('SeletorIdioma')
   const router = useRouter()
   const pathname = usePathname()
   const params = useParams()
 
   return (
-    <div className="flex items-center gap-1 text-sm font-medium text-text-muted">
+    <div className={`flex items-center gap-1 font-medium ${claro ? 'text-xs text-white/75' : 'text-sm text-text-muted'}`}>
       {routing.locales.map((locale) => (
         <button
           key={locale}
@@ -37,7 +38,11 @@ export function SeletorIdioma() {
             const query = window.location.search
             router.replace(query ? `${pathname}${query}` : pathname, { locale })
           }}
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-sm px-2 py-1 transition-colors hover:text-text sm:min-h-0 sm:min-w-0 disabled:font-semibold disabled:text-orange disabled:hover:text-orange"
+          className={`flex min-h-11 min-w-11 items-center justify-center rounded-sm px-2 py-1 transition-colors sm:min-h-0 sm:min-w-0 disabled:font-semibold ${
+            claro
+              ? 'hover:text-white disabled:font-bold disabled:text-white'
+              : 'hover:text-text disabled:text-orange disabled:hover:text-orange'
+          }`}
         >
           {t(locale as 'pt' | 'de')}
         </button>

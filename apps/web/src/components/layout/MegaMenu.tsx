@@ -130,7 +130,7 @@ export function MegaMenu({
               <Icon
                 name="chevronDown"
                 className={`h-3.5 w-3.5 transition-transform duration-300 ease-brand motion-reduce:transition-none ${
-                  compacta ? 'hidden xl:block' : ''
+                  compacta ? 'hidden' : ''
                 } ${ativa === c.slug ? 'rotate-180' : ''}`}
               />
             </Link>
@@ -148,7 +148,7 @@ export function MegaMenu({
       >
         {/* `pt-2` é a folga transparente entre a barra e o cartão: continua
             dentro do painel, por isso atravessá-la não conta como sair. */}
-        <div className="mx-auto max-w-7xl px-6 pt-2">
+        <div className={compacta ? 'pt-3' : 'mx-auto max-w-7xl px-6 pt-2'}>
           <div className="grid rounded-lg border border-border bg-surface p-4 shadow-drawer">
             {paineis.map((c, i) => (
               <ConteudoPainel
