@@ -98,7 +98,7 @@ export function MegaMenu({
     >
       <ul
         className={`flex items-center overflow-x-auto whitespace-nowrap text-sm font-medium ${
-          compacta ? 'mx-auto w-fit max-w-full' : 'mx-auto min-h-9 max-w-7xl gap-1 px-6'
+          compacta ? 'mx-auto w-fit max-w-full' : 'mx-auto min-h-12 max-w-7xl gap-1 px-6'
         }`}
       >
         {/* Primeiro item, sempre: a loja inteira. Sem ele só se chegava a
@@ -108,7 +108,7 @@ export function MegaMenu({
           <li className="shrink-0" onMouseEnter={fechar}>
             <Link
               href="/produtos"
-              className="block rounded-sm px-3 py-1.5 text-text transition-colors hover:bg-cream"
+              className="block rounded-sm px-3 py-1.5 font-semibold text-teal-900 transition-colors hover:bg-cream"
             >
               {t('todosOsProdutos')}
             </Link>
@@ -124,7 +124,7 @@ export function MegaMenu({
               onFocus={() => mostrar(c.slug)}
               className={`flex items-center gap-1 rounded-sm py-1.5 transition-colors hover:bg-cream hover:text-text ${
                 compacta ? 'px-2' : 'px-3'
-              } ${ativa === c.slug ? 'bg-cream text-text' : 'text-text-muted'}`}
+              } ${ativa === c.slug ? 'bg-cream text-teal-900' : 'text-text'}`}
             >
               {c.name}
               <Icon

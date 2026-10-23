@@ -114,38 +114,40 @@ export async function Header() {
           </ul>
         </div>
 
-        {/* Header principal: 56px mobile, 60px desktop fixos (era 64/80px),
-            border-b sutil, sem sombra. */}
-        <div className="mx-auto flex min-h-14 max-w-7xl flex-wrap items-center gap-4 border-b border-border px-6 py-2 motion-safe:animate-entrada-cima motion-safe:[animation-delay:90ms] sm:min-h-[60px] sm:py-0">
-          {logo}
+        {/* Header principal: 56px mobile, 72px desktop. A linha de baixo
+            ocupa a largura toda, como a do menu, e não só o contentor. */}
+        <div className="border-b border-border motion-safe:animate-entrada-cima motion-safe:[animation-delay:90ms]">
+          <div className="mx-auto flex min-h-14 max-w-7xl flex-wrap items-center gap-4 px-6 py-2 sm:min-h-[72px] sm:gap-6">
+            {logo}
 
-          <form
-            action={acaoPesquisa}
-            method="get"
-            className="order-3 hidden w-full items-center gap-2 rounded-pill border border-border bg-cream px-4 py-2 transition-colors focus-within:border-orange sm:order-none sm:mx-auto sm:flex sm:max-w-lg sm:flex-1"
-          >
-            <Icon name="search" className="h-4 w-4 shrink-0 text-text-muted" />
-            <input
-              type="search"
-              name="q"
-              placeholder={t('pesquisarPlaceholder')}
-              aria-label={t('pesquisarAria')}
-              className="w-full min-w-0 bg-transparent text-sm text-text placeholder:text-text-muted focus:outline-none"
-            />
-          </form>
-
-          <div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0">
-            <SeletorIdioma />
-            <Link
-              href="/conta"
-              className="hidden min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-3 py-2 text-sm font-medium text-text-muted transition-colors hover:text-text sm:flex"
+            <form
+              action={acaoPesquisa}
+              method="get"
+              className="order-3 hidden w-full items-center gap-2 h-11 rounded-pill border border-border bg-surface px-4 transition-[border-color,box-shadow] focus-within:border-orange focus-within:ring-4 focus-within:ring-orange/15 sm:order-none sm:mx-auto sm:flex sm:max-w-xl sm:flex-1"
             >
-              <Icon name="paw" className="h-5 w-5" />
-              <span className="hidden sm:inline">{t('conta')}</span>
-            </Link>
-            <span className="hidden sm:block">
-              <CarrinhoBotao />
-            </span>
+              <Icon name="search" className="h-4 w-4 shrink-0 text-text-muted" />
+              <input
+                type="search"
+                name="q"
+                placeholder={t('pesquisarPlaceholder')}
+                aria-label={t('pesquisarAria')}
+                className="w-full min-w-0 bg-transparent text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </form>
+
+            <div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0">
+              <SeletorIdioma />
+              <Link
+                href="/conta"
+                className="hidden min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-3 py-2 text-sm font-medium text-text transition-colors hover:text-orange sm:flex"
+              >
+                <Icon name="usuario" className="h-5 w-5" />
+                <span className="hidden sm:inline">{t('conta')}</span>
+              </Link>
+              <span className="hidden sm:block">
+                <CarrinhoBotao />
+              </span>
+            </div>
           </div>
         </div>
 
