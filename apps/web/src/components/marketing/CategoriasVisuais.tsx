@@ -51,8 +51,10 @@ export async function EscolhaSeuAnimal({
               className="group flex flex-col items-center gap-3 text-center transition-transform duration-300 ease-brand hover:-translate-y-1 focus-visible:-translate-y-1 active:scale-[0.98]"
             >
               {/* Círculo 112px (dentro do intervalo 104-116px da spec). A
-                  sombra só aparece no hover — em repouso o círculo é plano. */}
-              <span className="block h-28 w-28 overflow-hidden rounded-pill transition-shadow duration-300 ease-brand group-hover:shadow-card group-focus-visible:shadow-card">
+                  sombra só aparece no hover — em repouso o círculo é plano.
+                  Borda laranja suave para o círculo branco não sumir no fundo
+                  branco; acende no hover, como tudo o que é clicável. */}
+              <span className="block h-28 w-28 overflow-hidden rounded-pill border-2 border-orange/35 transition-[box-shadow,border-color] duration-300 ease-brand group-hover:border-orange group-hover:shadow-card group-focus-visible:border-orange group-focus-visible:shadow-card">
                 <span className="block h-full w-full transition-transform duration-300 ease-brand group-hover:scale-[1.03] group-focus-visible:scale-[1.03]">
                   <MediaPlaceholder ratio="1/1" type="category" />
                 </span>
