@@ -133,6 +133,7 @@ export default async function Home({ params }: Props) {
 
       <SecaoCampanha
         tipo="campaign"
+        imagemAlt={t('campanha1ImagemAlt')}
         titulo={t('campanha1Titulo')}
         texto={t('campanha1Texto')}
         ctaTexto={t('campanha1Cta')}
@@ -143,6 +144,7 @@ export default async function Home({ params }: Props) {
 
       <SecaoCampanha
         tipo="editorial"
+        imagemAlt={t('campanha2ImagemAlt')}
         titulo={t('campanha2Titulo')}
         texto={t('campanha2Texto')}
         ctaTexto={t('campanha2Cta')}

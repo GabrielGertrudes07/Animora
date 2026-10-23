@@ -1,5 +1,10 @@
+import Image from 'next/image'
 import { Link } from '../../i18n/navigation'
-import { MediaPlaceholder, type MediaPlaceholderType } from '../ui/MediaPlaceholder'
+
+const IMAGENS = {
+  campaign: '/marketing/campanha-brincadeira.webp',
+  editorial: '/marketing/editorial-conforto.webp',
+} as const
 
 /**
  * As duas faixas de campanha/editorial da home estrutural (spec original
@@ -27,13 +32,15 @@ export function SecaoCampanha({
   texto,
   ctaTexto,
   ctaHref,
+  imagemAlt,
   inverter = false,
 }: {
-  tipo: MediaPlaceholderType
+  tipo: keyof typeof IMAGENS
   titulo: string
   texto: string
   ctaTexto: string
   ctaHref: string
+  imagemAlt: string
   inverter?: boolean
 }) {
   const teal = tipo === 'campaign'
@@ -46,7 +53,14 @@ export function SecaoCampanha({
         }`}
       >
         <div className={inverter ? 'order-1 md:order-2' : 'order-1'}>
-          <MediaPlaceholder ratio="16/9" type={tipo} label={titulo} className="rounded-lg" />
+          <Image
+            src={IMAGENS[tipo]}
+            alt={imagemAlt}
+            width={1600}
+            height={900}
+            sizes="(min-width: 1280px) 564px, (min-width: 768px) 44vw, 90vw"
+            className="h-auto w-full rounded-lg"
+          />
         </div>
         <div className={inverter ? 'order-2 md:order-1' : 'order-2'}>
           <h2 className="text-secao">{titulo}</h2>

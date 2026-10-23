@@ -1,18 +1,15 @@
 import { getTranslations } from 'next-intl/server'
+import Image from 'next/image'
 import { Link } from '../../i18n/navigation'
 import { PalcoCategorias } from './PalcoCategorias'
-import { MediaPlaceholder } from '../ui/MediaPlaceholder'
 
 /**
  * Categorias "de animal", um círculo por categoria (spec §7: "cada
  * categoria usa círculo de 104–116px com placeholder de imagem, label
  * abaixo").
  *
- * Fase estrutural v1: a cena fotográfica em `public/categorias/<slug>/`
- * (`fundo.webp` + `animal.webp`) fica de fora — o círculo usa um
- * `MediaPlaceholder` neutro. Os ficheiros continuam no disco para a fase de
- * criativos; é só a troca de `<MediaPlaceholder>` por `<Image>` que os
- * traz de volta, sem mudar o resto do layout.
+ * Os recortes de `public/categorias/<slug>/animal.webp` assentam sobre
+ * creme, em harmonia com a identidade laranja/teal da loja.
  *
  * Antes era um componente só, com a fiada de pills encostada ao fim sem
  * título — a home estrutural pede "escolha o teu animal" e "compra por
@@ -59,11 +56,18 @@ export async function EscolhaSeuAnimal({
                   branco; acende no hover, como tudo o que é clicável. */}
               <span className="block h-28 w-28 overflow-hidden rounded-pill border-2 border-orange/35 transition-[box-shadow,border-color] duration-300 ease-brand group-hover:border-orange group-hover:shadow-card group-focus-visible:border-orange group-focus-visible:shadow-card">
                 <span className="block h-full w-full transition-transform duration-300 ease-brand group-hover:scale-[1.03] group-focus-visible:scale-[1.03]">
-                  <MediaPlaceholder ratio="1/1" type="category" />
+                  <Image
+                    src={`/categorias/${c.slug}/animal.webp`}
+                    alt=""
+                    width={112}
+                    height={112}
+                    sizes="112px"
+                    className="h-full w-full bg-cream object-contain p-2"
+                  />
                 </span>
               </span>
 
-              {/* Label fora do círculo, nunca sobreposto ao placeholder. */}
+              {/* A legenda nomeia a categoria fora do círculo. */}
               <span>
                 <span className="block text-sm font-semibold text-text">{c.name}</span>
                 <span className="block text-xs tabular-nums text-text-muted">
@@ -77,4 +81,3 @@ export async function EscolhaSeuAnimal({
     </section>
   )
 }
-

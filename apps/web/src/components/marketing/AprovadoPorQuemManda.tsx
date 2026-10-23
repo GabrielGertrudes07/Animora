@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server'
+import Image from 'next/image'
 import { FOTOS_MARKETING } from '../../lib/fotosMarketing'
 import { getAvaliacaoLoja } from '../../modules/catalog'
-import { MediaPlaceholder } from '../ui/MediaPlaceholder'
 import { Estrelas } from '../ui/Estrelas'
 import { Revelar } from '../motion/Revelar'
 
@@ -68,9 +68,13 @@ export async function AprovadoPorQuemManda() {
         {testemunhos.map((tst) => (
           <li key={tst.assinatura} className="overflow-hidden rounded-lg border border-border bg-white">
             <div className="relative aspect-square">
-              {/* Fase estrutural v1: sem fotografia (`tst.src`/`tst.alt`
-                  preservados para a fase de criativos). */}
-              <MediaPlaceholder ratio="1/1" type="testimonial" fill />
+              <Image
+                src={tst.src}
+                alt={tst.alt}
+                fill
+                sizes="(min-width: 1280px) 286px, (min-width: 1024px) 23vw, (min-width: 640px) 46vw, 45vw"
+                className="object-cover"
+              />
             </div>
             <div className="p-4">
               <p className="text-sm font-semibold leading-snug text-text">{tst.fala}</p>
