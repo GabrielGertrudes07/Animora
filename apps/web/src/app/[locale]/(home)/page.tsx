@@ -5,12 +5,11 @@ import { Link } from '../../../i18n/navigation'
 import { ProductCard } from '../../../components/ui/ProductCard'
 import { CascataProdutos } from '../../../components/motion/CascataProdutos'
 import { Hero } from '../../../components/marketing/Hero'
-import { EscolhaSeuAnimal, ComprarPorNecessidade } from '../../../components/marketing/CategoriasVisuais'
+import { EscolhaSeuAnimal } from '../../../components/marketing/CategoriasVisuais'
 import { SecaoCampanha } from '../../../components/marketing/SecaoCampanha'
 import { DestaquesPorCategoria } from '../../../components/marketing/DestaquesPorCategoria'
 import { AprovadoPorQuemManda } from '../../../components/marketing/AprovadoPorQuemManda'
 import { Beneficios } from '../../../components/marketing/Beneficios'
-import { VistosRecentemente } from '../../../components/marketing/VistosRecentemente'
 import { ProductTabs } from '../../../components/home/ProductTabs'
 import { Marcas } from '../../../components/marketing/Marcas'
 import { JsonLd } from '../../../components/seo/JsonLd'
@@ -116,10 +115,7 @@ export default async function Home({ params }: Props) {
       />
       <Hero />
 
-      <VistosRecentemente />
-
       <EscolhaSeuAnimal categorias={categorias} contagens={contagens} />
-      <ComprarPorNecessidade categorias={categorias} />
 
       {gruposProdutos.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">

@@ -73,29 +73,3 @@ export async function EscolhaSeuAnimal({
   )
 }
 
-/** As categorias sem cena própria (Alimentação, Higiene, ...) — mesmo dado, secção com nome próprio. */
-export async function ComprarPorNecessidade({ categorias }: { categorias: Categoria[] }) {
-  const t = await getTranslations('ComprarPorNecessidade')
-  const porNecessidade = categorias.filter((c) => !COM_CENA.has(c.slug))
-  if (porNecessidade.length === 0) return null
-
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-      <h2 className="text-titulo">{t('titulo')}</h2>
-      <p className="mt-3 max-w-leitura text-text-muted">{t('texto')}</p>
-
-      <ul className="mt-6 flex flex-wrap gap-2">
-        {porNecessidade.map((c) => (
-          <li key={c.slug}>
-            <Link
-              href={`/${c.slug}`}
-              className="block rounded-full border border-border px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:border-orange hover:text-teal-900"
-            >
-              {c.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}

@@ -268,10 +268,6 @@
     "texto": "Cada bicho tem prateleira própria — e um jeito diferente de fazer render a mesada.",
     "produtos": "{count, plural, =0 {0 produtos} one {1 produto} other {# produtos}}"
   },
-  "ComprarPorNecessidade": {
-    "titulo": "Compra por necessidade",
-    "texto": "Sem animal certo em mente? Estas categorias cobrem o resto."
-  },
   "DestaquesPorCategoria": {
     "titulo": "Destaques por categoria",
     "verCategoria": "Ver categoria"
