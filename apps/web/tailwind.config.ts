@@ -53,6 +53,20 @@ export default {
         // ação (isso é `orange`).
         success: '#1F8A5B',
         danger: '#C84444',
+        // Legado da identidade antiga, apontado para a paleta atual. A troca
+        // de identidade renomeou os tokens mas ~20 páginas (carrinho,
+        // checkout, conta, ficha, 404...) ficaram com os nomes velhos — e um
+        // nome que não existe no Tailwind não gera classe nenhuma: campos sem
+        // borda, texto na cor do browser. Ao redesenhar cada página, trocar
+        // para o nome novo; quando nada os usar, apagar daqui.
+        ink: '#103F46', // text
+        'ink-muted': '#647679', // text-muted
+        line: '#E8ECEC', // border
+        papel: '#FFFFFF', // surface
+        terracota: '#ED6900', // orange
+        'terracota-dark': '#B85800', // orange-deep
+        sage: '#0F6F78', // teal-700
+        floresta: '#085B6B', // teal-900
       },
       fontFamily: {
         // Três famílias: Fredoka nos títulos (rounded, nunca abaixo de 24px),
@@ -92,6 +106,9 @@ export default {
         lg: '22px',
         xl: '28px',
         pill: '999px',
+        // Legado (ver as cores legadas acima): os dois raios antigos.
+        campo: '10px',
+        card: '14px',
       },
       boxShadow: {
         // Três elevações, todas tingidas de teal (não preto neutro): repouso
