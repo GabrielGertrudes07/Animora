@@ -98,10 +98,15 @@ export async function Header() {
   return (
     <>
       <header className="bg-surface">
+        {/* Abertura: as três faixas descem em cascata (CSS, `entrada-cima`
+            com atraso crescente), uma vez — o cabeçalho vive no layout e não
+            volta a montar ao navegar. CSS e não GSAP: corre desde a primeira
+            pintura, sem o piscar visível → escondido → visível de esperar
+            pela hidratação. */}
         {/* Barra promocional: ~28px, orange + texto branco (contraste
             AA — ver comentário acima). Slogan e "dados protegidos" só a
             partir de `sm`, mobile fica só com o envio grátis. */}
-        <div className="bg-orange px-4 py-1 sm:px-6">
+        <div className="bg-orange px-4 py-1 motion-safe:animate-entrada-cima sm:px-6">
           <ul className="mx-auto flex min-h-[26px] max-w-7xl flex-wrap items-center justify-center gap-x-6 gap-y-1 text-[13px] font-medium text-white sm:min-h-[28px] sm:text-xs">
             <li className="flex items-center gap-1.5">
               <Icon name="cart" className="h-3.5 w-3.5 shrink-0" />
@@ -120,7 +125,7 @@ export async function Header() {
 
         {/* Header principal: 56px mobile, 60px desktop fixos (era 64/80px),
             border-b sutil, sem sombra. */}
-        <div className="mx-auto flex min-h-14 max-w-7xl flex-wrap items-center gap-4 border-b border-border px-6 py-2 sm:min-h-[60px] sm:py-0">
+        <div className="mx-auto flex min-h-14 max-w-7xl flex-wrap items-center gap-4 border-b border-border px-6 py-2 motion-safe:animate-entrada-cima motion-safe:[animation-delay:90ms] sm:min-h-[60px] sm:py-0">
           {logo}
 
           <form
@@ -155,7 +160,7 @@ export async function Header() {
 
         <nav
           aria-label={t('categoriasAria')}
-          className="hidden border-b border-border sm:block"
+          className="hidden border-b border-border motion-safe:animate-entrada-cima motion-safe:[animation-delay:180ms] sm:block"
         >
           <MegaMenu paineis={paineis} id="mega-menu" />
         </nav>

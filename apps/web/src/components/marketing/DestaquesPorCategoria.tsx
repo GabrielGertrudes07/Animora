@@ -4,6 +4,7 @@ import type { ResumoAvaliacoes } from '@animora/core'
 import { Link } from '../../i18n/navigation'
 import { ProductCard } from '../ui/ProductCard'
 import { CascataProdutos } from '../motion/CascataProdutos'
+import { Revelar } from '../motion/Revelar'
 
 const SEM_AVALIACAO: ResumoAvaliacoes = { media: null, total: 0 }
 
@@ -35,7 +36,9 @@ export async function DestaquesPorCategoria({
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-      <h2 className="text-titulo text-text">{t('titulo')}</h2>
+      <Revelar>
+        <h2 className="text-titulo text-text">{t('titulo')}</h2>
+      </Revelar>
 
       <div className="mt-8 flex flex-col gap-12">
         {comProdutos.map(({ categoria, produtos }) => (

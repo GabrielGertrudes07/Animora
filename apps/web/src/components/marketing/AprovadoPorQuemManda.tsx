@@ -3,6 +3,7 @@ import { FOTOS_MARKETING } from '../../lib/fotosMarketing'
 import { getAvaliacaoLoja } from '../../modules/catalog'
 import { MediaPlaceholder } from '../ui/MediaPlaceholder'
 import { Estrelas } from '../ui/Estrelas'
+import { Revelar } from '../motion/Revelar'
 
 /**
  * Voz da marca, não avaliação de cliente — daí as citações serem assinadas
@@ -52,8 +53,10 @@ export async function AprovadoPorQuemManda() {
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-      <h2 className="text-titulo text-text">{t('titulo')}</h2>
-      <p className="mt-3 max-w-xl text-text-muted">{t('texto')}</p>
+      <Revelar>
+        <h2 className="text-titulo text-text">{t('titulo')}</h2>
+        <p className="mt-3 max-w-xl text-text-muted">{t('texto')}</p>
+      </Revelar>
 
       {avaliacaoLoja.media !== null ? (
         <div className="mt-5 flex items-center gap-2">

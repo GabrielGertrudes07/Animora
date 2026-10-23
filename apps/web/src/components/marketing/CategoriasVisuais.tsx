@@ -37,8 +37,11 @@ export async function EscolhaSeuAnimal({
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-secao sm:px-6">
-      <h2 className="text-titulo">{t('titulo')}</h2>
-      <p className="mt-3 max-w-leitura text-text-muted">{t('texto')}</p>
+      {/* Primeira secção abaixo do Hero, já no ecrã ao abrir: CSS e não
+          `Revelar`, para entrar desde a primeira pintura em vez de piscar à
+          espera da hidratação. */}
+      <h2 className="text-titulo motion-safe:animate-hero-copy motion-safe:[animation-delay:350ms]">{t('titulo')}</h2>
+      <p className="mt-3 max-w-leitura text-text-muted motion-safe:animate-hero-copy motion-safe:[animation-delay:450ms]">{t('texto')}</p>
 
       {/* Mobile: linha com scroll horizontal e snap por item (spec §7) — não
           espremer 6-8 círculos num grid minúsculo. Desktop: volta a grid,

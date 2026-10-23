@@ -130,11 +130,27 @@ export default {
           from: { opacity: '0', transform: 'translateY(14px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        // O cartão do banner inteiro assenta primeiro; as camadas lá dentro
+        // (hero-enter/hero-copy) chegam por cima dele.
+        'hero-banner': {
+          from: { opacity: '0', transform: 'translateY(16px) scale(0.985)' },
+          to: { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        'entrada-cima': {
+          from: { opacity: '0', transform: 'translateY(-10px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         'hero-enter': 'hero-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both',
         'hero-float': 'hero-float 4s cubic-bezier(0.445, 0.05, 0.55, 0.95) infinite',
         'hero-copy': 'hero-copy 0.6s cubic-bezier(0.22, 1, 0.36, 1) both',
+        // `backwards` e não `both`: o estado inicial vale durante o atraso,
+        // mas no fim não fica `transform` nenhum agarrado — um `transform`
+        // permanente criaria um contexto de empilhamento e prenderia o painel
+        // do mega-menu por baixo do banner.
+        'hero-banner': 'hero-banner 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards',
+        'entrada-cima': 'entrada-cima 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards',
       },
     },
   },
