@@ -102,7 +102,9 @@
   "ProductCard": {
     "esgotado": "Esgotado",
     "emStock": "{count} em stock",
-    "semStock": "Sem stock de momento"
+    "semStock": "Sem stock de momento",
+    "escolherOpcoes": "Escolher opções",
+    "escolherOpcoesAria": "Escolher opções de {produto}"
   },
   "Price": {
     "desde": "desde"

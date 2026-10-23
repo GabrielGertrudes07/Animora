@@ -102,7 +102,9 @@
   "ProductCard": {
     "esgotado": "Ausverkauft",
     "emStock": "{count} auf Lager",
-    "semStock": "Momentan nicht auf Lager"
+    "semStock": "Momentan nicht auf Lager",
+    "escolherOpcoes": "Optionen wählen",
+    "escolherOpcoesAria": "Optionen für {produto} wählen"
   },
   "Price": {
     "desde": "ab"

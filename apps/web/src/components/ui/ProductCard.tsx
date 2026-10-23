@@ -57,7 +57,9 @@ export async function ProductCard({
       data-cartao
       // Sombra de repouso (shadow-card) já suave; o hover sobe um nível
       // (shadow-card-hover), nunca aparece do nada.
-      className="group relative overflow-hidden rounded-lg border border-border bg-white shadow-card transition-shadow duration-200 ease-brand hover:shadow-card-hover"
+      // `flex-col` + `mt-auto` nas ações: os botões alinham-se em baixo em
+      // toda a linha da grelha, tenha o cartão seletor de quantidade ou não.
+      className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-white shadow-card transition-shadow duration-200 ease-brand hover:shadow-card-hover"
     >
       <Link href={`/produto/${product.slug}`} className="block">
         {/* 4:5 e não quadrado: o quadrado lê como grelha de marketplace, a
@@ -141,13 +143,26 @@ export async function ProductCard({
           repetir "Esgotado" aqui embaixo seria a terceira vez a dizer a
           mesma coisa. */}
       {unica && unica.stock > 0 ? (
-        <div className="px-5 pb-5">
+        <div className="mt-auto px-5 pb-5">
           <AdicionarAoCarrinho
             variantId={unica.id}
             esgotado={false}
             etiqueta={product.title}
             comQuantidade
           />
+        </div>
+      ) : !unica && stockTotal > 0 ? (
+        // Várias variantes (tamanho, cor...): o cartão não sabe qual pôr no
+        // carrinho, por isso leva à ficha, onde se escolhe. Sem isto o
+        // cartão ficava sem ação nenhuma ao lado dos que têm "Adicionar".
+        <div className="mt-auto px-5 pb-5">
+          <Link
+            href={`/produto/${product.slug}`}
+            aria-label={t('escolherOpcoesAria', { produto: product.title })}
+            className="botao-principal block min-h-11 w-full px-5 py-2 text-base sm:min-h-0 sm:px-4 sm:text-sm"
+          >
+            {t('escolherOpcoes')}
+          </Link>
         </div>
       ) : null}
     </article>
